@@ -24,10 +24,13 @@
     </div>
 
     <div class="container">
-        <!-- زر تغيير رمز المختبر -->
+        <!-- أزرار إدارة الرموز السرية -->
         <div class="text-end mb-3">
-            <button class="btn btn-sm btn-outline-dark" onclick="changeLabPasscode()">
+            <button class="btn btn-sm btn-outline-dark me-1" onclick="changeLabPasscode()">
                 <i class="bi bi-key-fill"></i> تغيير رمز المختبر
+            </button>
+            <button class="btn btn-sm btn-outline-danger" onclick="changeDeletePasscode()">
+                <i class="bi bi-shield-lock-fill"></i> تغيير رمز الحذف
             </button>
         </div>
 
@@ -116,18 +119,21 @@
         const ordersRef = collection(db, "meropenem_orders");
         const settingsRef = doc(db, "settings", "lab_config");
 
-        let currentLabPasscode = "1234"; // الرمز الافتراضي الأولي
+        let currentLabPasscode = "1234";    // الرمز الافتراضي للمختبر
+        let currentDeletePasscode = "9999"; // الرمز الافتراضي الخاص بالحذف
 
-        // تحميل والستماع المباشر لتغييرات كلمة سر المختبر من السحاب
+        // الاستماع المباشر لتغييرات الرموز السرية من Firebase
         onSnapshot(settingsRef, (docSnap) => {
             if (docSnap.exists()) {
-                currentLabPasscode = docSnap.data().passcode;
+                const data = docSnap.data();
+                currentLabPasscode = data.passcode || "1234";
+                currentDeletePasscode = data.deletePasscode || "9999";
             } else {
-                setDoc(settingsRef, { passcode: "1234" });
+                setDoc(settingsRef, { passcode: "1234", deletePasscode: "9999" });
             }
         });
 
-        // دالة تغيير رمز المختبر
+        // تغيير رمز المختبر (التأكيد/النفي)
         window.changeLabPasscode = async () => {
             const oldPass = prompt('الرجاء إدخال رمز المختبر الحالي:');
             if (oldPass === null) return;
@@ -144,10 +150,34 @@
             }
 
             try {
-                await setDoc(settingsRef, { passcode: newPass.trim() });
-                alert('✅ تم تغيير رمز المختبر بنجاح! يسري هذا الرمز على جميع الأجهزة الآن.');
+                await updateDoc(settingsRef, { passcode: newPass.trim() });
+                alert('✅ تم تغيير رمز المختبر بنجاح!');
             } catch (err) {
-                alert('حدث خطأ أثناء تغيير الرمز: ' + err.message);
+                alert('حدث خطأ أثناء التغيير: ' + err.message);
+            }
+        };
+
+        // تغيير رمز الحذف المخصص
+        window.changeDeletePasscode = async () => {
+            const oldPass = prompt('الرجاء إدخال رمز الحذف الحالي:');
+            if (oldPass === null) return;
+
+            if (oldPass !== currentDeletePasscode) {
+                alert('❌ رمز الحذف الحالي غير صحيح!');
+                return;
+            }
+
+            const newPass = prompt('أدخل رمز الحذف الجديد:');
+            if (!newPass || newPass.trim() === "") {
+                alert('❌ لا يمكن ترك الرمز فارغاً!');
+                return;
+            }
+
+            try {
+                await updateDoc(settingsRef, { deletePasscode: newPass.trim() });
+                alert('✅ تم تغيير رمز الحذف بنجاح!');
+            } catch (err) {
+                alert('حدث خطأ أثناء التغيير: ' + err.message);
             }
         };
 
@@ -233,7 +263,7 @@
             }).join('');
         };
 
-        // تحديث حالة العينة من قبل المختبر
+        // تحديث حالة العينة من قبل المختبر (يتطلب رمز المختبر)
         window.updateStatus = async (id, status) => {
             const enteredPass = prompt('الرجاء إدخال رمز التحقق الخاص بمختبر المايكروبايولوجي:');
             if (enteredPass === null) return;
@@ -258,16 +288,16 @@
             }
         };
 
-        // حذف الطلب مع التأكيد والرمز السري
+        // حذف الطلب مع التأكيد بطلب "كود الحذف المخصص"
         window.deleteOrder = async (id, patientName) => {
             const confirmDelete = confirm(`هل أنت متأكد حقاً من حذف سجل المريض: (${patientName})؟\nلا يمكن استرجاع البيانات بعد الحذف!`);
             if (!confirmDelete) return;
 
-            const enteredPass = prompt('الرجاء إدخال رمز المختبر لتأكيد عملية الحذف:');
+            const enteredPass = prompt('⚠️ إجراء حساس: أدخل "رمز الحذف المخصص" لتأكيد مسح هذا السجل:');
             if (enteredPass === null) return;
 
-            if (enteredPass !== currentLabPasscode) {
-                alert('❌ رمز التحقق غير صحيح! لا تملك صلاحية الحذف.');
+            if (enteredPass !== currentDeletePasscode) {
+                alert('❌ رمز الحذف غير صحيح! تم إلغاء عملية المسح.');
                 return;
             }
 
