@@ -181,9 +181,10 @@
                         <td>${statusBadge}</td>
                         <td><small class="text-muted">${o.notes || '-'}</small></td>
                         <td>
-                            <button class="btn btn-sm btn-success me-1" onclick="updateStatus('${o.id}', 'confirmed')"><i class="bi bi-check"></i> تأكيد</button>
-                            <button class="btn btn-sm btn-danger me-1" onclick="updateStatus('${o.id}', 'rejected')"><i class="bi bi-x"></i> نفي</button>
-                        </td>
+    <button class="btn btn-sm btn-success me-1" onclick="updateStatus('${o.id}', 'confirmed')"><i class="bi bi-check"></i> تأكيد</button>
+    <button class="btn btn-sm btn-danger me-1" onclick="updateStatus('${o.id}', 'rejected')"><i class="bi bi-x"></i> نفي</button>
+    <button class="btn btn-sm btn-outline-danger" onclick="deleteOrder('${o.id}', '${o.patientName}')"><i class="bi bi-trash"></i> حذف</button>
+</td>
                     </tr>
                 `;
             }).join('');
