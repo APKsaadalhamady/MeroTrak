@@ -21,7 +21,6 @@
         .header-title { background: linear-gradient(135deg, #0d6efd, #0a58ca); color: white; padding: 18px 0; margin-bottom: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
         .card { border-radius: 14px; border: none; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
         
-        /* تصميم بطاقات المرضى المخصص للهواتف */
         .order-card {
             background: white;
             border-radius: 12px;
@@ -51,34 +50,43 @@
     </div>
 
     <div class="container">
-        <!-- أزرار إدارة الرموز السرية -->
-        <div class="d-flex justify-content-end gap-2 mb-3">
-            <button class="btn btn-sm btn-outline-dark" onclick="changeLabPasscode()">
-                <i class="bi bi-key-fill"></i> رمز المختبر
-            </button>
-            <button class="btn btn-sm btn-outline-danger" onclick="changeDeletePasscode()">
-                <i class="bi bi-shield-lock-fill"></i> رمز الحذف
-            </button>
+        <!-- شريط الإجراءات العلوي والأزرار -->
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <a href="stats.html" class="btn btn-sm btn-primary shadow-sm">
+                <i class="bi bi-bar-chart-fill"></i> الإحصائيات والتقارير
+            </a>
+            <div class="d-flex gap-1">
+                <button class="btn btn-sm btn-outline-dark" onclick="changeLabPasscode()" title="رمز المختبر">
+                    <i class="bi bi-key-fill"></i>
+                </button>
+                <button class="btn btn-sm btn-outline-danger" onclick="changeDeletePasscode()" title="رمز الحذف">
+                    <i class="bi bi-shield-lock-fill"></i>
+                </button>
+            </div>
         </div>
 
         <!-- قسم إضافة طلب جديد -->
         <div class="card p-3 mb-3">
             <h6 class="card-title text-primary mb-3"><i class="bi bi-plus-circle-fill"></i> طلب جديد (الصيدلية)</h6>
             <form id="orderForm" class="row g-2">
-                <div class="col-12 col-md-4">
+                <div class="col-12 col-md-3">
                     <label class="filter-label">اسم المريض</label>
                     <input type="text" id="patientName" class="form-control" placeholder="اسم المريض الثلاثي" required>
                 </div>
-                <div class="col-6 col-md-4">
+                <div class="col-12 col-md-3">
+                    <label class="filter-label">الطبيب المسؤول</label>
+                    <input type="text" id="doctorName" class="form-control" placeholder="اسم الطبيب المعالج" required>
+                </div>
+                <div class="col-6 col-md-3">
                     <label class="filter-label">الردهة / القسم</label>
                     <input type="text" id="ward" class="form-control" placeholder="الردهة / القسم" required>
                 </div>
-                <div class="col-6 col-md-4">
+                <div class="col-6 col-md-3">
                     <label class="filter-label">تاريخ الطلب</label>
                     <input type="date" id="orderDate" class="form-control" required>
                 </div>
                 <div class="col-12 text-end mt-2">
-                    <button type="submit" class="btn btn-primary w-100 w-md-auto px-4"><i class="bi bi-send-fill"></i> إرسال الطلب</button>
+                    <button type="submit" class="btn btn-primary w-100 px-4"><i class="bi bi-send-fill"></i> إرسال الطلب</button>
                 </div>
             </form>
         </div>
@@ -88,15 +96,14 @@
             <h6 class="card-title text-secondary mb-2"><i class="bi bi-search"></i> البحث والفلترة</h6>
             <div class="row g-2">
                 <div class="col-12 col-md-6">
-                    <label class="filter-label"><i class="bi bi-person"></i> ابحث بالاسم</label>
-                    <input type="text" id="searchInput" class="form-control form-control-sm" placeholder="اكتب اسم المريض...">
+                    <label class="filter-label"><i class="bi bi-person"></i> ابحث بالاسم أو اسم الطبيب</label>
+                    <input type="text" id="searchInput" class="form-control form-control-sm" placeholder="ابحث باسم المريض أو الطبيب...">
                 </div>
                 <div class="col-12 col-md-6">
                     <label class="filter-label"><i class="bi bi-hospital"></i> فلترة بالردهة</label>
                     <input type="text" id="wardFilter" class="form-control form-control-sm" placeholder="اكتب اسم الردهة...">
                 </div>
                 
-                <!-- حقول التواريخ في سطر واحد -->
                 <div class="col-6">
                     <label class="filter-label"><i class="bi bi-calendar-event"></i> من تاريخ</label>
                     <input type="date" id="startDateFilter" class="form-control form-control-sm">
@@ -106,7 +113,6 @@
                     <input type="date" id="endDateFilter" class="form-control form-control-sm">
                 </div>
 
-                <!-- زر إعادة التصفية أسفل التواريخ -->
                 <div class="col-12 mt-2">
                     <button class="btn btn-sm btn-outline-secondary w-100" onclick="resetFilters()">
                         <i class="bi bi-x-circle"></i> مسح الفلاتر
@@ -115,7 +121,7 @@
             </div>
         </div>
 
-        <!-- قائمة الطلبات (عرض بطاقات مخصص للهاتف) -->
+        <!-- قائمة الطلبات -->
         <div class="mb-2">
             <h6 class="text-dark mb-3"><i class="bi bi-list-task"></i> سجل الطلبات</h6>
             <div id="ordersContainer">
@@ -201,12 +207,14 @@
         document.getElementById('orderForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const name = document.getElementById('patientName').value.trim();
+            const doctor = document.getElementById('doctorName').value.trim();
             const ward = document.getElementById('ward').value.trim();
             const date = document.getElementById('orderDate').value;
 
             try {
                 await addDoc(ordersRef, {
                     patientName: name,
+                    doctorName: doctor,
                     ward: ward,
                     orderDate: date,
                     status: 'pending',
@@ -235,7 +243,7 @@
             const endDateVal = document.getElementById('endDateFilter').value;
 
             const filtered = allOrders.filter(o => {
-                const matchName = o.patientName.toLowerCase().includes(searchVal);
+                const matchName = o.patientName.toLowerCase().includes(searchVal) || (o.doctorName && o.doctorName.toLowerCase().includes(searchVal));
                 const matchWard = o.ward.toLowerCase().includes(wardVal);
                 
                 let matchDate = true;
@@ -276,7 +284,8 @@
                         <div class="d-flex justify-content-between align-items-start mb-2">
                             <div>
                                 <h6 class="mb-1 text-dark fw-bold">${o.patientName}</h6>
-                                <span class="badge bg-secondary">${o.ward}</span>
+                                <span class="badge bg-secondary me-1">${o.ward}</span>
+                                <span class="badge bg-light text-dark border"><i class="bi bi-person-badge"></i> د. ${o.doctorName || 'غير محدد'}</span>
                             </div>
                             <div>${statusBadge}</div>
                         </div>
