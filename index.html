@@ -231,6 +231,30 @@ window.updateStatus = async (id, status) => {
             document.getElementById('dateFilter').value = '';
             renderOrders();
         };
+        // دالة حذف الطلب مع التأكيد والرمز السري
+window.deleteOrder = async (id, patientName) => {
+    // 1. تأكيد أول: هل أنت تأكد من الحذف؟
+    const confirmDelete = confirm(`هل أنت تأكد حقاً من حذف سجل المريض: (${patientName})؟\nلا يمكن استرجاع البيانات بعد الحذف!`);
+    if (!confirmDelete) return;
+
+    // 2. تأكيد ثاني: طلب الرمز السري للحذف (لحماية السجلات)
+    const enteredPass = prompt('الرجاء إدخال رمز التحقق لتأكيد حذف هذا السجل:');
+    if (enteredPass === null) return;
+
+    if (enteredPass !== LAB_PASSCODE) {
+        alert('❌ رمز التحقق غير صحيح! لا تملك صلاحية حذف السجلات.');
+        return;
+    }
+
+    // 3. تنفيذ الحذف من قاعدة البيانات
+    try {
+        const { deleteDoc, doc } = await import("https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js");
+        await deleteDoc(doc(db, "meropenem_orders", id));
+        alert('🗑️ تم حذف السجل بنجاح.');
+    } catch (err) {
+        alert('حدث خطأ أثناء الحذف: ' + err.message);
+    }
+};
     </script>
 </body>
 </html>
