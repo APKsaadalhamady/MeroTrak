@@ -83,38 +83,55 @@
         </div>
 
         <!-- الرسوم البيانية -->
-        <div class="row g-3">
-            <!-- توزيع الحالات -->
+        <div class="row g-3 mb-3">
             <div class="col-12 col-md-4">
                 <div class="card p-3 text-center">
                     <h6 class="text-secondary mb-3">توزيع نسب الحالات</h6>
-                    <div style="max-height: 230px; display: flex; justify-content: center;">
+                    <div style="max-height: 220px; display: flex; justify-content: center;">
                         <canvas id="statusPieChart"></canvas>
                     </div>
                 </div>
             </div>
-            <!-- الطلبات حسب الأطباء -->
             <div class="col-12 col-md-4">
                 <div class="card p-3 text-center">
                     <h6 class="text-secondary mb-3">أكثر الأطباء طالباً للميروبينيم</h6>
-                    <div style="max-height: 230px; display: flex; justify-content: center;">
+                    <div style="max-height: 220px; display: flex; justify-content: center;">
                         <canvas id="doctorsBarChart"></canvas>
                     </div>
                 </div>
             </div>
-            <!-- الطلبات حسب الردهات -->
             <div class="col-12 col-md-4">
                 <div class="card p-3 text-center">
                     <h6 class="text-secondary mb-3">الطلبات حسب الردهات</h6>
-                    <div style="max-height: 230px; display: flex; justify-content: center;">
+                    <div style="max-height: 220px; display: flex; justify-content: center;">
                         <canvas id="wardsBarChart"></canvas>
                     </div>
                 </div>
             </div>
         </div>
+
+        <!-- جدول تحليل عدم إرسال العينات حسب الطبيب -->
+        <div class="card p-3">
+            <h6 class="text-danger mb-3"><i class="bi bi-exclamation-triangle-fill"></i> تحليل الأطباء غير الملتزمين بإرسال العينات (العينات المنفية)</h6>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead class="table-light fs-7">
+                        <tr>
+                            <th>اسم الطبيب</th>
+                            <th>عدد الحالات المنفية (لم ترسل عينة)</th>
+                            <th>إجمالي طلبات الطبيب</th>
+                            <th>نسبة عدم الإرسال ❌</th>
+                        </tr>
+                    </thead>
+                    <tbody id="doctorsNonComplianceBody" class="fs-7">
+                        <tr><td colspan="4" class="text-center text-muted">جاري تحميل البيانات...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
     </div>
 
-    <!-- Firebase Script لجمع الإحصائيات -->
+    <!-- Firebase Script -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getFirestore, collection, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
@@ -171,10 +188,10 @@
             document.getElementById('rejectedCount').innerHTML = `${rejected} <span class="fs-7 font-monospace text-muted">(${total ? Math.round((rejected/total)*100) : 0}%)</span>`;
             document.getElementById('pendingCount').innerHTML = `${pending} <span class="fs-7 font-monospace text-muted">(${total ? Math.round((pending/total)*100) : 0}%)</span>`;
 
-            // إحصائيات الردهات
+            // إحصائيات الردهات والأطباء
             const wardsCount = {};
-            // إحصائيات الأطباء
             const doctorsCount = {};
+            const doctorsRejectedCount = {};
 
             filteredOrders.forEach(o => {
                 const w = o.ward ? o.ward.trim() : 'أخرى';
@@ -182,13 +199,50 @@
 
                 const docName = o.doctorName ? o.doctorName.trim() : 'غير محدد';
                 doctorsCount[docName] = (doctorsCount[docName] || 0) + 1;
+
+                if (o.status === 'rejected') {
+                    doctorsRejectedCount[docName] = (doctorsRejectedCount[docName] || 0) + 1;
+                }
             });
 
             updateCharts(confirmed, rejected, pending, wardsCount, doctorsCount);
+            renderNonComplianceTable(doctorsCount, doctorsRejectedCount);
         };
 
+        function renderNonComplianceTable(doctorsTotal, doctorsRejected) {
+            const tbody = document.getElementById('doctorsNonComplianceBody');
+            const docList = Object.keys(doctorsTotal);
+
+            if (docList.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="4" class="text-center text-muted">لا توجد بيانات متاحة لهذا الشهر</td></tr>';
+                return;
+            }
+
+            // ترتيب الأطباء حسب أعلى عدد عينات منفية
+            docList.sort((a, b) => (doctorsRejected[b] || 0) - (doctorsRejected[a] || 0));
+
+            tbody.innerHTML = docList.map(docName => {
+                const total = doctorsTotal[docName] || 0;
+                const rejected = doctorsRejected[docName] || 0;
+                const ratio = total ? Math.round((rejected / total) * 100) : 0;
+
+                let badgeColor = 'bg-secondary';
+                if (ratio > 50) badgeColor = 'bg-danger';
+                else if (ratio > 20) badgeColor = 'bg-warning text-dark';
+                else if (ratio === 0) badgeColor = 'bg-success';
+
+                return `
+                    <tr>
+                        <td><strong>د. ${docName}</strong></td>
+                        <td class="text-danger fw-bold">${rejected}</td>
+                        <td>${total}</td>
+                        <td><span class="badge ${badgeColor} fs-7">${ratio}%</span></td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
         function updateCharts(confirmed, rejected, pending, wardsCount, doctorsCount) {
-            // 1. رسم الدائرة النسبية
             const pieCtx = document.getElementById('statusPieChart').getContext('2d');
             if (pieChartInstance) pieChartInstance.destroy();
             pieChartInstance = new Chart(pieCtx, {
@@ -203,7 +257,6 @@
                 options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
             });
 
-            // 2. رسم أعمدة الردهات
             const wardsCtx = document.getElementById('wardsBarChart').getContext('2d');
             if (wardsChartInstance) wardsChartInstance.destroy();
             wardsChartInstance = new Chart(wardsCtx, {
@@ -220,7 +273,6 @@
                 options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } } }
             });
 
-            // 3. رسم أعمدة الأطباء
             const docsCtx = document.getElementById('doctorsBarChart').getContext('2d');
             if (doctorsChartInstance) doctorsChartInstance.destroy();
             doctorsChartInstance = new Chart(docsCtx, {
