@@ -190,17 +190,35 @@
         };
 
         // تحديث حالة العينة من قبل المختبر
-        window.updateStatus = async (id, status) => {
-            const note = prompt(status === 'confirmed' ? 'أدخل ملاحظة (اختياري - مثل: تم سحب عينة دم):' : 'سبب عدم التنزيل/الارسال (اختياري):');
-            if (note === null) return; // cancel
+        // كلمة السر الخاصة بمختبر المايكروبايولوجي
+const LAB_PASSCODE = "1234"; // 👈 يمكنك تغيير كلمة السر هنا إلى أي رمز تريد
 
-            const orderDoc = doc(db, "meropenem_orders", id);
-            await updateDoc(orderDoc, {
-                status: status,
-                notes: note
-            });
-        };
+// تحديث حالة العينة من قبل المختبر فقط
+window.updateStatus = async (id, status) => {
+    // طلب كلمة السر من المستخدم
+    const enteredPass = prompt('الرجاء إدخال رمز التحقق الخاص بمختبر المايكروبايولوجي:');
+    
+    if (enteredPass === null) return; // تم إلغاء الأمر
 
+    if (enteredPass !== LAB_PASSCODE) {
+        alert('❌ رمز التحقق غير صحيح! لا تملك صلاحية تعديل موقف العينة.');
+        return;
+    }
+
+    const note = prompt(status === 'confirmed' ? 'أدخل ملاحظة (اختياري - مثل: تم سحب عينة دم):' : 'سبب عدم التنزيل/الإرسال (اختياري):');
+    if (note === null) return;
+
+    try {
+        const orderDoc = doc(db, "meropenem_orders", id);
+        await updateDoc(orderDoc, {
+            status: status,
+            notes: note
+        });
+        alert('✅ تم تحديث موقف العينة بنجاح');
+    } catch (err) {
+        alert('حدث خطأ أثناء التحديث: ' + err.message);
+    }
+};
         // أحداث البحث
         document.getElementById('searchInput').addEventListener('input', renderOrders);
         document.getElementById('wardFilter').addEventListener('input', renderOrders);
