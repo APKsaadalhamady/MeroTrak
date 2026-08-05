@@ -49,8 +49,8 @@
                     <input type="text" id="ward" class="form-control" placeholder="مثال: العناية المركزة، الباطنية..." required>
                 </div>
                 <div class="col-md-4">
-                    <label class="form-label">تاريخ ووقت الطلب</label>
-                    <input type="datetime-local" id="orderDate" class="form-control" required>
+                    <label class="form-label">تاريخ الطلب (يوم/شهر/سنة)</label>
+                    <input type="date" id="orderDate" class="form-control" required>
                 </div>
                 <div class="col-12 text-end">
                     <button type="submit" class="btn btn-primary px-4"><i class="bi bi-send-fill"></i> إرسال الطلب</button>
@@ -62,16 +62,23 @@
         <div class="card p-3 mb-4 bg-white">
             <h5 class="card-title text-secondary mb-3"><i class="bi bi-search"></i> البحث والفلترة</h5>
             <div class="row g-2">
-                <div class="col-md-4">
+                <div class="col-md-3">
+                    <label class="form-label fs-7 text-muted mb-1">اسم المريض</label>
                     <input type="text" id="searchInput" class="form-control" placeholder="ابحث باسم المريض...">
                 </div>
                 <div class="col-md-3">
+                    <label class="form-label fs-7 text-muted mb-1">الردهة</label>
                     <input type="text" id="wardFilter" class="form-control" placeholder="فلترة حسب الردهة...">
                 </div>
-                <div class="col-md-3">
-                    <input type="date" id="dateFilter" class="form-control">
+                <div class="col-md-2">
+                    <label class="form-label fs-7 text-muted mb-1">من تاريخ</label>
+                    <input type="date" id="startDateFilter" class="form-control">
                 </div>
                 <div class="col-md-2">
+                    <label class="form-label fs-7 text-muted mb-1">إلى تاريخ</label>
+                    <input type="date" id="endDateFilter" class="form-control">
+                </div>
+                <div class="col-md-2 d-flex align-items-end">
                     <button class="btn btn-outline-secondary w-100" onclick="resetFilters()"><i class="bi bi-arrow-counterclockwise"></i> إعادة ضبط</button>
                 </div>
             </div>
@@ -183,8 +190,8 @@
             }
         };
 
-        // ضبط الوقت التلقائي في خانة الإدخال
-        document.getElementById('orderDate').value = new Date().toISOString().slice(0, 16);
+        // ضبط تاريخ اليوم التلقائي بفرمتة (YYYY-MM-DD)
+        document.getElementById('orderDate').value = new Date().toISOString().split('T')[0];
 
         let allOrders = [];
 
@@ -205,7 +212,7 @@
                     createdAt: new Date()
                 });
                 document.getElementById('orderForm').reset();
-                document.getElementById('orderDate').value = new Date().toISOString().slice(0, 16);
+                document.getElementById('orderDate').value = new Date().toISOString().split('T')[0];
                 alert('تمت إضافة الطلب بنجاح');
             } catch (err) {
                 alert('حدث خطأ أثناء الإضافة: ' + err.message);
@@ -222,16 +229,27 @@
             renderOrders();
         });
 
-        // عرض البيانات مع الفلترة
+        // عرض البيانات مع الفلترة المتقدمة (بالاسم، الردهة، والتاريخ من/إلى)
         window.renderOrders = () => {
             const searchVal = document.getElementById('searchInput').value.toLowerCase();
             const wardVal = document.getElementById('wardFilter').value.toLowerCase();
-            const dateVal = document.getElementById('dateFilter').value;
+            const startDateVal = document.getElementById('startDateFilter').value;
+            const endDateVal = document.getElementById('endDateFilter').value;
 
             const filtered = allOrders.filter(o => {
                 const matchName = o.patientName.toLowerCase().includes(searchVal);
                 const matchWard = o.ward.toLowerCase().includes(wardVal);
-                const matchDate = dateVal ? o.orderDate.startsWith(dateVal) : true;
+                
+                // فلترة نطاق التاريخ
+                let matchDate = true;
+                if (startDateVal && endDateVal) {
+                    matchDate = o.orderDate >= startDateVal && o.orderDate <= endDateVal;
+                } else if (startDateVal) {
+                    matchDate = o.orderDate >= startDateVal;
+                } else if (endDateVal) {
+                    matchDate = o.orderDate <= endDateVal;
+                }
+
                 return matchName && matchWard && matchDate;
             });
 
@@ -246,13 +264,15 @@
                 if (o.status === 'confirmed') statusBadge = '<span class="status-badge status-done"><i class="bi bi-check-circle"></i> تم أخذ العينة ✅</span>';
                 if (o.status === 'rejected') statusBadge = '<span class="status-badge status-rejected"><i class="bi bi-x-circle"></i> لم ترسل عينة ❌</span>';
 
-                const formattedDate = new Date(o.orderDate).toLocaleString('ar-IQ', { dateStyle: 'short', timeStyle: 'short' });
+                // تنسيق التواريخ لعرض (يوم/شهر/سنة)
+                const dateParts = o.orderDate.split('-');
+                const formattedDate = dateParts.length === 3 ? `${dateParts[2]}/${dateParts[1]}/${dateParts[0]}` : o.orderDate;
 
                 return `
                     <tr>
                         <td><strong>${o.patientName}</strong></td>
                         <td><span class="badge bg-secondary">${o.ward}</span></td>
-                        <td><small>${formattedDate}</small></td>
+                        <td><small class="fw-bold">${formattedDate}</small></td>
                         <td>${statusBadge}</td>
                         <td><small class="text-muted">${o.notes || '-'}</small></td>
                         <td>
@@ -312,15 +332,17 @@
             }
         };
 
-        // أحداث البحث
+        // أحداث البحث والفلترة اللحظية
         document.getElementById('searchInput').addEventListener('input', renderOrders);
         document.getElementById('wardFilter').addEventListener('input', renderOrders);
-        document.getElementById('dateFilter').addEventListener('change', renderOrders);
+        document.getElementById('startDateFilter').addEventListener('change', renderOrders);
+        document.getElementById('endDateFilter').addEventListener('change', renderOrders);
 
         window.resetFilters = () => {
             document.getElementById('searchInput').value = '';
             document.getElementById('wardFilter').value = '';
-            document.getElementById('dateFilter').value = '';
+            document.getElementById('startDateFilter').value = '';
+            document.getElementById('endDateFilter').value = '';
             renderOrders();
         };
     </script>
