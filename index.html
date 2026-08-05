@@ -40,6 +40,7 @@
         .status-rejected { background-color: #f8d7da; color: #842029; }
         
         .action-btns .btn { padding: 6px 12px; font-size: 0.85rem; border-radius: 8px; }
+        .filter-label { font-size: 0.78rem; font-weight: 600; color: #495057; margin-bottom: 3px; display: block; }
     </style>
 </head>
 <body>
@@ -65,12 +66,15 @@
             <h6 class="card-title text-primary mb-3"><i class="bi bi-plus-circle-fill"></i> طلب جديد (الصيدلية)</h6>
             <form id="orderForm" class="row g-2">
                 <div class="col-12 col-md-4">
+                    <label class="filter-label">اسم المريض</label>
                     <input type="text" id="patientName" class="form-control" placeholder="اسم المريض الثلاثي" required>
                 </div>
                 <div class="col-6 col-md-4">
+                    <label class="filter-label">الردهة / القسم</label>
                     <input type="text" id="ward" class="form-control" placeholder="الردهة / القسم" required>
                 </div>
                 <div class="col-6 col-md-4">
+                    <label class="filter-label">تاريخ الطلب</label>
                     <input type="date" id="orderDate" class="form-control" required>
                 </div>
                 <div class="col-12 text-end mt-2">
@@ -84,19 +88,23 @@
             <h6 class="card-title text-secondary mb-2"><i class="bi bi-search"></i> البحث والفلترة</h6>
             <div class="row g-2">
                 <div class="col-12 col-md-3">
-                    <input type="text" id="searchInput" class="form-control form-control-sm" placeholder="ابحث باسم المريض...">
+                    <label class="filter-label"><i class="bi bi-person"></i> ابحث بالاسم</label>
+                    <input type="text" id="searchInput" class="form-control form-control-sm" placeholder="اكتب اسم المريض...">
                 </div>
                 <div class="col-6 col-md-3">
-                    <input type="text" id="wardFilter" class="form-control form-control-sm" placeholder="فلترة بالردهة...">
+                    <label class="filter-label"><i class="bi bi-hospital"></i> فلترة بالردهة</label>
+                    <input type="text" id="wardFilter" class="form-control form-control-sm" placeholder="اكتب اسم الردهة...">
                 </div>
-                <div class="col-3 col-md-2">
-                    <input type="date" id="startDateFilter" class="form-control form-control-sm" title="من تاريخ">
+                <div class="col-6 col-md-2">
+                    <label class="filter-label"><i class="bi bi-calendar-event"></i> من تاريخ</label>
+                    <input type="date" id="startDateFilter" class="form-control form-control-sm">
                 </div>
-                <div class="col-3 col-md-2">
-                    <input type="date" id="endDateFilter" class="form-control form-control-sm" title="إلى تاريخ">
+                <div class="col-6 col-md-2">
+                    <label class="filter-label"><i class="bi bi-calendar-event-fill"></i> إلى تاريخ</label>
+                    <input type="date" id="endDateFilter" class="form-control form-control-sm">
                 </div>
-                <div class="col-12 col-md-2">
-                    <button class="btn btn-sm btn-outline-secondary w-100" onclick="resetFilters()"><i class="bi bi-arrow-counterclockwise"></i> إعادة ضبط</button>
+                <div class="col-6 col-md-2 d-flex align-items-end">
+                    <button class="btn btn-sm btn-outline-secondary w-100 mt-2 mt-md-0" onclick="resetFilters()"><i class="bi bi-arrow-counterclockwise"></i> إعادة ضبط</button>
                 </div>
             </div>
         </div>
@@ -214,7 +222,6 @@
             renderOrders();
         });
 
-        // عرض السجلات بصيغة بطاقات تفاعلية أنيقة للهواتف
         window.renderOrders = () => {
             const searchVal = document.getElementById('searchInput').value.toLowerCase();
             const wardVal = document.getElementById('wardFilter').value.toLowerCase();
