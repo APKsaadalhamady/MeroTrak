@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>نظام متابعة طلبات الميروبينيم</title>
+    <title>MeroTrack - نظام متابعة طلبات الميروبينيم</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.rtl.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
     <style>
@@ -19,11 +19,18 @@
 <body>
 
     <div class="header-title text-center">
-        <h3><i class="bi bi-capsule"></i> نظام متابعة طلبات الميروبينيم</h3>
+        <h3><i class="bi bi-capsule"></i> نظام متابعة طلبات الميروبينيم (MeroTrack)</h3>
         <p class="mb-0 fs-6">التنسيق بين الصيدلية الداخلية ومختبر الأحياء المجهرية</p>
     </div>
 
     <div class="container">
+        <!-- زر تغيير رمز المختبر -->
+        <div class="text-end mb-3">
+            <button class="btn btn-sm btn-outline-dark" onclick="changeLabPasscode()">
+                <i class="bi bi-key-fill"></i> تغيير رمز المختبر
+            </button>
+        </div>
+
         <!-- قسم إضافة طلب جديد -->
         <div class="card p-3 mb-4">
             <h5 class="card-title text-primary mb-3"><i class="bi bi-plus-circle-fill"></i> إدخال طلب جديد (الصيدلية)</h5>
@@ -91,10 +98,10 @@
     <!-- Firebase SDK -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, collection, addDoc, onSnapshot, doc, updateDoc, query, orderBy } 
+        import { getFirestore, collection, addDoc, onSnapshot, doc, updateDoc, deleteDoc, getDoc, setDoc, query, orderBy } 
         from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-        // ⚠️ استبدل القيم التالية ببيانات مشروعك من Firebase
+        // بيانات مشروعك المخصصة من Firebase
         const firebaseConfig = {
             apiKey: "AIzaSyCqm16V1ESpEbZZ8SJA8GTzFdtbexrPwaE",
             authDomain: "meropenem-app.firebaseapp.com",
@@ -107,6 +114,42 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
         const ordersRef = collection(db, "meropenem_orders");
+        const settingsRef = doc(db, "settings", "lab_config");
+
+        let currentLabPasscode = "1234"; // الرمز الافتراضي الأولي
+
+        // تحميل والستماع المباشر لتغييرات كلمة سر المختبر من السحاب
+        onSnapshot(settingsRef, (docSnap) => {
+            if (docSnap.exists()) {
+                currentLabPasscode = docSnap.data().passcode;
+            } else {
+                setDoc(settingsRef, { passcode: "1234" });
+            }
+        });
+
+        // دالة تغيير رمز المختبر
+        window.changeLabPasscode = async () => {
+            const oldPass = prompt('الرجاء إدخال رمز المختبر الحالي:');
+            if (oldPass === null) return;
+
+            if (oldPass !== currentLabPasscode) {
+                alert('❌ رمز المختبر الحالي غير صحيح!');
+                return;
+            }
+
+            const newPass = prompt('أدخل الرمز الجديد للمختبر:');
+            if (!newPass || newPass.trim() === "") {
+                alert('❌ لا يمكن ترك الرمز فارغاً!');
+                return;
+            }
+
+            try {
+                await setDoc(settingsRef, { passcode: newPass.trim() });
+                alert('✅ تم تغيير رمز المختبر بنجاح! يسري هذا الرمز على جميع الأجهزة الآن.');
+            } catch (err) {
+                alert('حدث خطأ أثناء تغيير الرمز: ' + err.message);
+            }
+        };
 
         // ضبط الوقت التلقائي في خانة الإدخال
         document.getElementById('orderDate').value = new Date().toISOString().slice(0, 16);
@@ -181,45 +224,62 @@
                         <td>${statusBadge}</td>
                         <td><small class="text-muted">${o.notes || '-'}</small></td>
                         <td>
-    <button class="btn btn-sm btn-success me-1" onclick="updateStatus('${o.id}', 'confirmed')"><i class="bi bi-check"></i> تأكيد</button>
-    <button class="btn btn-sm btn-danger me-1" onclick="updateStatus('${o.id}', 'rejected')"><i class="bi bi-x"></i> نفي</button>
-    <button class="btn btn-sm btn-outline-danger" onclick="deleteOrder('${o.id}', '${o.patientName}')"><i class="bi bi-trash"></i> حذف</button>
-</td>
+                            <button class="btn btn-sm btn-success me-1" onclick="updateStatus('${o.id}', 'confirmed')"><i class="bi bi-check"></i> تأكيد</button>
+                            <button class="btn btn-sm btn-danger me-1" onclick="updateStatus('${o.id}', 'rejected')"><i class="bi bi-x"></i> نفي</button>
+                            <button class="btn btn-sm btn-outline-danger" onclick="deleteOrder('${o.id}', '${o.patientName}')"><i class="bi bi-trash"></i> حذف</button>
+                        </td>
                     </tr>
                 `;
             }).join('');
         };
 
         // تحديث حالة العينة من قبل المختبر
-        // كلمة السر الخاصة بمختبر المايكروبايولوجي
-const LAB_PASSCODE = "1234"; // 👈 يمكنك تغيير كلمة السر هنا إلى أي رمز تريد
+        window.updateStatus = async (id, status) => {
+            const enteredPass = prompt('الرجاء إدخال رمز التحقق الخاص بمختبر المايكروبايولوجي:');
+            if (enteredPass === null) return;
 
-// تحديث حالة العينة من قبل المختبر فقط
-window.updateStatus = async (id, status) => {
-    // طلب كلمة السر من المستخدم
-    const enteredPass = prompt('الرجاء إدخال رمز التحقق الخاص بمختبر المايكروبايولوجي:');
-    
-    if (enteredPass === null) return; // تم إلغاء الأمر
+            if (enteredPass !== currentLabPasscode) {
+                alert('❌ رمز التحقق غير صحيح! لا تملك صلاحية تعديل موقف العينة.');
+                return;
+            }
 
-    if (enteredPass !== LAB_PASSCODE) {
-        alert('❌ رمز التحقق غير صحيح! لا تملك صلاحية تعديل موقف العينة.');
-        return;
-    }
+            const note = prompt(status === 'confirmed' ? 'أدخل ملاحظة (اختياري - مثل: تم سحب عينة دم):' : 'سبب عدم التنزيل/الإرسال (اختياري):');
+            if (note === null) return;
 
-    const note = prompt(status === 'confirmed' ? 'أدخل ملاحظة (اختياري - مثل: تم سحب عينة دم):' : 'سبب عدم التنزيل/الإرسال (اختياري):');
-    if (note === null) return;
+            try {
+                const orderDoc = doc(db, "meropenem_orders", id);
+                await updateDoc(orderDoc, {
+                    status: status,
+                    notes: note
+                });
+                alert('✅ تم تحديث موقف العينة بنجاح');
+            } catch (err) {
+                alert('حدث خطأ أثناء التحديث: ' + err.message);
+            }
+        };
 
-    try {
-        const orderDoc = doc(db, "meropenem_orders", id);
-        await updateDoc(orderDoc, {
-            status: status,
-            notes: note
-        });
-        alert('✅ تم تحديث موقف العينة بنجاح');
-    } catch (err) {
-        alert('حدث خطأ أثناء التحديث: ' + err.message);
-    }
-};
+        // حذف الطلب مع التأكيد والرمز السري
+        window.deleteOrder = async (id, patientName) => {
+            const confirmDelete = confirm(`هل أنت متأكد حقاً من حذف سجل المريض: (${patientName})؟\nلا يمكن استرجاع البيانات بعد الحذف!`);
+            if (!confirmDelete) return;
+
+            const enteredPass = prompt('الرجاء إدخال رمز المختبر لتأكيد عملية الحذف:');
+            if (enteredPass === null) return;
+
+            if (enteredPass !== currentLabPasscode) {
+                alert('❌ رمز التحقق غير صحيح! لا تملك صلاحية الحذف.');
+                return;
+            }
+
+            try {
+                const orderDoc = doc(db, "meropenem_orders", id);
+                await deleteDoc(orderDoc);
+                alert('🗑️ تم حذف السجل بنجاح');
+            } catch (err) {
+                alert('حدث خطأ أثناء الحذف: ' + err.message);
+            }
+        };
+
         // أحداث البحث
         document.getElementById('searchInput').addEventListener('input', renderOrders);
         document.getElementById('wardFilter').addEventListener('input', renderOrders);
@@ -231,30 +291,6 @@ window.updateStatus = async (id, status) => {
             document.getElementById('dateFilter').value = '';
             renderOrders();
         };
-        // دالة حذف الطلب مع التأكيد والرمز السري
-window.deleteOrder = async (id, patientName) => {
-    // 1. تأكيد أول: هل أنت تأكد من الحذف؟
-    const confirmDelete = confirm(`هل أنت تأكد حقاً من حذف سجل المريض: (${patientName})؟\nلا يمكن استرجاع البيانات بعد الحذف!`);
-    if (!confirmDelete) return;
-
-    // 2. تأكيد ثاني: طلب الرمز السري للحذف (لحماية السجلات)
-    const enteredPass = prompt('الرجاء إدخال رمز التحقق لتأكيد حذف هذا السجل:');
-    if (enteredPass === null) return;
-
-    if (enteredPass !== LAB_PASSCODE) {
-        alert('❌ رمز التحقق غير صحيح! لا تملك صلاحية حذف السجلات.');
-        return;
-    }
-
-    // 3. تنفيذ الحذف من قاعدة البيانات
-    try {
-        const { deleteDoc, doc } = await import("https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js");
-        await deleteDoc(doc(db, "meropenem_orders", id));
-        alert('🗑️ تم حذف السجل بنجاح.');
-    } catch (err) {
-        alert('حدث خطأ أثناء الحذف: ' + err.message);
-    }
-};
     </script>
 </body>
 </html>
