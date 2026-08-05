@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     
-    <!-- أسطر منع الكاش (Cache-Control) لضمان التحديث التلقائي الفوري على الهواتف -->
+    <!-- منع التخزين المؤقت للذاكرة (No-Cache) -->
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
     <meta http-equiv="Pragma" content="no-cache" />
     <meta http-equiv="Expires" content="0" />
@@ -55,7 +55,7 @@
                     <input type="text" id="ward" class="form-control" placeholder="مثال: العناية المركزة، الباطنية..." required>
                 </div>
                 <div class="col-md-4">
-                    <label class="form-label">تاريخ الطلب (يوم/شهر/سنة)</label>
+                    <label class="form-label">تاريخ الطلب</label>
                     <input type="date" id="orderDate" class="form-control" required>
                 </div>
                 <div class="col-12 text-end">
@@ -137,15 +137,13 @@
         let currentLabPasscode = "1234";    // الرمز الافتراضي للمختبر
         let currentDeletePasscode = "9999"; // الرمز الافتراضي الخاص بالحذف
 
-        // دالة موحدة لتنسيق التاريخ دائماً بصيغة (يوم/شهر/سنة)
-        const formatDateDMY = (rawDateStr) => {
+        // دالة تحويل التاريخ لنفس طريقة الكود الأول المصممة للنظام المحلي لترتيب اليوم/الشهر/السنة بدون ساعات
+        const formatLocaleDate = (rawDateStr) => {
             if (!rawDateStr) return '-';
-            const parts = rawDateStr.split('-');
-            if (parts.length === 3) {
-                // parts[0] = السنة, parts[1] = الشهر, parts[2] = اليوم
-                return `${parts[2]}/${parts[1]}/${parts[0]}`;
-            }
-            return rawDateStr;
+            // إضافة وقت وهمي لمنع المتصفح من تغيير التاريخ بسبب فرق التوقيت
+            const d = new Date(rawDateStr + "T00:00:00");
+            if (isNaN(d.getTime())) return rawDateStr;
+            return d.toLocaleDateString('ar-IQ', { day: '2-digit', month: '2-digit', year: 'numeric' });
         };
 
         // الاستماع المباشر لتغييرات الرموز السرية من Firebase
@@ -207,7 +205,7 @@
             }
         };
 
-        // ضبط تاريخ اليوم التلقائي بفرمتة المعيار العالي (YYYY-MM-DD)
+        // ضبط تاريخ اليوم التلقائي
         document.getElementById('orderDate').value = new Date().toISOString().split('T')[0];
 
         let allOrders = [];
@@ -281,8 +279,8 @@
                 if (o.status === 'confirmed') statusBadge = '<span class="status-badge status-done"><i class="bi bi-check-circle"></i> تم أخذ العينة ✅</span>';
                 if (o.status === 'rejected') statusBadge = '<span class="status-badge status-rejected"><i class="bi bi-x-circle"></i> لم ترسل عينة ❌</span>';
 
-                // استخدام دالة التنسيق الموحدة (يوم / شهر / سنة)
-                const formattedDate = formatDateDMY(o.orderDate);
+                // تنسيق التاريخ بناءً على النظام المحلي للهاتف (اليوم/الشهر/السنة) بدون ساعات
+                const formattedDate = formatLocaleDate(o.orderDate);
 
                 return `
                     <tr>
@@ -301,7 +299,7 @@
             }).join('');
         };
 
-        // تحديث حالة العينة من قبل المختبر (يتطلب رمز المختبر)
+        // تحديث حالة العينة من قبل المختبر
         window.updateStatus = async (id, status) => {
             const enteredPass = prompt('الرجاء إدخال رمز التحقق الخاص بمختبر المايكروبايولوجي:');
             if (enteredPass === null) return;
@@ -326,7 +324,7 @@
             }
         };
 
-        // حذف الطلب مع التأكيد بطلب "كود الحذف المخصص"
+        // حذف الطلب
         window.deleteOrder = async (id, patientName) => {
             const confirmDelete = confirm(`هل أنت متأكد حقاً من حذف سجل المريض: (${patientName})؟\nلا يمكن استرجاع البيانات بعد الحذف!`);
             if (!confirmDelete) return;
