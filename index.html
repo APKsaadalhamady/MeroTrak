@@ -131,6 +131,17 @@
         let currentLabPasscode = "1234";    // الرمز الافتراضي للمختبر
         let currentDeletePasscode = "9999"; // الرمز الافتراضي الخاص بالحذف
 
+        // دالة موحدة لتنسيق التاريخ دائماً بصيغة (يوم/شهر/سنة)
+        const formatDateDMY = (rawDateStr) => {
+            if (!rawDateStr) return '-';
+            const parts = rawDateStr.split('-');
+            if (parts.length === 3) {
+                // parts[0] = السنة, parts[1] = الشهر, parts[2] = اليوم
+                return `${parts[2]}/${parts[1]}/${parts[0]}`;
+            }
+            return rawDateStr;
+        };
+
         // الاستماع المباشر لتغييرات الرموز السرية من Firebase
         onSnapshot(settingsRef, (docSnap) => {
             if (docSnap.exists()) {
@@ -190,7 +201,7 @@
             }
         };
 
-        // ضبط تاريخ اليوم التلقائي بفرمتة (YYYY-MM-DD)
+        // ضبط تاريخ اليوم التلقائي بفرمتة المعيار العالي (YYYY-MM-DD)
         document.getElementById('orderDate').value = new Date().toISOString().split('T')[0];
 
         let allOrders = [];
@@ -264,9 +275,8 @@
                 if (o.status === 'confirmed') statusBadge = '<span class="status-badge status-done"><i class="bi bi-check-circle"></i> تم أخذ العينة ✅</span>';
                 if (o.status === 'rejected') statusBadge = '<span class="status-badge status-rejected"><i class="bi bi-x-circle"></i> لم ترسل عينة ❌</span>';
 
-                // تنسيق التواريخ لعرض (يوم/شهر/سنة)
-                const dateParts = o.orderDate.split('-');
-                const formattedDate = dateParts.length === 3 ? `${dateParts[2]}/${dateParts[1]}/${dateParts[0]}` : o.orderDate;
+                // استخدام دالة التنسيق الموحدة (يوم / شهر / سنة)
+                const formattedDate = formatDateDMY(o.orderDate);
 
                 return `
                     <tr>
