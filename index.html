@@ -98,7 +98,7 @@
                     <div class="form-check">
                         <input class="form-check-input" type="checkbox" id="doctorRefused">
                         <label class="form-check-label text-danger fw-bold fs-7" for="doctorRefused">
-                            🚫 رفض الطبيب إرسال عينة زرع
+                            🚫 رفض الطبيب إرسال عينة زرع (طلب بدون عينة)
                         </label>
                     </div>
                 </div>
@@ -272,7 +272,7 @@
                     ward: ward,
                     orderDate: date,
                     status: initialStatus,
-                    notes: doctorRefused ? 'صرف بطلب الطبيب (بدون عينة)' : '',
+                    notes: doctorRefused ? 'طلب بامتناع الطبيب عن إرسال عينة' : '',
                     isDeleted: false,
                     createdAt: new Date()
                 });
@@ -379,7 +379,7 @@
                             ${!isDoctorRefused ? `
                                 <button class="btn btn-sm btn-success" onclick="updateStatus('${o.id}', 'confirmed')"><i class="bi bi-check-lg"></i> تأكيد</button>
                                 <button class="btn btn-sm btn-danger" onclick="updateStatus('${o.id}', 'rejected')"><i class="bi bi-x-lg"></i> نفي</button>
-                            ` : '<small class="text-muted ms-auto my-auto fs-7">تم الصرف بطلب الطبيب بدون عينة</small>'}
+                            ` : '<small class="text-muted ms-auto my-auto fs-7">طلب بدون عينة (رفض الطبيب)</small>'}
                             <button class="btn btn-sm btn-outline-danger" onclick="deleteOrder('${o.id}', '${o.patientName}')"><i class="bi bi-trash"></i></button>
                         </div>
                     </div>
