@@ -64,7 +64,7 @@
                 <button class="btn btn-sm btn-outline-dark" onclick="changeLabPasscode()" title="رمز المختبر">
                     <i class="bi bi-key-fill"></i>
                 </button>
-                <button class="btn btn-sm btn-outline-danger" onclick="changeDeletePasscode()" title="رمز الحذف">
+                <button class="btn btn-sm btn-outline-danger" onclick="changeDeletePasscode()" title="رمز الحذف والتعديل">
                     <i class="bi bi-shield-lock-fill"></i>
                 </button>
             </div>
@@ -289,16 +289,16 @@
         };
 
         window.changeDeletePasscode = async () => {
-            const oldPass = prompt('الرجاء إدخال رمز الحذف الحالي:');
+            const oldPass = prompt('الرجاء إدخال رمز الحذف والتعديل الحالي:');
             if (oldPass === null) return;
-            if (oldPass !== currentDeletePasscode) { alert('❌ رمز الحذف الحالي غير صحيح!'); return; }
+            if (oldPass !== currentDeletePasscode) { alert('❌ الرمز السري الحالي غير صحيح!'); return; }
 
-            const newPass = prompt('أدخل رمز الحذف الجديد:');
+            const newPass = prompt('أدخل رمز الحذف والتعديل الجديد:');
             if (!newPass || newPass.trim() === "") { alert('❌ لا يمكن ترك الرمز فارغاً!'); return; }
 
             try {
                 await updateDoc(settingsRef, { deletePasscode: newPass.trim() });
-                alert('✅ تم تغيير رمز الحذف بنجاح!');
+                alert('✅ تم تغيير رمز الحذف والتعديل بنجاح!');
             } catch (err) { alert('حدث خطأ أثناء التغيير: ' + err.message); }
         };
 
@@ -407,6 +407,7 @@
                 let statusBadge = '';
                 let borderClass = 'status-pending-border';
                 let isDoctorRefused = false;
+                let isConfirmed = false;
 
                 if (o.status === 'doctor_refused') {
                     statusBadge = '<span class="status-badge status-doc-refused"><i class="bi bi-slash-circle"></i> بدون عينة (رفض الطبيب)</span>';
@@ -415,6 +416,7 @@
                 } else if (o.status === 'confirmed') {
                     statusBadge = '<span class="status-badge status-done"><i class="bi bi-check-circle"></i> تم أخذ العينة ✅</span>';
                     borderClass = 'status-confirmed-border';
+                    isConfirmed = true;
                 } else if (o.status === 'rejected') {
                     statusBadge = '<span class="status-badge status-rejected"><i class="bi bi-x-circle"></i> لم ترسل عينة ❌</span>';
                     borderClass = 'status-rejected-border';
@@ -448,6 +450,12 @@
                     }
                 }
 
+                // زر تعديل بيانات المريض (يختفي فقط عند التأكيد)
+                let editPatientBtnHtml = '';
+                if (!isConfirmed) {
+                    editPatientBtnHtml = `<button class="btn btn-sm btn-outline-secondary" onclick="openEditOrderModal('${o.id}')" title="تعديل بيانات المريض"><i class="bi bi-pencil-square"></i> تعديل بيانات المريض</button>`;
+                }
+
                 return `
                     <div class="order-card ${borderClass}">
                         <div class="d-flex justify-content-between align-items-start mb-2">
@@ -467,7 +475,7 @@
 
                         <div class="action-btns d-flex justify-content-end gap-1 pt-2 border-top">
                             ${actionButtonsHtml}
-                            <button class="btn btn-sm btn-outline-secondary" onclick="openEditOrderModal('${o.id}')" title="تعديل بيانات المريض"><i class="bi bi-pencil-square"></i> تعديل بيانات المريض</button>
+                            ${editPatientBtnHtml}
                             <button class="btn btn-sm btn-outline-danger" onclick="deleteOrder('${o.id}', '${o.patientName}')" title="حذف"><i class="bi bi-trash"></i></button>
                         </div>
                     </div>
@@ -521,7 +529,7 @@
             } catch (err) { alert('حدث خطأ أثناء التعديل: ' + err.message); }
         };
 
-        // فتح نافذة تعديل بيانات المريض والصيدلية (تطلب رمز الحذف للصيدلية)
+        // فتح نافذة تعديل بيانات المريض والصيدلية (تطلب رمز الحذف والتعديل للصيدلية)
         window.openEditOrderModal = (id) => {
             const enteredPass = prompt('الرجاء إدخال الرمز السري لتعديل بيانات المريض:');
             if (enteredPass === null) return;
