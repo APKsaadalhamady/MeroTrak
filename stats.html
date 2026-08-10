@@ -31,7 +31,6 @@
     </div>
 
     <div class="container">
-        <!-- زر العودة وشريط التحكم -->
         <div class="d-flex justify-content-between align-items-center mb-3 no-print">
             <a href="index.html" class="btn btn-sm btn-outline-secondary">
                 <i class="bi bi-arrow-right"></i> العودة للسجل الرئيسي
@@ -41,7 +40,6 @@
             </button>
         </div>
 
-        <!-- فلتر الشهر والسنة -->
         <div class="card p-3 no-print">
             <div class="row g-2 align-items-center">
                 <div class="col-8">
@@ -54,7 +52,6 @@
             </div>
         </div>
 
-        <!-- بطاقات المؤشرات (KPIs) -->
         <div class="row g-2 mb-3">
             <div class="col-6 col-md-3">
                 <div class="kpi-card" style="border-top-color: #0d6efd;">
@@ -82,7 +79,6 @@
             </div>
         </div>
 
-        <!-- الرسوم البيانية -->
         <div class="row g-3 mb-3">
             <div class="col-12 col-md-4">
                 <div class="card p-3 text-center">
@@ -110,17 +106,16 @@
             </div>
         </div>
 
-        <!-- جدول تحليل عدم إرسال العينات حسب الطبيب -->
         <div class="card p-3">
-            <h6 class="text-danger mb-3"><i class="bi bi-exclamation-triangle-fill"></i> تحليل نسبة العينات غير المرسلة حسب الطبيب 📊</h6>
+            <h6 class="text-primary mb-3"><i class="bi bi-journal-medical"></i> تحليل نسبة العينات غير المرسلة حسب الطبيب 📊</h6>
             <div class="table-responsive">
                 <table class="table table-hover align-middle">
                     <thead class="table-light fs-7">
                         <tr>
-                            <th>اسم الطبيب</th>
-                            <th>عدد الحالات المنفية (لم ترسل عينة)</th>
-                            <th>إجمالي طلبات الطبيب</th>
-                            <th>نسبة عدم الإرسال ❌</th>
+                            <th>اسم الطبيب المعالج</th>
+                            <th>عدد الطلبات دون عينات</th>
+                            <th>إجمالي الطلبات</th>
+                            <th>نسبة عدم الإرسال 📊</th>
                         </tr>
                     </thead>
                     <tbody id="doctorsNonComplianceBody" class="fs-7">
@@ -131,7 +126,6 @@
         </div>
     </div>
 
-    <!-- Firebase Script -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getFirestore, collection, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
@@ -218,7 +212,7 @@
                 return;
             }
 
-            // ترتيب الأطباء حسب أعلى عدد عينات منفية
+            // ترتيب الأطباء حسب أعلى عدد طلبات دون عينات
             docList.sort((a, b) => (doctorsRejected[b] || 0) - (doctorsRejected[a] || 0));
 
             tbody.innerHTML = docList.map(docName => {
