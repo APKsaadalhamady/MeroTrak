@@ -3,6 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    
     <title>MeroTrack - الإحصائيات والتقارير</title>
     
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.rtl.min.css" rel="stylesheet">
@@ -119,14 +121,13 @@
                     <thead class="table-light fs-7">
                         <tr>
                             <th>اسم الطبيب المعالج</th>
-                            <th>منفية من المختبر ❌</th>
-                            <th>رفض الطبيب 🚫</th>
+                            <th>عدد الطلبات دون عينات</th>
                             <th>إجمالي الطلبات</th>
                             <th>نسبة عدم الإرسال 📊</th>
                         </tr>
                     </thead>
                     <tbody id="doctorsNonComplianceBody" class="fs-7">
-                        <tr><td colspan="5" class="text-center text-muted">جاري تحميل البيانات...</td></tr>
+                        <tr><td colspan="4" class="text-center text-muted">جاري تحميل البيانات...</td></tr>
                     </tbody>
                 </table>
             </div>
@@ -194,11 +195,9 @@
             document.getElementById('pendingCount').innerHTML = `${pending} <span class="fs-7 font-monospace text-muted">(${total ? Math.round((pending/total)*100) : 0}%)</span>`;
             document.getElementById('docRefusedCount').innerHTML = `${docRefused} <span class="fs-7 font-monospace text-muted">(${total ? Math.round((docRefused/total)*100) : 0}%)</span>`;
 
-            // إحصائيات الردهات والأطباء
             const wardsCount = {};
             const doctorsCount = {};
-            const doctorsRejectedCount = {};
-            const doctorsDocRefusedCount = {};
+            const doctorsNoSampleCount = {};
 
             filteredOrders.forEach(o => {
                 const w = o.ward ? o.ward.trim() : 'أخرى';
@@ -207,40 +206,30 @@
                 const docName = o.doctorName ? o.doctorName.trim() : 'غير محدد';
                 doctorsCount[docName] = (doctorsCount[docName] || 0) + 1;
 
-                if (o.status === 'rejected') {
-                    doctorsRejectedCount[docName] = (doctorsRejectedCount[docName] || 0) + 1;
-                }
-                if (o.status === 'doctor_refused') {
-                    doctorsDocRefusedCount[docName] = (doctorsDocRefusedCount[docName] || 0) + 1;
+                if (o.status === 'rejected' || o.status === 'doctor_refused') {
+                    doctorsNoSampleCount[docName] = (doctorsNoSampleCount[docName] || 0) + 1;
                 }
             });
 
             updateCharts(confirmed, rejected, pending, docRefused, wardsCount, doctorsCount);
-            renderNonComplianceTable(doctorsCount, doctorsRejectedCount, doctorsDocRefusedCount);
+            renderNonComplianceTable(doctorsCount, doctorsNoSampleCount);
         };
 
-        function renderNonComplianceTable(doctorsTotal, doctorsRejected, doctorsDocRefused) {
+        function renderNonComplianceTable(doctorsTotal, doctorsNoSample) {
             const tbody = document.getElementById('doctorsNonComplianceBody');
             const docList = Object.keys(doctorsTotal);
 
             if (docList.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted">لا توجد بيانات متاحة لهذا الشهر</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="4" class="text-center text-muted">لا توجد بيانات متاحة لهذا الشهر</td></tr>';
                 return;
             }
 
-            // ترتيب الأطباء حسب مجموع الحالات دون عينات (منفية + رفض الطبيب)
-            docList.sort((a, b) => {
-                const sumA = (doctorsRejected[a] || 0) + (doctorsDocRefused[a] || 0);
-                const sumB = (doctorsRejected[b] || 0) + (doctorsDocRefused[b] || 0);
-                return sumB - sumA;
-            });
+            docList.sort((a, b) => (doctorsNoSample[b] || 0) - (doctorsNoSample[a] || 0));
 
             tbody.innerHTML = docList.map(docName => {
                 const total = doctorsTotal[docName] || 0;
-                const rejected = doctorsRejected[docName] || 0;
-                const docRefused = doctorsDocRefused[docName] || 0;
-                const totalNoSample = rejected + docRefused;
-                const ratio = total ? Math.round((totalNoSample / total) * 100) : 0;
+                const noSample = doctorsNoSample[docName] || 0;
+                const ratio = total ? Math.round((noSample / total) * 100) : 0;
 
                 let badgeColor = 'bg-secondary';
                 if (ratio > 50) badgeColor = 'bg-danger';
@@ -250,8 +239,7 @@
                 return `
                     <tr>
                         <td><strong>د. ${docName}</strong></td>
-                        <td class="text-danger fw-bold">${rejected}</td>
-                        <td class="text-secondary fw-bold">${docRefused}</td>
+                        <td class="text-danger fw-bold">${noSample}</td>
                         <td>${total}</td>
                         <td><span class="badge ${badgeColor} fs-7">${ratio}%</span></td>
                     </tr>
