@@ -13,9 +13,9 @@
         body { background-color: #f4f6f9; font-family: system-ui, -apple-system, sans-serif; padding-bottom: 40px; }
         .header-title { background: linear-gradient(135deg, #0d6efd, #0a58ca); color: white; padding: 18px 0; margin-bottom: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
         .card { border-radius: 14px; border: none; box-shadow: 0 2px 8px rgba(0,0,0,0.05); margin-bottom: 15px; }
-        .kpi-card { background: white; border-radius: 12px; padding: 15px; text-align: center; box-shadow: 0 2px 6px rgba(0,0,0,0.04); border-top: 4px solid #0d6efd; }
-        .kpi-value { font-size: 1.5rem; font-weight: 800; color: #333; margin-top: 5px; }
-        .kpi-label { font-size: 0.8rem; color: #6c757d; font-weight: 600; }
+        .kpi-card { background: white; border-radius: 12px; padding: 12px 10px; text-align: center; box-shadow: 0 2px 6px rgba(0,0,0,0.04); border-top: 4px solid #0d6efd; height: 100%; }
+        .kpi-value { font-size: 1.3rem; font-weight: 800; color: #333; margin-top: 4px; }
+        .kpi-label { font-size: 0.78rem; color: #6c757d; font-weight: 600; }
         @media print {
             .no-print { display: none !important; }
             body { background: white; }
@@ -53,28 +53,34 @@
         </div>
 
         <div class="row g-2 mb-3">
-            <div class="col-6 col-md-3">
+            <div class="col-6 col-md-2-4" style="flex: 0 0 auto; width: 20%;">
                 <div class="kpi-card" style="border-top-color: #0d6efd;">
                     <div class="kpi-label">إجمالي الطلبات</div>
                     <div class="kpi-value text-primary" id="totalOrders">0</div>
                 </div>
             </div>
-            <div class="col-6 col-md-3">
+            <div class="col-6 col-md-2-4" style="flex: 0 0 auto; width: 20%;">
                 <div class="kpi-card" style="border-top-color: #198754;">
-                    <div class="kpi-label">العينات المؤكدة ✅</div>
+                    <div class="kpi-label">المؤكدة ✅</div>
                     <div class="kpi-value text-success" id="confirmedCount">0 <span class="fs-7 font-monospace" id="confirmedPercent">(0%)</span></div>
                 </div>
             </div>
-            <div class="col-6 col-md-3">
+            <div class="col-6 col-md-2-4" style="flex: 0 0 auto; width: 20%;">
                 <div class="kpi-card" style="border-top-color: #dc3545;">
-                    <div class="kpi-label">العينات المنفية ❌</div>
+                    <div class="kpi-label">المنفية ❌</div>
                     <div class="kpi-value text-danger" id="rejectedCount">0 <span class="fs-7 font-monospace" id="rejectedPercent">(0%)</span></div>
                 </div>
             </div>
-            <div class="col-6 col-md-3">
+            <div class="col-6 col-md-2-4" style="flex: 0 0 auto; width: 20%;">
                 <div class="kpi-card" style="border-top-color: #ffc107;">
                     <div class="kpi-label">بانتظار العينة ⏳</div>
                     <div class="kpi-value text-warning" id="pendingCount">0 <span class="fs-7 font-monospace" id="pendingPercent">(0%)</span></div>
+                </div>
+            </div>
+            <div class="col-12 col-md-2-4" style="flex: 0 0 auto; width: 20%;">
+                <div class="kpi-card" style="border-top-color: #495057;">
+                    <div class="kpi-label">رفض الطبيب 🚫</div>
+                    <div class="kpi-value text-secondary" id="docRefusedCount">0 <span class="fs-7 font-monospace" id="docRefusedPercent">(0%)</span></div>
                 </div>
             </div>
         </div>
@@ -113,13 +119,14 @@
                     <thead class="table-light fs-7">
                         <tr>
                             <th>اسم الطبيب المعالج</th>
-                            <th>عدد الطلبات دون عينات</th>
+                            <th>منفية من المختبر ❌</th>
+                            <th>رفض الطبيب 🚫</th>
                             <th>إجمالي الطلبات</th>
                             <th>نسبة عدم الإرسال 📊</th>
                         </tr>
                     </thead>
                     <tbody id="doctorsNonComplianceBody" class="fs-7">
-                        <tr><td colspan="4" class="text-center text-muted">جاري تحميل البيانات...</td></tr>
+                        <tr><td colspan="5" class="text-center text-muted">جاري تحميل البيانات...</td></tr>
                     </tbody>
                 </table>
             </div>
@@ -158,7 +165,10 @@
                 const snapshot = await getDocs(q);
                 allData = [];
                 snapshot.forEach(doc => {
-                    allData.push(doc.data());
+                    const data = doc.data();
+                    if (!data.isDeleted) {
+                        allData.push(data);
+                    }
                 });
                 loadAnalytics();
             } catch (err) {
@@ -176,16 +186,19 @@
             const confirmed = filteredOrders.filter(o => o.status === 'confirmed').length;
             const rejected = filteredOrders.filter(o => o.status === 'rejected').length;
             const pending = filteredOrders.filter(o => o.status === 'pending').length;
+            const docRefused = filteredOrders.filter(o => o.status === 'doctor_refused').length;
 
             document.getElementById('totalOrders').innerText = total;
             document.getElementById('confirmedCount').innerHTML = `${confirmed} <span class="fs-7 font-monospace text-muted">(${total ? Math.round((confirmed/total)*100) : 0}%)</span>`;
             document.getElementById('rejectedCount').innerHTML = `${rejected} <span class="fs-7 font-monospace text-muted">(${total ? Math.round((rejected/total)*100) : 0}%)</span>`;
             document.getElementById('pendingCount').innerHTML = `${pending} <span class="fs-7 font-monospace text-muted">(${total ? Math.round((pending/total)*100) : 0}%)</span>`;
+            document.getElementById('docRefusedCount').innerHTML = `${docRefused} <span class="fs-7 font-monospace text-muted">(${total ? Math.round((docRefused/total)*100) : 0}%)</span>`;
 
             // إحصائيات الردهات والأطباء
             const wardsCount = {};
             const doctorsCount = {};
             const doctorsRejectedCount = {};
+            const doctorsDocRefusedCount = {};
 
             filteredOrders.forEach(o => {
                 const w = o.ward ? o.ward.trim() : 'أخرى';
@@ -197,28 +210,37 @@
                 if (o.status === 'rejected') {
                     doctorsRejectedCount[docName] = (doctorsRejectedCount[docName] || 0) + 1;
                 }
+                if (o.status === 'doctor_refused') {
+                    doctorsDocRefusedCount[docName] = (doctorsDocRefusedCount[docName] || 0) + 1;
+                }
             });
 
-            updateCharts(confirmed, rejected, pending, wardsCount, doctorsCount);
-            renderNonComplianceTable(doctorsCount, doctorsRejectedCount);
+            updateCharts(confirmed, rejected, pending, docRefused, wardsCount, doctorsCount);
+            renderNonComplianceTable(doctorsCount, doctorsRejectedCount, doctorsDocRefusedCount);
         };
 
-        function renderNonComplianceTable(doctorsTotal, doctorsRejected) {
+        function renderNonComplianceTable(doctorsTotal, doctorsRejected, doctorsDocRefused) {
             const tbody = document.getElementById('doctorsNonComplianceBody');
             const docList = Object.keys(doctorsTotal);
 
             if (docList.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="4" class="text-center text-muted">لا توجد بيانات متاحة لهذا الشهر</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted">لا توجد بيانات متاحة لهذا الشهر</td></tr>';
                 return;
             }
 
-            // ترتيب الأطباء حسب أعلى عدد طلبات دون عينات
-            docList.sort((a, b) => (doctorsRejected[b] || 0) - (doctorsRejected[a] || 0));
+            // ترتيب الأطباء حسب مجموع الحالات دون عينات (منفية + رفض الطبيب)
+            docList.sort((a, b) => {
+                const sumA = (doctorsRejected[a] || 0) + (doctorsDocRefused[a] || 0);
+                const sumB = (doctorsRejected[b] || 0) + (doctorsDocRefused[b] || 0);
+                return sumB - sumA;
+            });
 
             tbody.innerHTML = docList.map(docName => {
                 const total = doctorsTotal[docName] || 0;
                 const rejected = doctorsRejected[docName] || 0;
-                const ratio = total ? Math.round((rejected / total) * 100) : 0;
+                const docRefused = doctorsDocRefused[docName] || 0;
+                const totalNoSample = rejected + docRefused;
+                const ratio = total ? Math.round((totalNoSample / total) * 100) : 0;
 
                 let badgeColor = 'bg-secondary';
                 if (ratio > 50) badgeColor = 'bg-danger';
@@ -229,6 +251,7 @@
                     <tr>
                         <td><strong>د. ${docName}</strong></td>
                         <td class="text-danger fw-bold">${rejected}</td>
+                        <td class="text-secondary fw-bold">${docRefused}</td>
                         <td>${total}</td>
                         <td><span class="badge ${badgeColor} fs-7">${ratio}%</span></td>
                     </tr>
@@ -236,16 +259,16 @@
             }).join('');
         }
 
-        function updateCharts(confirmed, rejected, pending, wardsCount, doctorsCount) {
+        function updateCharts(confirmed, rejected, pending, docRefused, wardsCount, doctorsCount) {
             const pieCtx = document.getElementById('statusPieChart').getContext('2d');
             if (pieChartInstance) pieChartInstance.destroy();
             pieChartInstance = new Chart(pieCtx, {
                 type: 'doughnut',
                 data: {
-                    labels: ['مؤكدة ✅', 'منفية ❌', 'معلقة ⏳'],
+                    labels: ['مؤكدة ✅', 'منفية ❌', 'معلقة ⏳', 'رفض الطبيب 🚫'],
                     datasets: [{
-                        data: [confirmed, rejected, pending],
-                        backgroundColor: ['#198754', '#dc3545', '#ffc107']
+                        data: [confirmed, rejected, pending, docRefused],
+                        backgroundColor: ['#198754', '#dc3545', '#ffc107', '#495057']
                     }]
                 },
                 options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
