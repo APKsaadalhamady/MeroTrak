@@ -30,13 +30,19 @@
             box-shadow: 0 2px 6px rgba(0,0,0,0.04);
         }
         .order-card.status-pending-border { border-right-color: #ffc107; }
+        .order-card.status-delay24-border { border-right-color: #fd7e14; }
+        .order-card.status-delay48-border { border-right-color: #dc3545; }
         .order-card.status-confirmed-border { border-right-color: #198754; }
         .order-card.status-rejected-border { border-right-color: #dc3545; }
+        .order-card.status-doc-refused-border { border-right-color: #495057; }
 
         .status-badge { font-size: 0.8rem; padding: 5px 10px; border-radius: 50px; font-weight: 600; }
         .status-pending { background-color: #fff3cd; color: #664d03; }
+        .status-delay24 { background-color: #ffe8cc; color: #d9480f; }
+        .status-delay48 { background-color: #f8d7da; color: #842029; font-weight: bold; }
         .status-done { background-color: #d1e7dd; color: #0f5132; }
         .status-rejected { background-color: #f8d7da; color: #842029; }
+        .status-doc-refused { background-color: #e2e3e5; color: #343a40; font-weight: bold; }
         
         .action-btns .btn { padding: 6px 12px; font-size: 0.85rem; border-radius: 8px; }
         .filter-label { font-size: 0.78rem; font-weight: 600; color: #495057; margin-bottom: 3px; display: block; }
@@ -71,18 +77,32 @@
                     <label class="filter-label">اسم المريض</label>
                     <input type="text" id="patientName" class="form-control" placeholder="اسم المريض الثلاثي" required>
                 </div>
+                <div class="col-12 col-md-2">
+                    <label class="filter-label">رقم الطبيلة / السجل (اختياري)</label>
+                    <input type="text" id="mrn" class="form-control" placeholder="مثال: 12345">
+                </div>
                 <div class="col-12 col-md-3">
                     <label class="filter-label">الطبيب المسؤول</label>
                     <input type="text" id="doctorName" class="form-control" placeholder="اسم الطبيب المعالج" required>
                 </div>
-                <div class="col-6 col-md-3">
+                <div class="col-6 col-md-2">
                     <label class="filter-label">الردهة / القسم</label>
                     <input type="text" id="ward" class="form-control" placeholder="الردهة / القسم" required>
                 </div>
-                <div class="col-6 col-md-3">
+                <div class="col-6 col-md-2">
                     <label class="filter-label">تاريخ الطلب</label>
                     <input type="date" id="orderDate" class="form-control" required>
                 </div>
+                
+                <div class="col-12 mt-2">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="doctorRefused">
+                        <label class="form-check-label text-danger fw-bold fs-7" for="doctorRefused">
+                            🚫 رفض الطبيب إرسال عينة زرع (صرف بطلب الطبيب بدون عينة)
+                        </label>
+                    </div>
+                </div>
+
                 <div class="col-12 text-end mt-2">
                     <button type="submit" class="btn btn-primary w-100 px-4"><i class="bi bi-send-fill"></i> إرسال الطلب</button>
                 </div>
@@ -93,8 +113,8 @@
             <h6 class="card-title text-secondary mb-2"><i class="bi bi-search"></i> البحث والفلترة</h6>
             <div class="row g-2">
                 <div class="col-12 col-md-6">
-                    <label class="filter-label"><i class="bi bi-person"></i> ابحث بالاسم أو اسم الطبيب</label>
-                    <input type="text" id="searchInput" class="form-control form-control-sm" placeholder="ابحث باسم المريض أو الطبيب...">
+                    <label class="filter-label"><i class="bi bi-person"></i> ابحث بالاسم، الطبيلة، أو الطبيب</label>
+                    <input type="text" id="searchInput" class="form-control form-control-sm" placeholder="اسم المريض، رقم الطبيلة، أو الطبيب...">
                 </div>
                 <div class="col-12 col-md-6">
                     <label class="filter-label"><i class="bi bi-hospital"></i> فلترة بالردهة</label>
@@ -128,7 +148,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, collection, addDoc, onSnapshot, doc, updateDoc, deleteDoc, getDoc, setDoc, query, orderBy } 
+        import { getFirestore, collection, addDoc, onSnapshot, doc, updateDoc, deleteDoc, setDoc, query, orderBy } 
         from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const firebaseConfig = {
@@ -157,7 +177,6 @@
             return rawDateStr;
         };
 
-        // دالة تنظيف النص من الهمزات والمسافات الزائدة لدقة الفحص
         function normalizeName(name) {
             if (!name) return "";
             return name
@@ -209,47 +228,52 @@
 
         let allOrders = [];
 
-        // إدخال طلب جديد مع خوارزمية كشف التكرار خلال 30 يوماً
+        // إضافة طلب جديد مع معالجة حالة رفض الطبيب وفحص التكرار
         document.getElementById('orderForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const name = document.getElementById('patientName').value.trim();
+            const mrn = document.getElementById('mrn').value.trim();
             const doctor = document.getElementById('doctorName').value.trim();
             const ward = document.getElementById('ward').value.trim();
             const date = document.getElementById('orderDate').value;
+            const doctorRefused = document.getElementById('doctorRefused').checked;
+
+            const initialStatus = doctorRefused ? 'doctor_refused' : 'pending';
 
             const normalizedNewName = normalizeName(name);
-
-            // تحديد تاريخ النطاق الزمني (آخر 30 يوماً)
             const thirtyDaysAgo = new Date();
             thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
-            // البحث عن وجود سجل مكرر
+            // فحص التكرار
             const duplicateOrder = allOrders.find(o => {
+                if (o.isDeleted) return false;
                 const orderDateObj = new Date(o.orderDate);
                 const isWithin30Days = orderDateObj >= thirtyDaysAgo;
+
+                const isSameMRN = mrn !== "" && o.mrn && o.mrn.trim() === mrn;
                 const isSameName = normalizeName(o.patientName) === normalizedNewName;
-                return isSameName && isWithin30Days;
+
+                return (isSameMRN || isSameName) && isWithin30Days;
             });
 
-            // إظهار التنبيه التفاعلي عند اكتشاف التكرار
             if (duplicateOrder) {
                 const formattedPrevDate = formatLocaleDate(duplicateOrder.orderDate);
-                const confirmMsg = `⚠️ تنبيه تكرار مريض:\n\nيوجد مريض بنفس الاسم مسجل سابقاً:\n• الاسم: ${duplicateOrder.patientName}\n• التاريخ: ${formattedPrevDate}\n• الردهة: ${duplicateOrder.ward}\n• الطبيب: د. ${duplicateOrder.doctorName || 'غير محدد'}\n\nهل أنت متأكد من إضافة طلب جديد لهذا المريض؟`;
+                const confirmMsg = `⚠️ تنبيه تكرار مريض:\n\nيوجد سجل مريض مطابق مسجل سابقاً:\n• الاسم: ${duplicateOrder.patientName}\n• رقم الطبيلة: ${duplicateOrder.mrn || 'غير مدخل'}\n• التاريخ: ${formattedPrevDate}\n• الردهة: ${duplicateOrder.ward}\n• الطبيب: د. ${duplicateOrder.doctorName || 'غير محدد'}\n\nهل أنت متأكد من إضافة طلب جديد لهذا المريض؟`;
                 
                 const proceed = confirm(confirmMsg);
-                if (!proceed) {
-                    return; // إلغاء عملية الإضافة
-                }
+                if (!proceed) return;
             }
 
             try {
                 await addDoc(ordersRef, {
                     patientName: name,
+                    mrn: mrn,
                     doctorName: doctor,
                     ward: ward,
                     orderDate: date,
-                    status: 'pending',
-                    notes: '',
+                    status: initialStatus,
+                    notes: doctorRefused ? 'صرف بطلب الطبيب (بدون عينة)' : '',
+                    isDeleted: false,
                     createdAt: new Date()
                 });
                 document.getElementById('orderForm').reset();
@@ -274,7 +298,11 @@
             const endDateVal = document.getElementById('endDateFilter').value;
 
             const filtered = allOrders.filter(o => {
-                const matchName = o.patientName.toLowerCase().includes(searchVal) || (o.doctorName && o.doctorName.toLowerCase().includes(searchVal));
+                if (o.isDeleted) return false;
+
+                const matchName = o.patientName.toLowerCase().includes(searchVal) || 
+                                  (o.doctorName && o.doctorName.toLowerCase().includes(searchVal)) ||
+                                  (o.mrn && o.mrn.toLowerCase().includes(searchVal));
                 const matchWard = o.ward.toLowerCase().includes(wardVal);
                 
                 let matchDate = true;
@@ -295,17 +323,37 @@
                 return;
             }
 
-            container.innerHTML = filtered.map(o => {
-                let statusBadge = '<span class="status-badge status-pending"><i class="bi bi-clock"></i> بانتظار العينة</span>';
-                let borderClass = 'status-pending-border';
+            const now = new Date();
 
-                if (o.status === 'confirmed') {
+            container.innerHTML = filtered.map(o => {
+                let statusBadge = '';
+                let borderClass = 'status-pending-border';
+                let isDoctorRefused = false;
+
+                if (o.status === 'doctor_refused') {
+                    statusBadge = '<span class="status-badge status-doc-refused"><i class="bi bi-slash-circle"></i> بدون عينة (رفض الطبيب)</span>';
+                    borderClass = 'status-doc-refused-border';
+                    isDoctorRefused = true;
+                } else if (o.status === 'confirmed') {
                     statusBadge = '<span class="status-badge status-done"><i class="bi bi-check-circle"></i> تم أخذ العينة ✅</span>';
                     borderClass = 'status-confirmed-border';
-                }
-                if (o.status === 'rejected') {
+                } else if (o.status === 'rejected') {
                     statusBadge = '<span class="status-badge status-rejected"><i class="bi bi-x-circle"></i> لم ترسل عينة ❌</span>';
                     borderClass = 'status-rejected-border';
+                } else {
+                    const orderDateObj = new Date(o.orderDate + "T00:00:00");
+                    const diffHours = Math.floor((now - orderDateObj) / (1000 * 60 * 60));
+
+                    if (diffHours >= 48) {
+                        statusBadge = '<span class="status-badge status-delay48"><i class="bi bi-exclamation-triangle-fill"></i> متأخر جداً (>48 ساعة)</span>';
+                        borderClass = 'status-delay48-border';
+                    } else if (diffHours >= 24) {
+                        statusBadge = '<span class="status-badge status-delay24"><i class="bi bi-clock-history"></i> متأخر (>24 ساعة)</span>';
+                        borderClass = 'status-delay24-border';
+                    } else {
+                        statusBadge = '<span class="status-badge status-pending"><i class="bi bi-clock"></i> بانتظار العينة</span>';
+                        borderClass = 'status-pending-border';
+                    }
                 }
 
                 const formattedDate = formatLocaleDate(o.orderDate);
@@ -316,6 +364,7 @@
                             <div>
                                 <h6 class="mb-1 text-dark fw-bold">${o.patientName}</h6>
                                 <span class="badge bg-secondary me-1">${o.ward}</span>
+                                ${o.mrn ? `<span class="badge bg-info text-dark me-1"><i class="bi bi-card-text"></i> طبيلة: ${o.mrn}</span>` : ''}
                                 <span class="badge bg-light text-dark border"><i class="bi bi-person-badge"></i> د. ${o.doctorName || 'غير محدد'}</span>
                             </div>
                             <div>${statusBadge}</div>
@@ -327,8 +376,10 @@
                         </div>
 
                         <div class="action-btns d-flex justify-content-end gap-1 pt-2 border-top">
-                            <button class="btn btn-sm btn-success" onclick="updateStatus('${o.id}', 'confirmed')"><i class="bi bi-check-lg"></i> تأكيد</button>
-                            <button class="btn btn-sm btn-danger" onclick="updateStatus('${o.id}', 'rejected')"><i class="bi bi-x-lg"></i> نفي</button>
+                            ${!isDoctorRefused ? `
+                                <button class="btn btn-sm btn-success" onclick="updateStatus('${o.id}', 'confirmed')"><i class="bi bi-check-lg"></i> تأكيد</button>
+                                <button class="btn btn-sm btn-danger" onclick="updateStatus('${o.id}', 'rejected')"><i class="bi bi-x-lg"></i> نفي</button>
+                            ` : '<small class="text-muted ms-auto my-auto fs-7">تم الصرف بطلب الطبيب بدون عينة</small>'}
                             <button class="btn btn-sm btn-outline-danger" onclick="deleteOrder('${o.id}', '${o.patientName}')"><i class="bi bi-trash"></i></button>
                         </div>
                     </div>
@@ -346,7 +397,11 @@
 
             try {
                 const orderDoc = doc(db, "meropenem_orders", id);
-                await updateDoc(orderDoc, { status: status, notes: note });
+                await updateDoc(orderDoc, { 
+                    status: status, 
+                    notes: note,
+                    updatedAt: new Date()
+                });
                 alert('✅ تم تحديث موقف العينة بنجاح');
             } catch (err) { alert('حدث خطأ أثناء التحديث: ' + err.message); }
         };
@@ -362,7 +417,10 @@
 
             try {
                 const orderDoc = doc(db, "meropenem_orders", id);
-                await deleteDoc(orderDoc);
+                await updateDoc(orderDoc, { 
+                    isDeleted: true,
+                    deletedAt: new Date()
+                });
                 alert('🗑️ تم حذف السجل بنجاح');
             } catch (err) { alert('حدث خطأ أثناء الحذف: ' + err.message); }
         };
@@ -374,6 +432,7 @@
 
         window.resetFilters = () => {
             document.getElementById('searchInput').value = '';
+            document.getElementById('mrn').value = '';
             document.getElementById('wardFilter').value = '';
             document.getElementById('startDateFilter').value = '';
             document.getElementById('endDateFilter').value = '';
