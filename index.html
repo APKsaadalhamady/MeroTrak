@@ -44,7 +44,7 @@
         .status-rejected { background-color: #f8d7da; color: #842029; }
         .status-doc-refused { background-color: #e2e3e5; color: #343a40; font-weight: bold; }
         
-        .action-btns .btn { padding: 6px 12px; font-size: 0.85rem; border-radius: 8px; }
+        .action-btns .btn { padding: 5px 9px; font-size: 0.8rem; border-radius: 8px; }
         .filter-label { font-size: 0.78rem; font-weight: 600; color: #495057; margin-bottom: 3px; display: block; }
     </style>
 </head>
@@ -150,7 +150,7 @@
         <div class="modal-dialog modal-dialog-centered modal-sm">
             <div class="modal-content">
                 <div class="modal-header py-2">
-                    <h6 class="modal-title fw-bold text-primary"><i class="bi bi-pencil-square"></i> تعديل حالة العينة</h6>
+                    <h6 class="modal-title fw-bold text-primary"><i class="bi bi-arrow-repeat"></i> تعديل حالة الإرسال</h6>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body text-center py-3">
@@ -166,6 +166,54 @@
                             <i class="bi bi-clock-fill me-1"></i> إعادة إلى (بانتظار العينة) ⏳
                         </button>
                     </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="editOrderModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header py-2">
+                    <h6 class="modal-title fw-bold text-primary"><i class="bi bi-pencil-square"></i> تعديل بيانات المريض</h6>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body py-3">
+                    <form id="editOrderForm" class="row g-2">
+                        <input type="hidden" id="editOrderId">
+                        <div class="col-12">
+                            <label class="filter-label">اسم المريض</label>
+                            <input type="text" id="editPatientName" class="form-control form-control-sm" required>
+                        </div>
+                        <div class="col-6">
+                            <label class="filter-label">الرقم الإحصائي</label>
+                            <input type="text" id="editMrn" class="form-control form-control-sm">
+                        </div>
+                        <div class="col-6">
+                            <label class="filter-label">الطبيب المسؤول</label>
+                            <input type="text" id="editDoctorName" class="form-control form-control-sm" required>
+                        </div>
+                        <div class="col-6">
+                            <label class="filter-label">الردهة / القسم</label>
+                            <input type="text" id="editWard" class="form-control form-control-sm" required>
+                        </div>
+                        <div class="col-6">
+                            <label class="filter-label">تاريخ الطلب</label>
+                            <input type="date" id="editOrderDate" class="form-control form-control-sm" required>
+                        </div>
+                        <div class="col-12 mt-2">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="editDoctorRefused">
+                                <label class="form-check-label text-danger fw-bold fs-7" for="editDoctorRefused">
+                                    🚫 رفض الطبيب إرسال عينة زرع
+                                </label>
+                            </div>
+                        </div>
+                        <div class="col-12 text-end mt-3 border-top pt-2">
+                            <button type="button" class="btn btn-sm btn-secondary me-1" data-bs-dismiss="modal">إلغاء</button>
+                            <button type="submit" class="btn btn-sm btn-primary px-3">حفظ التعديلات</button>
+                        </div>
+                    </form>
                 </div>
             </div>
         </div>
@@ -196,6 +244,7 @@
         let currentDeletePasscode = "9999";
         let activeEditOrderId = null;
         let editStatusModalInstance = null;
+        let editOrderModalInstance = null;
 
         const formatLocaleDate = (rawDateStr) => {
             if (!rawDateStr) return '-';
@@ -390,7 +439,7 @@
                 let actionButtonsHtml = '';
                 if (!isDoctorRefused) {
                     if (o.status === 'confirmed' || o.status === 'rejected') {
-                        actionButtonsHtml = `<button class="btn btn-sm btn-outline-primary" onclick="editStatus('${o.id}')"><i class="bi bi-pencil-square"></i> تعديل الحالة</button>`;
+                        actionButtonsHtml = `<button class="btn btn-sm btn-outline-primary" onclick="editStatus('${o.id}')"><i class="bi bi-arrow-repeat"></i> تعديل حالة الإرسال</button>`;
                     } else {
                         actionButtonsHtml = `
                             <button class="btn btn-sm btn-success" onclick="updateStatus('${o.id}', 'confirmed')"><i class="bi bi-check-lg"></i> تأكيد</button>
@@ -418,14 +467,15 @@
 
                         <div class="action-btns d-flex justify-content-end gap-1 pt-2 border-top">
                             ${actionButtonsHtml}
-                            <button class="btn btn-sm btn-outline-danger" onclick="deleteOrder('${o.id}', '${o.patientName}')"><i class="bi bi-trash"></i></button>
+                            <button class="btn btn-sm btn-outline-secondary" onclick="openEditOrderModal('${o.id}')" title="تعديل بيانات المريض"><i class="bi bi-pencil-square"></i> تعديل بيانات المريض</button>
+                            <button class="btn btn-sm btn-outline-danger" onclick="deleteOrder('${o.id}', '${o.patientName}')" title="حذف"><i class="bi bi-trash"></i></button>
                         </div>
                     </div>
                 `;
             }).join('');
         };
 
-        // تحديث الموقف المباشر (تأكيد / نفي) بدون طلب ملاحظات
+        // تحديث الموقف المباشر للمختبر (تأكيد / نفي)
         window.updateStatus = async (id, status) => {
             const enteredPass = prompt('الرجاء إدخال رمز التحقق الخاص بالمختبر:');
             if (enteredPass === null) return;
@@ -441,11 +491,11 @@
             } catch (err) { alert('حدث خطأ أثناء التحديث: ' + err.message); }
         };
 
-        // فتح النافذة المنبثقة للـ Modal لتعديل الحالة بالأزرار
+        // فتح نافذة تعديل حالة الإرسال للمختبر (تطلب رمز المختبر)
         window.editStatus = (id) => {
-            const enteredPass = prompt('الرجاء إدخال رمز التحقق الخاص بالمختبر لتعديل الحالة:');
+            const enteredPass = prompt('الرجاء إدخال رمز المختبر لتعديل حالة الإرسال:');
             if (enteredPass === null) return;
-            if (enteredPass !== currentLabPasscode) { alert('❌ رمز التحقق غير صحيح!'); return; }
+            if (enteredPass !== currentLabPasscode) { alert('❌ رمز المختبر غير صحيح!'); return; }
 
             activeEditOrderId = id;
             if (!editStatusModalInstance) {
@@ -454,7 +504,7 @@
             editStatusModalInstance.show();
         };
 
-        // تطبيق تغيير الحالة من زر النافذة المنبثقة دون ملاحظات
+        // تطبيق تغيير الحالة من نافذة المختبر
         window.applyStatusChange = async (newStatus) => {
             if (!activeEditOrderId) return;
 
@@ -467,9 +517,72 @@
                 if (editStatusModalInstance) {
                     editStatusModalInstance.hide();
                 }
-                alert('✅ تم تعديل موقف العينة بنجاح');
+                alert('✅ تم تعديل حالة الإرسال بنجاح');
             } catch (err) { alert('حدث خطأ أثناء التعديل: ' + err.message); }
         };
+
+        // فتح نافذة تعديل بيانات المريض والصيدلية (تطلب رمز الحذف للصيدلية)
+        window.openEditOrderModal = (id) => {
+            const enteredPass = prompt('الرجاء إدخال الرمز السري لتعديل بيانات المريض:');
+            if (enteredPass === null) return;
+            if (enteredPass !== currentDeletePasscode) { alert('❌ الرمز السري غير صحيح!'); return; }
+
+            const order = allOrders.find(o => o.id === id);
+            if (!order) return;
+
+            document.getElementById('editOrderId').value = id;
+            document.getElementById('editPatientName').value = order.patientName || '';
+            document.getElementById('editMrn').value = order.mrn || '';
+            document.getElementById('editDoctorName').value = order.doctorName || '';
+            document.getElementById('editWard').value = order.ward || '';
+            document.getElementById('editOrderDate').value = order.orderDate || '';
+            document.getElementById('editDoctorRefused').checked = (order.status === 'doctor_refused');
+
+            if (!editOrderModalInstance) {
+                editOrderModalInstance = new bootstrap.Modal(document.getElementById('editOrderModal'));
+            }
+            editOrderModalInstance.show();
+        };
+
+        // حفظ تعديل بيانات المريض
+        document.getElementById('editOrderForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const id = document.getElementById('editOrderId').value;
+            const name = document.getElementById('editPatientName').value.trim();
+            const mrn = document.getElementById('editMrn').value.trim();
+            const doctor = document.getElementById('editDoctorName').value.trim();
+            const ward = document.getElementById('editWard').value.trim();
+            const date = document.getElementById('editOrderDate').value;
+            const doctorRefused = document.getElementById('editDoctorRefused').checked;
+
+            const currentOrder = allOrders.find(o => o.id === id);
+            let newStatus = currentOrder ? currentOrder.status : 'pending';
+
+            // معالجة تغيير رأي الطبيب والموقف
+            if (doctorRefused) {
+                newStatus = 'doctor_refused';
+            } else if (newStatus === 'doctor_refused') {
+                // إذا كان المريض مرفوض سابقاً وتم إزالة التحديد (وافق الطبيب على الإرسال)
+                newStatus = 'pending';
+            }
+
+            try {
+                const orderDoc = doc(db, "meropenem_orders", id);
+                await updateDoc(orderDoc, { 
+                    patientName: name,
+                    mrn: mrn,
+                    doctorName: doctor,
+                    ward: ward,
+                    orderDate: date,
+                    status: newStatus,
+                    updatedAt: new Date()
+                });
+                if (editOrderModalInstance) {
+                    editOrderModalInstance.hide();
+                }
+                alert('✅ تم حفظ تعديلات بيانات المريض بنجاح');
+            } catch (err) { alert('حدث خطأ أثناء التعديل: ' + err.message); }
+        });
 
         window.deleteOrder = async (id, patientName) => {
             const confirmDelete = confirm(`هل أنت متأكد حقاً من حذف سجل المريض: (${patientName})؟`);
