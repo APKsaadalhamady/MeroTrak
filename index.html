@@ -3,6 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
     
     <title>MeroTrack - نظام متابعة طلبات الميروبينيم</title>
     
@@ -248,11 +251,9 @@
 
         const formatLocaleDate = (rawDateStr) => {
             if (!rawDateStr) return '-';
-            const parts = rawDateStr.split('-');
-            if (parts.length === 3) {
-                return `${parts[2]}/${parts[1]}/${parts[0]}`;
-            }
-            return rawDateStr;
+            const d = new Date(rawDateStr + "T00:00:00");
+            if (isNaN(d.getTime())) return rawDateStr;
+            return d.toLocaleDateString('ar-IQ', { day: '2-digit', month: '2-digit', year: 'numeric' });
         };
 
         function normalizeName(name) {
@@ -306,7 +307,7 @@
 
         let allOrders = [];
 
-        // إضافة طلب جديد
+        // إضافة طلب جديد مع فحص التكرار (30 يوماً) وتنعيم الأسماء
         document.getElementById('orderForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const name = document.getElementById('patientName').value.trim();
@@ -317,12 +318,11 @@
             const doctorRefused = document.getElementById('doctorRefused').checked;
 
             const initialStatus = doctorRefused ? 'doctor_refused' : 'pending';
-
             const normalizedNewName = normalizeName(name);
+
             const thirtyDaysAgo = new Date();
             thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
-            // فحص التكرار
             const duplicateOrder = allOrders.find(o => {
                 if (o.isDeleted) return false;
                 const orderDateObj = new Date(o.orderDate);
@@ -336,7 +336,7 @@
 
             if (duplicateOrder) {
                 const formattedPrevDate = formatLocaleDate(duplicateOrder.orderDate);
-                const confirmMsg = `⚠️ تنبيه تكرار مريض:\n\nيوجد سجل مريض مطابق مسجل سابقاً:\n• الاسم: ${duplicateOrder.patientName}\n• الرقم الإحصائي: ${duplicateOrder.mrn || 'غير مدخل'}\n• التاريخ: ${formattedPrevDate}\n• الردهة: ${duplicateOrder.ward}\n• الطبيب: د. ${duplicateOrder.doctorName || 'غير محدد'}\n\nهل أنت متأكد من إضافة طلب جديد لهذا المريض؟`;
+                const confirmMsg = `⚠️ تنبيه تكرار مريض:\n\nيوجد مريض بنفس الاسم أو الرقم مسجل سابقاً:\n• الاسم: ${duplicateOrder.patientName}\n• الرقم الإحصائي: ${duplicateOrder.mrn || 'غير مدخل'}\n• التاريخ: ${formattedPrevDate}\n• الردهة: ${duplicateOrder.ward}\n• الطبيب: د. ${duplicateOrder.doctorName || 'غير محدد'}\n\nهل أنت متأكد من إضافة طلب جديد لهذا المريض؟`;
                 
                 const proceed = confirm(confirmMsg);
                 if (!proceed) return;
@@ -450,7 +450,6 @@
                     }
                 }
 
-                // زر تعديل بيانات المريض (يختفي فقط عند التأكيد)
                 let editPatientBtnHtml = '';
                 if (!isConfirmed) {
                     editPatientBtnHtml = `<button class="btn btn-sm btn-outline-secondary" onclick="openEditOrderModal('${o.id}')" title="تعديل بيانات المريض"><i class="bi bi-pencil-square"></i> تعديل بيانات المريض</button>`;
@@ -470,7 +469,6 @@
                         
                         <div class="d-flex justify-content-between align-items-center text-muted fs-7 mb-2">
                             <span><i class="bi bi-calendar3"></i> ${formattedDate}</span>
-                            ${o.notes ? `<span class="text-dark"><i class="bi bi-chat-left-text"></i> ${o.notes}</span>` : ''}
                         </div>
 
                         <div class="action-btns d-flex justify-content-end gap-1 pt-2 border-top">
@@ -483,7 +481,6 @@
             }).join('');
         };
 
-        // تحديث الموقف المباشر للمختبر (تأكيد / نفي)
         window.updateStatus = async (id, status) => {
             const enteredPass = prompt('الرجاء إدخال رمز التحقق الخاص بالمختبر:');
             if (enteredPass === null) return;
@@ -491,15 +488,11 @@
 
             try {
                 const orderDoc = doc(db, "meropenem_orders", id);
-                await updateDoc(orderDoc, { 
-                    status: status, 
-                    updatedAt: new Date()
-                });
+                await updateDoc(orderDoc, { status: status, updatedAt: new Date() });
                 alert('✅ تم تحديث موقف العينة بنجاح');
             } catch (err) { alert('حدث خطأ أثناء التحديث: ' + err.message); }
         };
 
-        // فتح نافذة تعديل حالة الإرسال للمختبر (تطلب رمز المختبر)
         window.editStatus = (id) => {
             const enteredPass = prompt('الرجاء إدخال رمز المختبر لتعديل حالة الإرسال:');
             if (enteredPass === null) return;
@@ -512,24 +505,16 @@
             editStatusModalInstance.show();
         };
 
-        // تطبيق تغيير الحالة من نافذة المختبر
         window.applyStatusChange = async (newStatus) => {
             if (!activeEditOrderId) return;
-
             try {
                 const orderDoc = doc(db, "meropenem_orders", activeEditOrderId);
-                await updateDoc(orderDoc, { 
-                    status: newStatus, 
-                    updatedAt: new Date()
-                });
-                if (editStatusModalInstance) {
-                    editStatusModalInstance.hide();
-                }
+                await updateDoc(orderDoc, { status: newStatus, updatedAt: new Date() });
+                if (editStatusModalInstance) editStatusModalInstance.hide();
                 alert('✅ تم تعديل حالة الإرسال بنجاح');
             } catch (err) { alert('حدث خطأ أثناء التعديل: ' + err.message); }
         };
 
-        // فتح نافذة تعديل بيانات المريض والصيدلية (تطلب رمز الحذف والتعديل للصيدلية)
         window.openEditOrderModal = (id) => {
             const enteredPass = prompt('الرجاء إدخال الرمز السري لتعديل بيانات المريض:');
             if (enteredPass === null) return;
@@ -552,7 +537,6 @@
             editOrderModalInstance.show();
         };
 
-        // حفظ تعديل بيانات المريض
         document.getElementById('editOrderForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const id = document.getElementById('editOrderId').value;
@@ -566,28 +550,18 @@
             const currentOrder = allOrders.find(o => o.id === id);
             let newStatus = currentOrder ? currentOrder.status : 'pending';
 
-            // معالجة تغيير رأي الطبيب والموقف
             if (doctorRefused) {
                 newStatus = 'doctor_refused';
             } else if (newStatus === 'doctor_refused') {
-                // إذا كان المريض مرفوض سابقاً وتم إزالة التحديد (وافق الطبيب على الإرسال)
                 newStatus = 'pending';
             }
 
             try {
                 const orderDoc = doc(db, "meropenem_orders", id);
                 await updateDoc(orderDoc, { 
-                    patientName: name,
-                    mrn: mrn,
-                    doctorName: doctor,
-                    ward: ward,
-                    orderDate: date,
-                    status: newStatus,
-                    updatedAt: new Date()
+                    patientName: name, mrn: mrn, doctorName: doctor, ward: ward, orderDate: date, status: newStatus, updatedAt: new Date()
                 });
-                if (editOrderModalInstance) {
-                    editOrderModalInstance.hide();
-                }
+                if (editOrderModalInstance) editOrderModalInstance.hide();
                 alert('✅ تم حفظ تعديلات بيانات المريض بنجاح');
             } catch (err) { alert('حدث خطأ أثناء التعديل: ' + err.message); }
         });
@@ -603,10 +577,7 @@
 
             try {
                 const orderDoc = doc(db, "meropenem_orders", id);
-                await updateDoc(orderDoc, { 
-                    isDeleted: true,
-                    deletedAt: new Date()
-                });
+                await updateDoc(orderDoc, { isDeleted: true, deletedAt: new Date() });
                 alert('🗑️ تم حذف السجل بنجاح');
             } catch (err) { alert('حدث خطأ أثناء الحذف: ' + err.message); }
         };
