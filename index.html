@@ -146,6 +146,33 @@
         </div>
     </div>
 
+    <div class="modal fade" id="editStatusModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-sm">
+            <div class="modal-content">
+                <div class="modal-header py-2">
+                    <h6 class="modal-title fw-bold text-primary"><i class="bi bi-pencil-square"></i> تعديل حالة العينة</h6>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body text-center py-3">
+                    <p class="fs-7 text-muted mb-3">اختر الموقف الجديد للطلب:</p>
+                    <div class="d-grid gap-2">
+                        <button type="button" class="btn btn-success text-start fs-7" onclick="applyStatusChange('confirmed')">
+                            <i class="bi bi-check-circle-fill me-1"></i> تم أخذ العينة ✅
+                        </button>
+                        <button type="button" class="btn btn-danger text-start fs-7" onclick="applyStatusChange('rejected')">
+                            <i class="bi bi-x-circle-fill me-1"></i> لم ترسل عينة ❌
+                        </button>
+                        <button type="button" class="btn btn-warning text-start text-dark fs-7" onclick="applyStatusChange('pending')">
+                            <i class="bi bi-clock-fill me-1"></i> إعادة إلى (بانتظار العينة) ⏳
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getFirestore, collection, addDoc, onSnapshot, doc, updateDoc, deleteDoc, setDoc, query, orderBy } 
@@ -167,6 +194,8 @@
 
         let currentLabPasscode = "1234";
         let currentDeletePasscode = "9999";
+        let activeEditOrderId = null;
+        let editStatusModalInstance = null;
 
         const formatLocaleDate = (rawDateStr) => {
             if (!rawDateStr) return '-';
@@ -358,14 +387,11 @@
 
                 const formattedDate = formatLocaleDate(o.orderDate);
 
-                // التحكم بالأزرار حسب الحالة
                 let actionButtonsHtml = '';
                 if (!isDoctorRefused) {
                     if (o.status === 'confirmed' || o.status === 'rejected') {
-                        // عند تأكيد أو نفي العينة تختفي الأزرار وتتحول لزر واحد لتعديل الحالة
                         actionButtonsHtml = `<button class="btn btn-sm btn-outline-primary" onclick="editStatus('${o.id}')"><i class="bi bi-pencil-square"></i> تعديل الحالة</button>`;
                     } else {
-                        // عند الانتظار يظهر زرا التأكيد والنفي
                         actionButtonsHtml = `
                             <button class="btn btn-sm btn-success" onclick="updateStatus('${o.id}', 'confirmed')"><i class="bi bi-check-lg"></i> تأكيد</button>
                             <button class="btn btn-sm btn-danger" onclick="updateStatus('${o.id}', 'rejected')"><i class="bi bi-x-lg"></i> نفي</button>
@@ -399,51 +425,48 @@
             }).join('');
         };
 
-        // دالة التحديث الأولى (تأكيد / نفي)
+        // تحديث الموقف المباشر (تأكيد / نفي) بدون طلب ملاحظات
         window.updateStatus = async (id, status) => {
             const enteredPass = prompt('الرجاء إدخال رمز التحقق الخاص بالمختبر:');
             if (enteredPass === null) return;
             if (enteredPass !== currentLabPasscode) { alert('❌ رمز التحقق غير صحيح!'); return; }
 
-            const note = prompt(status === 'confirmed' ? 'أدخل ملاحظة (اختياري):' : 'سبب عدم الإرسال (اختياري):');
-            if (note === null) return;
-
             try {
                 const orderDoc = doc(db, "meropenem_orders", id);
                 await updateDoc(orderDoc, { 
                     status: status, 
-                    notes: note,
                     updatedAt: new Date()
                 });
                 alert('✅ تم تحديث موقف العينة بنجاح');
             } catch (err) { alert('حدث خطأ أثناء التحديث: ' + err.message); }
         };
 
-        // دالة تعديل الحالة (تطلب نفس الرمز السري للمختبر)
-        window.editStatus = async (id) => {
+        // فتح النافذة المنبثقة للـ Modal لتعديل الحالة بالأزرار
+        window.editStatus = (id) => {
             const enteredPass = prompt('الرجاء إدخال رمز التحقق الخاص بالمختبر لتعديل الحالة:');
             if (enteredPass === null) return;
             if (enteredPass !== currentLabPasscode) { alert('❌ رمز التحقق غير صحيح!'); return; }
 
-            const choice = prompt('اختر الحالة الجديدة:\n1 - تم أخذ العينة ✅\n2 - لم ترسل عينة ❌\n3 - إعادة إلى (بانتظار العينة) ⏳');
-            if (!choice) return;
+            activeEditOrderId = id;
+            if (!editStatusModalInstance) {
+                editStatusModalInstance = new bootstrap.Modal(document.getElementById('editStatusModal'));
+            }
+            editStatusModalInstance.show();
+        };
 
-            let newStatus = '';
-            if (choice.trim() === '1') newStatus = 'confirmed';
-            else if (choice.trim() === '2') newStatus = 'rejected';
-            else if (choice.trim() === '3') newStatus = 'pending';
-            else { alert('❌ اختيار غير صحيح!'); return; }
-
-            const note = prompt('أدخل ملاحظة معدلة (اختياري):');
-            if (note === null) return;
+        // تطبيق تغيير الحالة من زر النافذة المنبثقة دون ملاحظات
+        window.applyStatusChange = async (newStatus) => {
+            if (!activeEditOrderId) return;
 
             try {
-                const orderDoc = doc(db, "meropenem_orders", id);
+                const orderDoc = doc(db, "meropenem_orders", activeEditOrderId);
                 await updateDoc(orderDoc, { 
                     status: newStatus, 
-                    notes: note,
                     updatedAt: new Date()
                 });
+                if (editStatusModalInstance) {
+                    editStatusModalInstance.hide();
+                }
                 alert('✅ تم تعديل موقف العينة بنجاح');
             } catch (err) { alert('حدث خطأ أثناء التعديل: ' + err.message); }
         };
