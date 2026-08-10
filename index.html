@@ -34,7 +34,7 @@
         .order-card.status-delay48-border { border-right-color: #dc3545; }
         .order-card.status-confirmed-border { border-right-color: #198754; }
         .order-card.status-rejected-border { border-right-color: #dc3545; }
-        .order-card.status-doc-refused-border { border-right-color: #495057; }
+        .order-card.status-doc-refused-border { border-right-color: #6c757d; }
 
         .status-badge { font-size: 0.8rem; padding: 5px 10px; border-radius: 50px; font-weight: 600; }
         .status-pending { background-color: #fff3cd; color: #664d03; }
@@ -228,7 +228,7 @@
 
         let allOrders = [];
 
-        // إضافة طلب جديد مع معالجة حالة رفض الطبيب وفحص التكرار
+        // إضافة طلب جديد
         document.getElementById('orderForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const name = document.getElementById('patientName').value.trim();
@@ -272,7 +272,7 @@
                     ward: ward,
                     orderDate: date,
                     status: initialStatus,
-                    notes: doctorRefused ? 'طلب بامتناع الطبيب عن إرسال عينة' : '',
+                    notes: '',
                     isDeleted: false,
                     createdAt: new Date()
                 });
@@ -379,7 +379,7 @@
                             ${!isDoctorRefused ? `
                                 <button class="btn btn-sm btn-success" onclick="updateStatus('${o.id}', 'confirmed')"><i class="bi bi-check-lg"></i> تأكيد</button>
                                 <button class="btn btn-sm btn-danger" onclick="updateStatus('${o.id}', 'rejected')"><i class="bi bi-x-lg"></i> نفي</button>
-                            ` : '<small class="text-muted ms-auto my-auto fs-7">طلب بدون عينة (رفض الطبيب)</small>'}
+                            ` : ''}
                             <button class="btn btn-sm btn-outline-danger" onclick="deleteOrder('${o.id}', '${o.patientName}')"><i class="bi bi-trash"></i></button>
                         </div>
                     </div>
