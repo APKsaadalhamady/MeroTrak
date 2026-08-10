@@ -50,7 +50,6 @@
     </div>
 
     <div class="container">
-        <!-- شريط الإجراءات العلوي والأزرار -->
         <div class="d-flex justify-content-between align-items-center mb-3">
             <a href="stats.html" class="btn btn-sm btn-primary shadow-sm">
                 <i class="bi bi-bar-chart-fill"></i> الإحصائيات والتقارير
@@ -65,7 +64,6 @@
             </div>
         </div>
 
-        <!-- قسم إضافة طلب جديد -->
         <div class="card p-3 mb-3">
             <h6 class="card-title text-primary mb-3"><i class="bi bi-plus-circle-fill"></i> طلب جديد (الصيدلية)</h6>
             <form id="orderForm" class="row g-2">
@@ -91,7 +89,6 @@
             </form>
         </div>
 
-        <!-- قسم البحث والفلترة -->
         <div class="card p-3 mb-3">
             <h6 class="card-title text-secondary mb-2"><i class="bi bi-search"></i> البحث والفلترة</h6>
             <div class="row g-2">
@@ -121,7 +118,6 @@
             </div>
         </div>
 
-        <!-- قائمة الطلبات -->
         <div class="mb-2">
             <h6 class="text-dark mb-3"><i class="bi bi-list-task"></i> سجل الطلبات</h6>
             <div id="ordersContainer">
@@ -130,7 +126,6 @@
         </div>
     </div>
 
-    <!-- Firebase SDK -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getFirestore, collection, addDoc, onSnapshot, doc, updateDoc, deleteDoc, getDoc, setDoc, query, orderBy } 
@@ -161,6 +156,16 @@
             }
             return rawDateStr;
         };
+
+        // دالة تنظيف النص من الهمزات والمسافات الزائدة لدقة الفحص
+        function normalizeName(name) {
+            if (!name) return "";
+            return name
+                .trim()
+                .replace(/[أإآ]/g, "ا")
+                .replace(/ى/g, "ي")
+                .replace(/\s+/g, " ");
+        }
 
         onSnapshot(settingsRef, (docSnap) => {
             if (docSnap.exists()) {
@@ -204,12 +209,38 @@
 
         let allOrders = [];
 
+        // إدخال طلب جديد مع خوارزمية كشف التكرار خلال 30 يوماً
         document.getElementById('orderForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const name = document.getElementById('patientName').value.trim();
             const doctor = document.getElementById('doctorName').value.trim();
             const ward = document.getElementById('ward').value.trim();
             const date = document.getElementById('orderDate').value;
+
+            const normalizedNewName = normalizeName(name);
+
+            // تحديد تاريخ النطاق الزمني (آخر 30 يوماً)
+            const thirtyDaysAgo = new Date();
+            thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+            // البحث عن وجود سجل مكرر
+            const duplicateOrder = allOrders.find(o => {
+                const orderDateObj = new Date(o.orderDate);
+                const isWithin30Days = orderDateObj >= thirtyDaysAgo;
+                const isSameName = normalizeName(o.patientName) === normalizedNewName;
+                return isSameName && isWithin30Days;
+            });
+
+            // إظهار التنبيه التفاعلي عند اكتشاف التكرار
+            if (duplicateOrder) {
+                const formattedPrevDate = formatLocaleDate(duplicateOrder.orderDate);
+                const confirmMsg = `⚠️ تنبيه تكرار مريض:\n\nيوجد مريض بنفس الاسم مسجل سابقاً:\n• الاسم: ${duplicateOrder.patientName}\n• التاريخ: ${formattedPrevDate}\n• الردهة: ${duplicateOrder.ward}\n• الطبيب: د. ${duplicateOrder.doctorName || 'غير محدد'}\n\nهل أنت متأكد من إضافة طلب جديد لهذا المريض؟`;
+                
+                const proceed = confirm(confirmMsg);
+                if (!proceed) {
+                    return; // إلغاء عملية الإضافة
+                }
+            }
 
             try {
                 await addDoc(ordersRef, {
@@ -223,7 +254,7 @@
                 });
                 document.getElementById('orderForm').reset();
                 document.getElementById('orderDate').value = new Date().toISOString().split('T')[0];
-                alert('تمت إضافة الطلب بنجاح');
+                alert('✅ تم إدخال الطلب بنجاح');
             } catch (err) { alert('حدث خطأ أثناء الإضافة: ' + err.message); }
         });
 
