@@ -358,6 +358,21 @@
 
                 const formattedDate = formatLocaleDate(o.orderDate);
 
+                // التحكم بالأزرار حسب الحالة
+                let actionButtonsHtml = '';
+                if (!isDoctorRefused) {
+                    if (o.status === 'confirmed' || o.status === 'rejected') {
+                        // عند تأكيد أو نفي العينة تختفي الأزرار وتتحول لزر واحد لتعديل الحالة
+                        actionButtonsHtml = `<button class="btn btn-sm btn-outline-primary" onclick="editStatus('${o.id}')"><i class="bi bi-pencil-square"></i> تعديل الحالة</button>`;
+                    } else {
+                        // عند الانتظار يظهر زرا التأكيد والنفي
+                        actionButtonsHtml = `
+                            <button class="btn btn-sm btn-success" onclick="updateStatus('${o.id}', 'confirmed')"><i class="bi bi-check-lg"></i> تأكيد</button>
+                            <button class="btn btn-sm btn-danger" onclick="updateStatus('${o.id}', 'rejected')"><i class="bi bi-x-lg"></i> نفي</button>
+                        `;
+                    }
+                }
+
                 return `
                     <div class="order-card ${borderClass}">
                         <div class="d-flex justify-content-between align-items-start mb-2">
@@ -376,10 +391,7 @@
                         </div>
 
                         <div class="action-btns d-flex justify-content-end gap-1 pt-2 border-top">
-                            ${!isDoctorRefused ? `
-                                <button class="btn btn-sm btn-success" onclick="updateStatus('${o.id}', 'confirmed')"><i class="bi bi-check-lg"></i> تأكيد</button>
-                                <button class="btn btn-sm btn-danger" onclick="updateStatus('${o.id}', 'rejected')"><i class="bi bi-x-lg"></i> نفي</button>
-                            ` : ''}
+                            ${actionButtonsHtml}
                             <button class="btn btn-sm btn-outline-danger" onclick="deleteOrder('${o.id}', '${o.patientName}')"><i class="bi bi-trash"></i></button>
                         </div>
                     </div>
@@ -387,6 +399,7 @@
             }).join('');
         };
 
+        // دالة التحديث الأولى (تأكيد / نفي)
         window.updateStatus = async (id, status) => {
             const enteredPass = prompt('الرجاء إدخال رمز التحقق الخاص بالمختبر:');
             if (enteredPass === null) return;
@@ -404,6 +417,35 @@
                 });
                 alert('✅ تم تحديث موقف العينة بنجاح');
             } catch (err) { alert('حدث خطأ أثناء التحديث: ' + err.message); }
+        };
+
+        // دالة تعديل الحالة (تطلب نفس الرمز السري للمختبر)
+        window.editStatus = async (id) => {
+            const enteredPass = prompt('الرجاء إدخال رمز التحقق الخاص بالمختبر لتعديل الحالة:');
+            if (enteredPass === null) return;
+            if (enteredPass !== currentLabPasscode) { alert('❌ رمز التحقق غير صحيح!'); return; }
+
+            const choice = prompt('اختر الحالة الجديدة:\n1 - تم أخذ العينة ✅\n2 - لم ترسل عينة ❌\n3 - إعادة إلى (بانتظار العينة) ⏳');
+            if (!choice) return;
+
+            let newStatus = '';
+            if (choice.trim() === '1') newStatus = 'confirmed';
+            else if (choice.trim() === '2') newStatus = 'rejected';
+            else if (choice.trim() === '3') newStatus = 'pending';
+            else { alert('❌ اختيار غير صحيح!'); return; }
+
+            const note = prompt('أدخل ملاحظة معدلة (اختياري):');
+            if (note === null) return;
+
+            try {
+                const orderDoc = doc(db, "meropenem_orders", id);
+                await updateDoc(orderDoc, { 
+                    status: newStatus, 
+                    notes: note,
+                    updatedAt: new Date()
+                });
+                alert('✅ تم تعديل موقف العينة بنجاح');
+            } catch (err) { alert('حدث خطأ أثناء التعديل: ' + err.message); }
         };
 
         window.deleteOrder = async (id, patientName) => {
