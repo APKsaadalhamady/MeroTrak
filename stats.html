@@ -40,6 +40,12 @@
         .table th { background-color: #f8fafc; color: #475569; font-weight: 700; font-size: 0.85rem; border-bottom: 2px solid #e2e8f0; }
         .table td { vertical-align: middle; font-size: 0.85rem; color: #334155; font-weight: 600; }
         
+        /* شريط التمرير الأنيق (Scrollbar) للجداول والرسوم البيانية */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
         @media print {
             .no-print { display: none !important; }
             body { background: white; }
@@ -139,7 +145,7 @@
                     <div class="col-12 col-md-4">
                         <div class="card p-3 text-center h-100 border shadow-sm">
                             <h6 class="text-muted fw-bold mb-3 fs-7">توزيع نسب الحالات</h6>
-                            <div style="height: 220px; display: flex; justify-content: center;">
+                            <div style="height: 250px; display: flex; justify-content: center;">
                                 <canvas id="statusPieChart"></canvas>
                             </div>
                         </div>
@@ -147,16 +153,20 @@
                     <div class="col-12 col-md-4">
                         <div class="card p-3 text-center h-100 border shadow-sm">
                             <h6 class="text-muted fw-bold mb-3 fs-7">أكثر الأطباء طالباً للميروبينيم</h6>
-                            <div style="height: 220px; display: flex; justify-content: center;">
-                                <canvas id="doctorsBarChart"></canvas>
+                            <div style="height: 250px; overflow-y: auto; overflow-x: hidden; padding-left: 5px;" dir="ltr">
+                                <div id="docsChartWrapper" dir="rtl" style="height: 250px; position: relative;">
+                                    <canvas id="doctorsBarChart"></canvas>
+                                </div>
                             </div>
                         </div>
                     </div>
                     <div class="col-12 col-md-4">
                         <div class="card p-3 text-center h-100 border shadow-sm">
                             <h6 class="text-muted fw-bold mb-3 fs-7">الطلبات حسب الردهات</h6>
-                            <div style="height: 220px; display: flex; justify-content: center;">
-                                <canvas id="wardsBarChart"></canvas>
+                            <div style="height: 250px; overflow-y: auto; overflow-x: hidden; padding-left: 5px;" dir="ltr">
+                                <div id="wardsChartWrapper" dir="rtl" style="height: 250px; position: relative;">
+                                    <canvas id="wardsBarChart"></canvas>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -382,6 +392,7 @@
         }
 
         function updateCharts(confirmed, rejected, pending, docRefused, wardsCount, doctorsCount) {
+            // الدائري
             const pieCtx = document.getElementById('statusPieChart').getContext('2d');
             if (pieChartInstance) pieChartInstance.destroy();
             pieChartInstance = new Chart(pieCtx, {
@@ -393,26 +404,86 @@
                 options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { font: { family: 'Cairo' } } } } }
             });
 
+            // تجهيز البيانات والمتغيرات للرسم الأفقي (الردهات)
+            const wardsKeys = Object.keys(wardsCount).length ? Object.keys(wardsCount) : ['لا يوجد'];
+            const wardsValues = Object.values(wardsCount).length ? Object.values(wardsCount) : [0];
+            const wardsTotal = wardsValues.reduce((a, b) => a + b, 0);
+            
+            // ضبط ارتفاع الحاوية ديناميكياً لتناسب أعداد الردهات
+            const wardsHeight = Math.max(250, wardsKeys.length * 40);
+            document.getElementById('wardsChartWrapper').style.height = wardsHeight + 'px';
+
             const wardsCtx = document.getElementById('wardsBarChart').getContext('2d');
             if (wardsChartInstance) wardsChartInstance.destroy();
             wardsChartInstance = new Chart(wardsCtx, {
                 type: 'bar',
                 data: {
-                    labels: Object.keys(wardsCount).length ? Object.keys(wardsCount) : ['لا يوجد'],
-                    datasets: [{ label: 'الطلبات', data: Object.values(wardsCount).length ? Object.values(wardsCount) : [0], backgroundColor: '#3b82f6', borderRadius: 6 }]
+                    labels: wardsKeys,
+                    datasets: [{ label: 'الطلبات', data: wardsValues, backgroundColor: '#3b82f6', borderRadius: 4 }]
                 },
-                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } }, x: { ticks: { font: { family: 'Cairo' } } } } }
+                options: { 
+                    indexAxis: 'y', // قلب الرسم بياني ليكون أفقي
+                    responsive: true, 
+                    maintainAspectRatio: false, 
+                    plugins: { 
+                        legend: { display: false },
+                        tooltip: { // إظهار النسبة المئوية في النافذة المنبثقة
+                            callbacks: {
+                                label: function(context) {
+                                    let val = context.raw;
+                                    let perc = wardsTotal > 0 ? Math.round((val / wardsTotal) * 100) : 0;
+                                    return ` ${val} طلب (${perc}%)`;
+                                }
+                            },
+                            titleFont: { family: 'Cairo' }, bodyFont: { family: 'Cairo' }
+                        }
+                    }, 
+                    scales: { 
+                        x: { beginAtZero: true, ticks: { stepSize: 1, font: { family: 'Cairo' } } }, 
+                        y: { ticks: { font: { family: 'Cairo' }, autoSkip: false } } 
+                    } 
+                }
             });
+
+            // تجهيز البيانات والمتغيرات للرسم الأفقي (الأطباء)
+            const docsKeys = Object.keys(doctorsCount).length ? Object.keys(doctorsCount) : ['لا يوجد'];
+            const docsValues = Object.values(doctorsCount).length ? Object.values(doctorsCount) : [0];
+            const docsTotal = docsValues.reduce((a, b) => a + b, 0);
+
+            // ضبط ارتفاع الحاوية ديناميكياً لتناسب أعداد الأطباء
+            const docsHeight = Math.max(250, docsKeys.length * 40);
+            document.getElementById('docsChartWrapper').style.height = docsHeight + 'px';
 
             const docsCtx = document.getElementById('doctorsBarChart').getContext('2d');
             if (doctorsChartInstance) doctorsChartInstance.destroy();
             doctorsChartInstance = new Chart(docsCtx, {
                 type: 'bar',
                 data: {
-                    labels: Object.keys(doctorsCount).length ? Object.keys(doctorsCount) : ['لا يوجد'],
-                    datasets: [{ label: 'الطلبات', data: Object.values(doctorsCount).length ? Object.values(doctorsCount) : [0], backgroundColor: '#14b8a6', borderRadius: 6 }]
+                    labels: docsKeys,
+                    datasets: [{ label: 'الطلبات', data: docsValues, backgroundColor: '#14b8a6', borderRadius: 4 }]
                 },
-                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } }, x: { ticks: { font: { family: 'Cairo' } } } } }
+                options: { 
+                    indexAxis: 'y', // قلب الرسم بياني ليكون أفقي
+                    responsive: true, 
+                    maintainAspectRatio: false, 
+                    plugins: { 
+                        legend: { display: false },
+                        tooltip: { // إظهار النسبة المئوية في النافذة المنبثقة
+                            callbacks: {
+                                label: function(context) {
+                                    let val = context.raw;
+                                    let perc = docsTotal > 0 ? Math.round((val / docsTotal) * 100) : 0;
+                                    return ` ${val} طلب (${perc}%)`;
+                                }
+                            },
+                            titleFont: { family: 'Cairo' }, bodyFont: { family: 'Cairo' }
+                        }
+                    }, 
+                    scales: { 
+                        x: { beginAtZero: true, ticks: { stepSize: 1, font: { family: 'Cairo' } } }, 
+                        y: { ticks: { font: { family: 'Cairo' }, autoSkip: false } } 
+                    } 
+                }
             });
         }
 
