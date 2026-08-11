@@ -4,147 +4,148 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-    <meta http-equiv="Pragma" content="no-cache">
-    <meta http-equiv="Expires" content="0">
     
     <title>MeroTrack - نظام متابعة طلبات الميروبينيم</title>
     
-    <link rel="preconnect" href="https://cdn.jsdelivr.net">
-    <link rel="preconnect" href="https://www.gstatic.com">
-
-    <link rel="manifest" href="manifest.json">
-    <link rel="apple-touch-icon" href="icon.png">
-    <meta name="theme-color" content="#0d6efd">
-    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.rtl.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
     
     <style>
-        body { background-color: #f4f6f9; font-family: system-ui, -apple-system, sans-serif; padding-bottom: 30px; }
-        .header-title { background: linear-gradient(135deg, #0d6efd, #0a58ca); color: white; padding: 18px 0; margin-bottom: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-        .card { border-radius: 14px; border: none; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+        /* التنسيقات الحديثة (Modern UI) */
+        :root { --primary-color: #2563eb; --bg-color: #f1f5f9; --text-main: #1e293b; --text-muted: #64748b; }
+        body { font-family: 'Cairo', sans-serif; background-color: var(--bg-color); color: var(--text-main); padding-bottom: 40px; }
         
-        .order-card {
-            background: white;
-            border-radius: 12px;
-            padding: 15px;
-            margin-bottom: 12px;
-            border-right: 5px solid #6c757d;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.04);
-        }
-        .order-card.status-pending-border { border-right-color: #ffc107; }
-        .order-card.status-delay24-border { border-right-color: #fd7e14; }
-        .order-card.status-delay48-border { border-right-color: #dc3545; }
-        .order-card.status-confirmed-border { border-right-color: #198754; }
-        .order-card.status-rejected-border { border-right-color: #dc3545; }
-        .order-card.status-doc-refused-border { border-right-color: #6c757d; }
-
-        .status-badge { font-size: 0.8rem; padding: 5px 10px; border-radius: 50px; font-weight: 600; }
-        .status-pending { background-color: #fff3cd; color: #664d03; }
-        .status-delay24 { background-color: #ffe8cc; color: #d9480f; }
-        .status-delay48 { background-color: #f8d7da; color: #842029; font-weight: bold; }
-        .status-done { background-color: #d1e7dd; color: #0f5132; }
-        .status-rejected { background-color: #f8d7da; color: #842029; }
-        .status-doc-refused { background-color: #e2e3e5; color: #343a40; font-weight: bold; }
+        .header-title { background: linear-gradient(135deg, #1e40af, #3b82f6); color: white; padding: 25px 0; margin-bottom: 25px; border-radius: 0 0 30px 30px; box-shadow: 0 10px 25px rgba(59, 130, 246, 0.2); }
+        .card { border-radius: 20px; border: none; box-shadow: 0 6px 20px rgba(0,0,0,0.03); margin-bottom: 20px; overflow: hidden; background: #ffffff; }
+        .card-header { background-color: transparent; border-bottom: 1px solid #f1f5f9; padding: 15px 20px; font-weight: 700; }
         
-        .action-btns .btn { padding: 5px 9px; font-size: 0.8rem; border-radius: 8px; }
-        .filter-label { font-size: 0.78rem; font-weight: 600; color: #495057; margin-bottom: 3px; display: block; }
+        .form-control, .form-select { border-radius: 12px; border: 1px solid #cbd5e1; padding: 10px 15px; background-color: #f8fafc; font-size: 0.9rem; font-weight: 600; color: var(--text-main); transition: all 0.2s; }
+        .form-control:focus, .form-select:focus { border-color: #3b82f6; box-shadow: 0 0 0 4px rgba(59,130,246,0.1); background-color: #fff; }
+        .filter-label { font-size: 0.8rem; font-weight: 700; color: var(--text-muted); margin-bottom: 6px; display: block; }
+        .btn { border-radius: 12px; font-weight: 700; padding: 8px 16px; transition: all 0.2s; }
+        
+        /* تصميم بطاقات الطلبات */
+        .order-card { background: white; border-radius: 16px; padding: 18px; margin-bottom: 15px; border-right: 6px solid #94a3b8; box-shadow: 0 4px 12px rgba(0,0,0,0.02); transition: all 0.2s ease; position: relative; }
+        .order-card:hover { transform: translateY(-3px); box-shadow: 0 8px 20px rgba(0,0,0,0.05); }
+        .order-title { font-size: 1.05rem; font-weight: 800; color: #0f172a; margin-bottom: 8px; }
+        .order-meta .badge { font-size: 0.75rem; font-weight: 600; padding: 5px 8px; border-radius: 8px; margin-left: 5px; margin-bottom: 5px; }
+        
+        /* ألوان الحالات (Pastel Colors) */
+        .status-badge { font-size: 0.75rem; padding: 6px 12px; border-radius: 20px; font-weight: 800; display: inline-flex; align-items: center; gap: 4px; }
+        .status-pending { background-color: #fef3c7; color: #b45309; }
+        .status-delay24 { background-color: #ffedd5; color: #c2410c; }
+        .status-delay48 { background-color: #fee2e2; color: #b91c1c; }
+        .status-done { background-color: #dcfce7; color: #15803d; }
+        .status-rejected { background-color: #fee2e2; color: #b91c1c; }
+        .status-doc-refused { background-color: #f1f5f9; color: #475569; }
+        
+        /* ألوان الحواف للبطاقات */
+        .order-card.status-pending-border { border-right-color: #f59e0b; }
+        .order-card.status-delay24-border { border-right-color: #ea580c; }
+        .order-card.status-delay48-border { border-right-color: #e11d48; }
+        .order-card.status-confirmed-border { border-right-color: #16a34a; }
+        .order-card.status-rejected-border { border-right-color: #e11d48; }
+        .order-card.status-doc-refused-border { border-right-color: #64748b; }
+        
+        /* النوافذ المنبثقة Modals */
+        .modal-content { border-radius: 24px; border: none; box-shadow: 0 20px 40px rgba(0,0,0,0.1); }
+        .modal-header { border-bottom: 1px solid #f1f5f9; }
+        .form-check-input { width: 1.2em; height: 1.2em; border-radius: 6px; }
+        .form-check-label { padding-top: 2px; }
+        .action-btns .btn { font-size: 0.8rem; padding: 6px 12px; border-radius: 10px; }
     </style>
 </head>
 <body>
 
     <div class="header-title text-center">
-        <h4 class="mb-1"><i class="bi bi-capsule"></i> MeroTrack</h4>
-        <p class="mb-0 fs-7 opacity-75">متابعة الميروبينيم (الصيدلية ↔ المختبر)</p>
+        <h4 class="mb-1 fw-bold"><i class="bi bi-capsule"></i> MeroTrack</h4>
+        <p class="mb-0 fs-7 opacity-75 fw-semibold">متابعة الميروبينيم (الصيدلية ↔ المختبر)</p>
     </div>
 
     <div class="container">
-        <div class="d-flex justify-content-between align-items-center mb-3">
-            <a href="stats.html" class="btn btn-sm btn-primary shadow-sm">
-                <i class="bi bi-bar-chart-fill"></i> الإحصائيات والتقارير
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <a href="stats.html" class="btn btn-primary shadow-sm px-3">
+                <i class="bi bi-bar-chart-fill me-1"></i> الإحصائيات
             </a>
-            <div class="d-flex gap-1">
-                <button class="btn btn-sm btn-outline-dark" onclick="changeLabPasscode()" title="رمز المختبر">
+            <div class="d-flex gap-2">
+                <button class="btn btn-outline-secondary bg-white text-dark border-0 shadow-sm" onclick="changeLabPasscode()" title="رمز المختبر">
                     <i class="bi bi-key-fill"></i>
                 </button>
-                <button class="btn btn-sm btn-outline-danger" onclick="changeDeletePasscode()" title="رمز الحذف والتعديل">
+                <button class="btn btn-outline-danger bg-white border-0 shadow-sm" onclick="changeDeletePasscode()" title="رمز الصيدلية">
                     <i class="bi bi-shield-lock-fill"></i>
                 </button>
             </div>
         </div>
 
-        <div class="card p-3 mb-3">
-            <h6 class="card-title text-primary mb-3"><i class="bi bi-plus-circle-fill"></i> طلب جديد (الصيدلية)</h6>
-            <form id="orderForm" class="row g-2">
-                <div class="col-12 col-md-3">
+        <div class="card p-4">
+            <h6 class="text-primary mb-3 fw-bold"><i class="bi bi-plus-circle-fill me-1"></i> إضافة طلب جديد</h6>
+            <form id="orderForm" class="row g-3">
+                <div class="col-12 col-md-4">
                     <label class="filter-label">اسم المريض</label>
-                    <input type="text" id="patientName" class="form-control" placeholder="اسم المريض الثلاثي" required>
+                    <input type="text" id="patientName" class="form-control" placeholder="الاسم الثلاثي" required>
                 </div>
-                <div class="col-12 col-md-2">
-                    <label class="filter-label">الرقم الإحصائي (اختياري)</label>
-                    <input type="text" id="mrn" class="form-control" placeholder="مثال: 12345">
-                </div>
-                <div class="col-12 col-md-3">
+                <div class="col-12 col-md-4">
                     <label class="filter-label">الطبيب المسؤول</label>
-                    <input type="text" id="doctorName" class="form-control" placeholder="اسم الطبيب المعالج" required>
+                    <input type="text" id="doctorName" class="form-control" placeholder="د. اسم الطبيب" required>
                 </div>
                 <div class="col-6 col-md-2">
                     <label class="filter-label">الردهة / القسم</label>
-                    <input type="text" id="ward" class="form-control" placeholder="الردهة / القسم" required>
+                    <input type="text" id="ward" class="form-control" placeholder="اسم الردهة" required>
                 </div>
                 <div class="col-6 col-md-2">
-                    <label class="filter-label">تاريخ الطلب</label>
+                    <label class="filter-label">التاريخ</label>
                     <input type="date" id="orderDate" class="form-control" required>
                 </div>
-                
-                <div class="col-12 mt-2">
-                    <div class="form-check">
-                        <input class="form-check-input" type="checkbox" id="doctorRefused">
+                <div class="col-12">
+                    <label class="filter-label">الرقم الإحصائي (اختياري)</label>
+                    <input type="text" id="mrn" class="form-control" placeholder="رقم الطبيلة / الإحصائي">
+                </div>
+                <div class="col-12 mt-3">
+                    <div class="form-check bg-light p-3 rounded-3 border">
+                        <input class="form-check-input ms-2" type="checkbox" id="doctorRefused">
                         <label class="form-check-label text-danger fw-bold fs-7" for="doctorRefused">
-                            🚫 رفض الطبيب إرسال عينة زرع
+                            🚫 المريض مستثنى (رفض الطبيب إرسال عينة زرع)
                         </label>
                     </div>
                 </div>
-
-                <div class="col-12 text-end mt-2">
-                    <button type="submit" class="btn btn-primary w-100 px-4"><i class="bi bi-send-fill"></i> إرسال الطلب</button>
+                <div class="col-12 mt-3">
+                    <button type="submit" class="btn btn-primary w-100 py-2"><i class="bi bi-send-fill me-1"></i> إرسال الطلب وحفظه</button>
                 </div>
             </form>
         </div>
 
-        <div class="card p-3 mb-3">
-            <h6 class="card-title text-secondary mb-2"><i class="bi bi-search"></i> البحث والفلترة</h6>
-            <div class="row g-2">
+        <div class="card p-4">
+            <h6 class="text-secondary mb-3 fw-bold"><i class="bi bi-search me-1"></i> البحث والفلترة</h6>
+            <div class="row g-3">
                 <div class="col-12 col-md-6">
-                    <label class="filter-label"><i class="bi bi-person"></i> ابحث بالاسم، الرقم الإحصائي، أو الطبيب</label>
-                    <input type="text" id="searchInput" class="form-control form-control-sm" placeholder="اسم المريض، الرقم الإحصائي، أو الطبيب...">
+                    <input type="text" id="searchInput" class="form-control" placeholder="🔍 ابحث بالاسم، الرقم، أو الطبيب...">
                 </div>
                 <div class="col-12 col-md-6">
-                    <label class="filter-label"><i class="bi bi-hospital"></i> فلترة بالردهة</label>
-                    <input type="text" id="wardFilter" class="form-control form-control-sm" placeholder="اكتب اسم الردهة...">
-                </div>
-                
-                <div class="col-6">
-                    <label class="filter-label"><i class="bi bi-calendar-event"></i> من تاريخ</label>
-                    <input type="date" id="startDateFilter" class="form-control form-control-sm">
+                    <input type="text" id="wardFilter" class="form-control" placeholder="🏥 فلترة باسم الردهة...">
                 </div>
                 <div class="col-6">
-                    <label class="filter-label"><i class="bi bi-calendar-event-fill"></i> إلى تاريخ</label>
-                    <input type="date" id="endDateFilter" class="form-control form-control-sm">
+                    <label class="filter-label">من تاريخ:</label>
+                    <input type="date" id="startDateFilter" class="form-control">
                 </div>
-
+                <div class="col-6">
+                    <label class="filter-label">إلى تاريخ:</label>
+                    <input type="date" id="endDateFilter" class="form-control">
+                </div>
                 <div class="col-12 mt-2">
-                    <button class="btn btn-sm btn-outline-secondary w-100" onclick="resetFilters()">
-                        <i class="bi bi-x-circle"></i> مسح الفلاتر
+                    <button class="btn btn-light border text-muted w-100 fw-bold" onclick="resetFilters()">
+                        <i class="bi bi-x-circle me-1"></i> مسح جميع الفلاتر
                     </button>
                 </div>
             </div>
         </div>
 
-        <div class="mb-2">
-            <h6 class="text-dark mb-3"><i class="bi bi-list-task"></i> سجل الطلبات</h6>
+        <div class="mb-4">
+            <h5 class="text-dark mb-3 fw-bold"><i class="bi bi-card-list me-1"></i> سجل الطلبات</h5>
             <div id="ordersContainer">
-                <div class="text-center text-muted py-4">جاري تحميل البيانات...</div>
+                <div class="text-center text-muted py-5 fw-bold">جاري تحميل البيانات... ⏳</div>
             </div>
         </div>
     </div>
@@ -152,21 +153,20 @@
     <div class="modal fade" id="editStatusModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered modal-sm">
             <div class="modal-content">
-                <div class="modal-header py-2">
-                    <h6 class="modal-title fw-bold text-primary"><i class="bi bi-arrow-repeat"></i> تعديل حالة الإرسال</h6>
+                <div class="modal-header py-3 border-0">
+                    <h6 class="modal-title fw-bold text-primary"><i class="bi bi-arrow-repeat me-1"></i> تحديث موقف المختبر</h6>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <div class="modal-body text-center py-3">
-                    <p class="fs-7 text-muted mb-3">اختر الموقف الجديد للطلب:</p>
+                <div class="modal-body text-center pb-4 pt-0">
                     <div class="d-grid gap-2">
-                        <button type="button" class="btn btn-success text-start fs-7" onclick="applyStatusChange('confirmed')">
-                            <i class="bi bi-check-circle-fill me-1"></i> تم أخذ العينة ✅
+                        <button type="button" class="btn btn-success text-start py-2" onclick="applyStatusChange('confirmed')">
+                            <i class="bi bi-check-circle-fill me-2"></i> تم أخذ العينة ✅
                         </button>
-                        <button type="button" class="btn btn-danger text-start fs-7" onclick="applyStatusChange('rejected')">
-                            <i class="bi bi-x-circle-fill me-1"></i> لم ترسل عينة ❌
+                        <button type="button" class="btn btn-danger text-start py-2" onclick="applyStatusChange('rejected')">
+                            <i class="bi bi-x-circle-fill me-2"></i> لم ترسل عينة ❌
                         </button>
-                        <button type="button" class="btn btn-warning text-start text-dark fs-7" onclick="applyStatusChange('pending')">
-                            <i class="bi bi-clock-fill me-1"></i> إعادة إلى (بانتظار العينة) ⏳
+                        <button type="button" class="btn btn-warning text-start text-dark py-2" onclick="applyStatusChange('pending')">
+                            <i class="bi bi-clock-fill me-2"></i> تراجع إلى (بانتظار الإرسال) ⏳
                         </button>
                     </div>
                 </div>
@@ -177,44 +177,44 @@
     <div class="modal fade" id="editOrderModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
-                <div class="modal-header py-2">
-                    <h6 class="modal-title fw-bold text-primary"><i class="bi bi-pencil-square"></i> تعديل بيانات المريض</h6>
+                <div class="modal-header py-3 border-0">
+                    <h6 class="modal-title fw-bold text-primary"><i class="bi bi-pencil-square me-1"></i> تعديل بيانات المريض</h6>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <div class="modal-body py-3">
-                    <form id="editOrderForm" class="row g-2">
+                <div class="modal-body py-2">
+                    <form id="editOrderForm" class="row g-3">
                         <input type="hidden" id="editOrderId">
                         <div class="col-12">
                             <label class="filter-label">اسم المريض</label>
-                            <input type="text" id="editPatientName" class="form-control form-control-sm" required>
+                            <input type="text" id="editPatientName" class="form-control" required>
                         </div>
                         <div class="col-6">
                             <label class="filter-label">الرقم الإحصائي</label>
-                            <input type="text" id="editMrn" class="form-control form-control-sm">
+                            <input type="text" id="editMrn" class="form-control">
                         </div>
                         <div class="col-6">
                             <label class="filter-label">الطبيب المسؤول</label>
-                            <input type="text" id="editDoctorName" class="form-control form-control-sm" required>
+                            <input type="text" id="editDoctorName" class="form-control" required>
                         </div>
                         <div class="col-6">
                             <label class="filter-label">الردهة / القسم</label>
-                            <input type="text" id="editWard" class="form-control form-control-sm" required>
+                            <input type="text" id="editWard" class="form-control" required>
                         </div>
                         <div class="col-6">
-                            <label class="filter-label">تاريخ الطلب</label>
-                            <input type="date" id="editOrderDate" class="form-control form-control-sm" required>
+                            <label class="filter-label">التاريخ</label>
+                            <input type="date" id="editOrderDate" class="form-control" required>
                         </div>
-                        <div class="col-12 mt-2">
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" id="editDoctorRefused">
+                        <div class="col-12 mt-3">
+                            <div class="form-check bg-light p-2 rounded-3 border">
+                                <input class="form-check-input ms-2" type="checkbox" id="editDoctorRefused">
                                 <label class="form-check-label text-danger fw-bold fs-7" for="editDoctorRefused">
                                     🚫 رفض الطبيب إرسال عينة زرع
                                 </label>
                             </div>
                         </div>
-                        <div class="col-12 text-end mt-3 border-top pt-2">
-                            <button type="button" class="btn btn-sm btn-secondary me-1" data-bs-dismiss="modal">إلغاء</button>
-                            <button type="submit" class="btn btn-sm btn-primary px-3">حفظ التعديلات</button>
+                        <div class="col-12 text-end mt-4">
+                            <button type="button" class="btn btn-light border text-dark me-2" data-bs-dismiss="modal">إلغاء</button>
+                            <button type="submit" class="btn btn-primary px-4">حفظ التعديلات</button>
                         </div>
                     </form>
                 </div>
@@ -251,18 +251,14 @@
 
         const formatLocaleDate = (rawDateStr) => {
             if (!rawDateStr) return '-';
-            const d = new Date(rawDateStr + "T00:00:00");
-            if (isNaN(d.getTime())) return rawDateStr;
-            return d.toLocaleDateString('ar-IQ', { day: '2-digit', month: '2-digit', year: 'numeric' });
+            const parts = rawDateStr.split('-');
+            if (parts.length === 3) return `${parts[2]}/${parts[1]}/${parts[0]}`;
+            return rawDateStr;
         };
 
         function normalizeName(name) {
             if (!name) return "";
-            return name
-                .trim()
-                .replace(/[أإآ]/g, "ا")
-                .replace(/ى/g, "ي")
-                .replace(/\s+/g, " ");
+            return name.trim().replace(/[أإآ]/g, "ا").replace(/ى/g, "ي").replace(/\s+/g, " ");
         }
 
         onSnapshot(settingsRef, (docSnap) => {
@@ -270,44 +266,32 @@
                 const data = docSnap.data();
                 currentLabPasscode = data.passcode || "1234";
                 currentDeletePasscode = data.deletePasscode || "9999";
-            } else {
-                setDoc(settingsRef, { passcode: "1234", deletePasscode: "9999" });
-            }
+            } else { setDoc(settingsRef, { passcode: "1234", deletePasscode: "9999" }); }
         });
 
         window.changeLabPasscode = async () => {
             const oldPass = prompt('الرجاء إدخال رمز المختبر الحالي:');
             if (oldPass === null) return;
-            if (oldPass !== currentLabPasscode) { alert('❌ رمز المختبر الحالي غير صحيح!'); return; }
-
+            if (oldPass !== currentLabPasscode) { alert('❌ الرمز غير صحيح!'); return; }
             const newPass = prompt('أدخل الرمز الجديد للمختبر:');
-            if (!newPass || newPass.trim() === "") { alert('❌ لا يمكن ترك الرمز فارغاً!'); return; }
-
-            try {
-                await updateDoc(settingsRef, { passcode: newPass.trim() });
-                alert('✅ تم تغيير رمز المختبر بنجاح!');
-            } catch (err) { alert('حدث خطأ أثناء التغيير: ' + err.message); }
+            if (!newPass || newPass.trim() === "") return;
+            await updateDoc(settingsRef, { passcode: newPass.trim() });
+            alert('✅ تم التغيير بنجاح!');
         };
 
         window.changeDeletePasscode = async () => {
-            const oldPass = prompt('الرجاء إدخال رمز الحذف والتعديل الحالي:');
+            const oldPass = prompt('الرجاء إدخال رمز الحذف الحالي:');
             if (oldPass === null) return;
-            if (oldPass !== currentDeletePasscode) { alert('❌ الرمز السري الحالي غير صحيح!'); return; }
-
-            const newPass = prompt('أدخل رمز الحذف والتعديل الجديد:');
-            if (!newPass || newPass.trim() === "") { alert('❌ لا يمكن ترك الرمز فارغاً!'); return; }
-
-            try {
-                await updateDoc(settingsRef, { deletePasscode: newPass.trim() });
-                alert('✅ تم تغيير رمز الحذف والتعديل بنجاح!');
-            } catch (err) { alert('حدث خطأ أثناء التغيير: ' + err.message); }
+            if (oldPass !== currentDeletePasscode) { alert('❌ الرمز غير صحيح!'); return; }
+            const newPass = prompt('أدخل رمز الحذف الجديد:');
+            if (!newPass || newPass.trim() === "") return;
+            await updateDoc(settingsRef, { deletePasscode: newPass.trim() });
+            alert('✅ تم التغيير بنجاح!');
         };
 
         document.getElementById('orderDate').value = new Date().toISOString().split('T')[0];
-
         let allOrders = [];
 
-        // إضافة طلب جديد مع فحص التكرار (30 يوماً) وتنعيم الأسماء
         document.getElementById('orderForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const name = document.getElementById('patientName').value.trim();
@@ -319,7 +303,6 @@
 
             const initialStatus = doctorRefused ? 'doctor_refused' : 'pending';
             const normalizedNewName = normalizeName(name);
-
             const thirtyDaysAgo = new Date();
             thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
@@ -327,45 +310,27 @@
                 if (o.isDeleted) return false;
                 const orderDateObj = new Date(o.orderDate);
                 const isWithin30Days = orderDateObj >= thirtyDaysAgo;
-
                 const isSameMRN = mrn !== "" && o.mrn && o.mrn.trim() === mrn;
                 const isSameName = normalizeName(o.patientName) === normalizedNewName;
-
                 return (isSameMRN || isSameName) && isWithin30Days;
             });
 
             if (duplicateOrder) {
-                const formattedPrevDate = formatLocaleDate(duplicateOrder.orderDate);
-                const confirmMsg = `⚠️ تنبيه تكرار مريض:\n\nيوجد مريض بنفس الاسم أو الرقم مسجل سابقاً:\n• الاسم: ${duplicateOrder.patientName}\n• الرقم الإحصائي: ${duplicateOrder.mrn || 'غير مدخل'}\n• التاريخ: ${formattedPrevDate}\n• الردهة: ${duplicateOrder.ward}\n• الطبيب: د. ${duplicateOrder.doctorName || 'غير محدد'}\n\nهل أنت متأكد من إضافة طلب جديد لهذا المريض؟`;
-                
-                const proceed = confirm(confirmMsg);
+                const proceed = confirm(`⚠️ تنبيه تكرار: المريض (${duplicateOrder.patientName}) مسجل سابقاً في ردهة (${duplicateOrder.ward}) بتاريخ ${formatLocaleDate(duplicateOrder.orderDate)}.\nهل تريد المتابعة؟`);
                 if (!proceed) return;
             }
 
             try {
-                await addDoc(ordersRef, {
-                    patientName: name,
-                    mrn: mrn,
-                    doctorName: doctor,
-                    ward: ward,
-                    orderDate: date,
-                    status: initialStatus,
-                    notes: '',
-                    isDeleted: false,
-                    createdAt: new Date()
-                });
+                await addDoc(ordersRef, { patientName: name, mrn: mrn, doctorName: doctor, ward: ward, orderDate: date, status: initialStatus, notes: '', createdAt: new Date() });
                 document.getElementById('orderForm').reset();
                 document.getElementById('orderDate').value = new Date().toISOString().split('T')[0];
-                alert('✅ تم إدخال الطلب بنجاح');
-            } catch (err) { alert('حدث خطأ أثناء الإضافة: ' + err.message); }
+            } catch (err) { alert('حدث خطأ: ' + err.message); }
         });
 
         const q = query(ordersRef, orderBy("createdAt", "desc"));
         onSnapshot(q, (snapshot) => {
             allOrders = [];
-            snapshot.forEach((doc) => {
-                allOrders.push({ id: doc.id, ...doc.data() });
-            });
+            snapshot.forEach((doc) => { allOrders.push({ id: doc.id, ...doc.data() }); });
             renderOrders();
         });
 
@@ -377,104 +342,84 @@
 
             const filtered = allOrders.filter(o => {
                 if (o.isDeleted) return false;
-
-                const matchName = o.patientName.toLowerCase().includes(searchVal) || 
-                                  (o.doctorName && o.doctorName.toLowerCase().includes(searchVal)) ||
-                                  (o.mrn && o.mrn.toLowerCase().includes(searchVal));
+                const matchName = o.patientName.toLowerCase().includes(searchVal) || (o.doctorName && o.doctorName.toLowerCase().includes(searchVal)) || (o.mrn && o.mrn.toLowerCase().includes(searchVal));
                 const matchWard = o.ward.toLowerCase().includes(wardVal);
-                
                 let matchDate = true;
-                if (startDateVal && endDateVal) {
-                    matchDate = o.orderDate >= startDateVal && o.orderDate <= endDateVal;
-                } else if (startDateVal) {
-                    matchDate = o.orderDate >= startDateVal;
-                } else if (endDateVal) {
-                    matchDate = o.orderDate <= endDateVal;
-                }
-
+                if (startDateVal && endDateVal) matchDate = o.orderDate >= startDateVal && o.orderDate <= endDateVal;
+                else if (startDateVal) matchDate = o.orderDate >= startDateVal;
+                else if (endDateVal) matchDate = o.orderDate <= endDateVal;
                 return matchName && matchWard && matchDate;
             });
 
             const container = document.getElementById('ordersContainer');
             if (filtered.length === 0) {
-                container.innerHTML = '<div class="card p-4 text-center text-muted">لا توجد نتائج مطابقة</div>';
+                container.innerHTML = '<div class="card p-5 text-center text-muted fw-bold bg-white border-0 shadow-sm"><i class="bi bi-search fs-1 mb-2"></i> لا توجد بيانات مطابقة للبحث</div>';
                 return;
             }
 
             const now = new Date();
-
             container.innerHTML = filtered.map(o => {
-                let statusBadge = '';
-                let borderClass = 'status-pending-border';
-                let isDoctorRefused = false;
-                let isConfirmed = false;
+                let statusBadge = ''; let borderClass = 'status-pending-border';
+                let isDoctorRefused = false; let isConfirmed = false;
 
                 if (o.status === 'doctor_refused') {
-                    statusBadge = '<span class="status-badge status-doc-refused"><i class="bi bi-slash-circle"></i> بدون عينة (رفض الطبيب)</span>';
+                    statusBadge = '<span class="status-badge status-doc-refused"><i class="bi bi-slash-circle me-1"></i> رفض الطبيب الإرسال</span>';
                     borderClass = 'status-doc-refused-border';
                     isDoctorRefused = true;
                 } else if (o.status === 'confirmed') {
-                    statusBadge = '<span class="status-badge status-done"><i class="bi bi-check-circle"></i> تم أخذ العينة ✅</span>';
+                    statusBadge = '<span class="status-badge status-done"><i class="bi bi-check-circle-fill me-1"></i> العينة مؤكدة</span>';
                     borderClass = 'status-confirmed-border';
                     isConfirmed = true;
                 } else if (o.status === 'rejected') {
-                    statusBadge = '<span class="status-badge status-rejected"><i class="bi bi-x-circle"></i> لم ترسل عينة ❌</span>';
+                    statusBadge = '<span class="status-badge status-rejected"><i class="bi bi-x-circle-fill me-1"></i> منفية / لم ترسل</span>';
                     borderClass = 'status-rejected-border';
                 } else {
                     const orderDateObj = new Date(o.orderDate + "T00:00:00");
                     const diffHours = Math.floor((now - orderDateObj) / (1000 * 60 * 60));
-
                     if (diffHours >= 48) {
-                        statusBadge = '<span class="status-badge status-delay48"><i class="bi bi-exclamation-triangle-fill"></i> متأخر جداً (>48 ساعة)</span>';
-                        borderClass = 'status-delay48-border';
+                        statusBadge = '<span class="status-badge status-delay48"><i class="bi bi-exclamation-triangle-fill me-1"></i> متأخر جداً (>48س)</span>'; borderClass = 'status-delay48-border';
                     } else if (diffHours >= 24) {
-                        statusBadge = '<span class="status-badge status-delay24"><i class="bi bi-clock-history"></i> متأخر (>24 ساعة)</span>';
-                        borderClass = 'status-delay24-border';
+                        statusBadge = '<span class="status-badge status-delay24"><i class="bi bi-clock-history me-1"></i> متأخر (>24س)</span>'; borderClass = 'status-delay24-border';
                     } else {
-                        statusBadge = '<span class="status-badge status-pending"><i class="bi bi-clock"></i> بانتظار العينة</span>';
-                        borderClass = 'status-pending-border';
+                        statusBadge = '<span class="status-badge status-pending"><i class="bi bi-hourglass-split me-1"></i> بانتظار العينة</span>'; borderClass = 'status-pending-border';
                     }
                 }
-
-                const formattedDate = formatLocaleDate(o.orderDate);
 
                 let actionButtonsHtml = '';
                 if (!isDoctorRefused) {
                     if (o.status === 'confirmed' || o.status === 'rejected') {
-                        actionButtonsHtml = `<button class="btn btn-sm btn-outline-primary" onclick="editStatus('${o.id}')"><i class="bi bi-arrow-repeat"></i> تعديل حالة الإرسال</button>`;
+                        actionButtonsHtml = `<button class="btn btn-outline-primary bg-white text-primary border" onclick="editStatus('${o.id}')"><i class="bi bi-arrow-repeat"></i> المختبر</button>`;
                     } else {
                         actionButtonsHtml = `
-                            <button class="btn btn-sm btn-success" onclick="updateStatus('${o.id}', 'confirmed')"><i class="bi bi-check-lg"></i> تأكيد</button>
-                            <button class="btn btn-sm btn-danger" onclick="updateStatus('${o.id}', 'rejected')"><i class="bi bi-x-lg"></i> نفي</button>
+                            <button class="btn btn-success" onclick="updateStatus('${o.id}', 'confirmed')"><i class="bi bi-check-lg"></i> تأكيد</button>
+                            <button class="btn btn-danger" onclick="updateStatus('${o.id}', 'rejected')"><i class="bi bi-x-lg"></i> نفي</button>
                         `;
                     }
                 }
 
                 let editPatientBtnHtml = '';
                 if (!isConfirmed) {
-                    editPatientBtnHtml = `<button class="btn btn-sm btn-outline-secondary" onclick="openEditOrderModal('${o.id}')" title="تعديل بيانات المريض"><i class="bi bi-pencil-square"></i> تعديل بيانات المريض</button>`;
+                    editPatientBtnHtml = `<button class="btn btn-outline-secondary bg-white text-secondary border" onclick="openEditOrderModal('${o.id}')" title="تعديل"><i class="bi bi-pencil-square"></i></button>`;
                 }
 
                 return `
                     <div class="order-card ${borderClass}">
                         <div class="d-flex justify-content-between align-items-start mb-2">
-                            <div>
-                                <h6 class="mb-1 text-dark fw-bold">${o.patientName}</h6>
-                                <span class="badge bg-secondary me-1">${o.ward}</span>
-                                ${o.mrn ? `<span class="badge bg-info text-dark me-1"><i class="bi bi-card-text"></i> الرقم الإحصائي: ${o.mrn}</span>` : ''}
-                                <span class="badge bg-light text-dark border"><i class="bi bi-person-badge"></i> د. ${o.doctorName || 'غير محدد'}</span>
+                            <div class="order-meta">
+                                <div class="order-title">${o.patientName}</div>
+                                <span class="badge bg-light text-dark border shadow-sm">${o.ward}</span>
+                                ${o.mrn ? `<span class="badge bg-info bg-opacity-10 text-primary border border-info border-opacity-25 shadow-sm">رقم: ${o.mrn}</span>` : ''}
+                                <span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 shadow-sm">د. ${o.doctorName || 'غير محدد'}</span>
                             </div>
                             <div>${statusBadge}</div>
                         </div>
-                        
-                        <div class="d-flex justify-content-between align-items-center text-muted fs-7 mb-2">
-                            <span><i class="bi bi-calendar3"></i> ${formattedDate}</span>
+                        <div class="d-flex justify-content-between align-items-center text-muted fs-7 mt-3">
+                            <span class="fw-bold"><i class="bi bi-calendar3 me-1"></i> ${formatLocaleDate(o.orderDate)}</span>
                         </div>
-
-                        <div class="action-btns d-flex justify-content-end gap-1 pt-2 border-top">
+                        <div class="action-btns d-flex justify-content-end gap-2 pt-3 mt-2 border-top border-light">
                             ${actionButtonsHtml}
                             ${editPatientBtnHtml}
-                            <button class="btn btn-sm btn-outline-danger" onclick="deleteOrder('${o.id}', '${o.patientName}')" title="حذف"><i class="bi bi-trash"></i></button>
+                            <button class="btn btn-outline-danger bg-white border" onclick="deleteOrder('${o.id}', '${o.patientName}')"><i class="bi bi-trash"></i></button>
                         </div>
                     </div>
                 `;
@@ -482,104 +427,62 @@
         };
 
         window.updateStatus = async (id, status) => {
-            const enteredPass = prompt('الرجاء إدخال رمز التحقق الخاص بالمختبر:');
-            if (enteredPass === null) return;
-            if (enteredPass !== currentLabPasscode) { alert('❌ رمز التحقق غير صحيح!'); return; }
-
-            try {
-                const orderDoc = doc(db, "meropenem_orders", id);
-                await updateDoc(orderDoc, { status: status, updatedAt: new Date() });
-                alert('✅ تم تحديث موقف العينة بنجاح');
-            } catch (err) { alert('حدث خطأ أثناء التحديث: ' + err.message); }
+            const enteredPass = prompt('رمز التحقق الخاص بالمختبر:');
+            if (enteredPass !== currentLabPasscode) { if(enteredPass!==null) alert('❌ رمز خاطئ!'); return; }
+            await updateDoc(doc(db, "meropenem_orders", id), { status: status, updatedAt: new Date() });
         };
 
         window.editStatus = (id) => {
-            const enteredPass = prompt('الرجاء إدخال رمز المختبر لتعديل حالة الإرسال:');
-            if (enteredPass === null) return;
-            if (enteredPass !== currentLabPasscode) { alert('❌ رمز المختبر غير صحيح!'); return; }
-
+            const enteredPass = prompt('رمز المختبر لتعديل الحالة:');
+            if (enteredPass !== currentLabPasscode) { if(enteredPass!==null) alert('❌ رمز خاطئ!'); return; }
             activeEditOrderId = id;
-            if (!editStatusModalInstance) {
-                editStatusModalInstance = new bootstrap.Modal(document.getElementById('editStatusModal'));
-            }
+            if (!editStatusModalInstance) editStatusModalInstance = new bootstrap.Modal(document.getElementById('editStatusModal'));
             editStatusModalInstance.show();
         };
 
         window.applyStatusChange = async (newStatus) => {
             if (!activeEditOrderId) return;
-            try {
-                const orderDoc = doc(db, "meropenem_orders", activeEditOrderId);
-                await updateDoc(orderDoc, { status: newStatus, updatedAt: new Date() });
-                if (editStatusModalInstance) editStatusModalInstance.hide();
-                alert('✅ تم تعديل حالة الإرسال بنجاح');
-            } catch (err) { alert('حدث خطأ أثناء التعديل: ' + err.message); }
+            await updateDoc(doc(db, "meropenem_orders", activeEditOrderId), { status: newStatus, updatedAt: new Date() });
+            editStatusModalInstance.hide();
         };
 
         window.openEditOrderModal = (id) => {
-            const enteredPass = prompt('الرجاء إدخال الرمز السري لتعديل بيانات المريض:');
-            if (enteredPass === null) return;
-            if (enteredPass !== currentDeletePasscode) { alert('❌ الرمز السري غير صحيح!'); return; }
-
+            const enteredPass = prompt('الرمز السري لتعديل بيانات المريض:');
+            if (enteredPass !== currentDeletePasscode) { if(enteredPass!==null) alert('❌ الرمز خاطئ!'); return; }
             const order = allOrders.find(o => o.id === id);
-            if (!order) return;
-
             document.getElementById('editOrderId').value = id;
-            document.getElementById('editPatientName').value = order.patientName || '';
+            document.getElementById('editPatientName').value = order.patientName;
             document.getElementById('editMrn').value = order.mrn || '';
-            document.getElementById('editDoctorName').value = order.doctorName || '';
-            document.getElementById('editWard').value = order.ward || '';
-            document.getElementById('editOrderDate').value = order.orderDate || '';
+            document.getElementById('editDoctorName').value = order.doctorName;
+            document.getElementById('editWard').value = order.ward;
+            document.getElementById('editOrderDate').value = order.orderDate;
             document.getElementById('editDoctorRefused').checked = (order.status === 'doctor_refused');
-
-            if (!editOrderModalInstance) {
-                editOrderModalInstance = new bootstrap.Modal(document.getElementById('editOrderModal'));
-            }
+            if (!editOrderModalInstance) editOrderModalInstance = new bootstrap.Modal(document.getElementById('editOrderModal'));
             editOrderModalInstance.show();
         };
 
         document.getElementById('editOrderForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const id = document.getElementById('editOrderId').value;
-            const name = document.getElementById('editPatientName').value.trim();
-            const mrn = document.getElementById('editMrn').value.trim();
-            const doctor = document.getElementById('editDoctorName').value.trim();
-            const ward = document.getElementById('editWard').value.trim();
-            const date = document.getElementById('editOrderDate').value;
-            const doctorRefused = document.getElementById('editDoctorRefused').checked;
-
             const currentOrder = allOrders.find(o => o.id === id);
             let newStatus = currentOrder ? currentOrder.status : 'pending';
-
-            if (doctorRefused) {
-                newStatus = 'doctor_refused';
-            } else if (newStatus === 'doctor_refused') {
-                newStatus = 'pending';
-            }
-
-            try {
-                const orderDoc = doc(db, "meropenem_orders", id);
-                await updateDoc(orderDoc, { 
-                    patientName: name, mrn: mrn, doctorName: doctor, ward: ward, orderDate: date, status: newStatus, updatedAt: new Date()
-                });
-                if (editOrderModalInstance) editOrderModalInstance.hide();
-                alert('✅ تم حفظ تعديلات بيانات المريض بنجاح');
-            } catch (err) { alert('حدث خطأ أثناء التعديل: ' + err.message); }
+            const refused = document.getElementById('editDoctorRefused').checked;
+            if (refused) newStatus = 'doctor_refused';
+            else if (newStatus === 'doctor_refused') newStatus = 'pending';
+            
+            await updateDoc(doc(db, "meropenem_orders", id), { 
+                patientName: document.getElementById('editPatientName').value, mrn: document.getElementById('editMrn').value,
+                doctorName: document.getElementById('editDoctorName').value, ward: document.getElementById('editWard').value,
+                orderDate: document.getElementById('editOrderDate').value, status: newStatus, updatedAt: new Date()
+            });
+            editOrderModalInstance.hide();
         });
 
         window.deleteOrder = async (id, patientName) => {
-            const confirmDelete = confirm(`هل أنت متأكد حقاً من حذف سجل المريض: (${patientName})؟`);
-            if (!confirmDelete) return;
-
-            const enteredPass = prompt('⚠️ أدخل "رمز الحذف المخصص" لتأكيد مسح هذا السجل:');
-            if (enteredPass === null) return;
-
-            if (enteredPass !== currentDeletePasscode) { alert('❌ رمز الحذف غير صحيح!'); return; }
-
-            try {
-                const orderDoc = doc(db, "meropenem_orders", id);
-                await updateDoc(orderDoc, { isDeleted: true, deletedAt: new Date() });
-                alert('🗑️ تم حذف السجل بنجاح');
-            } catch (err) { alert('حدث خطأ أثناء الحذف: ' + err.message); }
+            if (!confirm(`هل أنت متأكد من حذف المريض: (${patientName})؟`)) return;
+            const enteredPass = prompt('رمز الحذف لتأكيد المسح:');
+            if (enteredPass !== currentDeletePasscode) { if(enteredPass!==null) alert('❌ رمز خاطئ!'); return; }
+            await updateDoc(doc(db, "meropenem_orders", id), { isDeleted: true, deletedAt: new Date() });
         };
 
         document.getElementById('searchInput').addEventListener('input', renderOrders);
@@ -588,11 +491,7 @@
         document.getElementById('endDateFilter').addEventListener('change', renderOrders);
 
         window.resetFilters = () => {
-            document.getElementById('searchInput').value = '';
-            document.getElementById('mrn').value = '';
-            document.getElementById('wardFilter').value = '';
-            document.getElementById('startDateFilter').value = '';
-            document.getElementById('endDateFilter').value = '';
+            ['searchInput', 'wardFilter', 'startDateFilter', 'endDateFilter'].forEach(id => document.getElementById(id).value = '');
             renderOrders();
         };
     </script>
