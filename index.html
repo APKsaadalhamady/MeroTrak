@@ -78,7 +78,7 @@
             </a>
             <a href="javascript:void(0)" class="nav-item" onclick="switchTab('tab-legacy', this)">
                 <i class="bi bi-clock-history"></i>
-                <span>نظام التتبع السابق</span>
+                <span>نظام التتبع القديم</span>
             </a>
             <a href="stats.html" class="nav-item">
                 <i class="bi bi-bar-chart-line-fill"></i>
@@ -289,7 +289,7 @@
 
         <div id="tab-legacy" class="tab-content">
             <div class="card p-4 border-top border-secondary border-4">
-                <h6 class="text-dark mb-3 fw-bold"><i class="bi bi-plus-circle-fill me-1"></i> إضافة طلب مبسط (النظام القديم)</h6>
+                <h6 class="text-dark mb-3 fw-bold"><i class="bi bi-plus-circle-fill me-1"></i> إضافة طلب (النظام القديم)</h6>
                 <form id="legacyForm" class="row g-3">
                     <div class="col-12 col-md-4"><label class="form-label">اسم المريض</label><input type="text" id="l_patientName" class="form-control" required></div>
                     <div class="col-12 col-md-4"><label class="form-label">الطبيب المسؤول</label><input type="text" id="l_doctorName" class="form-control" required></div>
@@ -364,6 +364,36 @@
         </div>
     </div>
 
+    <div class="modal fade" id="legacyEditModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header border-0 py-3 bg-light rounded-top-4">
+                    <h6 class="modal-title fw-bold text-primary"><i class="bi bi-pencil-square me-1"></i> تعديل بيانات الطلب القديم</h6>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body py-3">
+                    <form id="legacyEditForm" class="row g-3">
+                        <input type="hidden" id="edit_l_id">
+                        <div class="col-12"><label class="form-label">اسم المريض</label><input type="text" id="edit_l_patient" class="form-control" required></div>
+                        <div class="col-12"><label class="form-label">الطبيب المسؤول</label><input type="text" id="edit_l_doctor" class="form-control" required></div>
+                        <div class="col-6"><label class="form-label">الردهة</label><input type="text" id="edit_l_ward" class="form-control" required></div>
+                        <div class="col-6"><label class="form-label">التاريخ</label><input type="date" id="edit_l_date" class="form-control" required></div>
+                        <div class="col-12">
+                            <div class="form-check bg-light p-2 rounded-3 border mt-2">
+                                <input class="form-check-input ms-2" type="checkbox" id="edit_l_refused">
+                                <label class="form-check-label text-danger fw-bold fs-7" for="edit_l_refused">رفض الطبيب إرسال عينة زرع</label>
+                            </div>
+                        </div>
+                        <div class="col-12 mt-4 text-end">
+                            <button type="button" class="btn btn-light border fw-bold me-2" data-bs-dismiss="modal">إلغاء التعديل</button>
+                            <button type="submit" class="btn btn-primary fw-bold px-4">حفظ الطلب وتحديثه</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div class="modal fade" id="aboutModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content text-center p-4">
@@ -405,12 +435,13 @@
         let passcodes = { lab: "1234", committee: "1111", clinical: "2222", pharmacy: "3333", delete: "9999" };
         let currentRole = null;
         let allOrders = [];
-        let promptModal, alertModal, confirmModal;
+        let promptModal, alertModal, confirmModal, legacyEditModal;
 
         // تهيئة النوافذ المنبثقة مباشرة (بدون DOMContentLoaded لحل مشكلة الإخفاء)
         promptModal = new bootstrap.Modal(document.getElementById('customPromptModal'));
         alertModal = new bootstrap.Modal(document.getElementById('customAlertModal'));
         confirmModal = new bootstrap.Modal(document.getElementById('customConfirmModal'));
+        legacyEditModal = new bootstrap.Modal(document.getElementById('legacyEditModal'));
 
         function askPrompt(title, text, type = 'password') {
             return new Promise(resolve => {
@@ -628,7 +659,7 @@
             } catch (error) { await showAlert('خطأ', error.message, false); }
         });
 
-        // 2. إرسال الاستمارة القديمة
+        // ================== إرسال الاستمارة القديمة ==================
         document.getElementById('legacyForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const name = document.getElementById('l_patientName').value.trim();
@@ -637,6 +668,7 @@
                     patientName: name, doctorName: document.getElementById('l_doctorName').value.trim(), 
                     ward: document.getElementById('l_ward').value.trim(), orderDate: document.getElementById('l_orderDate').value, 
                     status: document.getElementById('l_doctorRefused').checked ? 'doctor_refused' : 'pending', 
+                    unlockedForEdit: false, auditNote: '',
                     isDeleted: false, isSmartForm: false, createdAt: new Date() 
                 });
                 document.getElementById('legacyForm').reset();
@@ -731,6 +763,8 @@
                     `;
                 }
 
+                const totalDailyDoseInfo = (Number(o.dosePotency) || 0) * (Number(o.doseFrequency) || 0);
+
                 html += `
                     <div class="order-card border-end border-5 border-primary">
                         <div class="d-flex justify-content-between">
@@ -749,7 +783,7 @@
                                 <div class="col-6"><strong>S.Cr:</strong> <span dir="ltr">${o.scr || '-'}</span></div>
                                 <div class="col-6"><strong>التحسس:</strong> ${o.allergy || '-'}</div>
                                 <div class="col-12 border-top pt-2 mt-2"><strong>التشخيص:</strong> ${o.diagnosis}</div>
-                                <div class="col-12"><strong>الجرعة المدخلة:</strong> <span dir="ltr" class="fw-bold text-primary">${o.dosePotency}mg x ${o.doseFrequency}</span> <span class="badge bg-light text-dark border ms-1">المجموع: ${totalDailyDose}mg/day</span></div>
+                                <div class="col-12"><strong>الجرعة المدخلة:</strong> <span dir="ltr" class="fw-bold text-primary">${o.dosePotency}mg x ${o.doseFrequency}</span> <span class="badge bg-light text-dark border ms-1">المجموع: ${totalDailyDoseInfo}mg/day</span></div>
                                 <div class="col-12"><strong>موقف العينة بالاستمارة:</strong> ${sampleDisplay}</div>
                             </div>
                         </div>
@@ -775,6 +809,9 @@
             await updateDoc(doc(db, "meropenem_orders", id), { dispenseStatus: status });
         };
 
+
+        // ================== نظام التتبع القديم (النسخة المبسطة + ميزة التعديل والملاحظات) ==================
+
         window.renderOrders = () => {
             const searchVal = document.getElementById('searchInput').value.toLowerCase();
             const wardVal = document.getElementById('wardFilter').value.toLowerCase();
@@ -789,19 +826,94 @@
                 else if (o.status === 'confirmed') statusBadge = '<span class="status-badge status-done">مؤكدة ✅</span>';
                 else if (o.status === 'rejected') statusBadge = '<span class=\"status-badge status-rejected\">منفية ❌</span>';
                 
+                // زر التعديل لمقدم الطلب
+                let editBtn = '';
+                if (o.status === 'pending' || o.unlockedForEdit) {
+                    editBtn = `<button class="btn btn-sm btn-outline-primary bg-white fw-bold ms-2" onclick="openLegacyEdit('${o.id}')"><i class="bi bi-pencil-fill"></i> تعديل</button>`;
+                }
+
+                // زر الإرجاع للجان (مخفي بكلمة مرور)
+                let unlockBtn = '';
+                if (o.status !== 'pending' && !o.unlockedForEdit) {
+                    unlockBtn = `<button class="btn btn-sm btn-outline-danger bg-white fw-bold ms-2" onclick="unlockLegacyOrder('${o.id}')"><i class="bi bi-unlock-fill"></i> إرجاع (للجان)</button>`;
+                }
+
+                // ملاحظة اللجان باللون الأصفر البارز
+                let noteHtml = '';
+                if (o.auditNote && o.unlockedForEdit) {
+                    noteHtml = `<div class="alert alert-warning p-2 mt-2 mb-0 fs-7 fw-bold border-warning"><i class="bi bi-exclamation-triangle-fill me-1"></i> ملاحظة المدقق: ${o.auditNote}</div>`;
+                }
+
                 return `
                     <div class="order-card status-pending-border">
                         <div class="d-flex justify-content-between align-items-start mb-2">
                             <div>
-                                <h6 class="fw-bold">${o.patientName}</h6>
+                                <h6 class="fw-bold mb-1">${o.patientName}</h6>
                                 <span class="badge bg-light text-dark border">${o.ward}</span>
                                 <span class="badge bg-primary bg-opacity-10 text-primary border">د. ${o.doctorName || ''}</span>
+                                ${noteHtml}
                             </div>
-                            <div>${statusBadge}</div>
+                            <div class="text-end">
+                                <div>${statusBadge}</div>
+                                <div class="mt-2">${editBtn}${unlockBtn}</div>
+                            </div>
                         </div>
                     </div>
                 `;
             }).join('');
+        };
+
+        // فتح نافذة التعديل
+        window.openLegacyEdit = (id) => {
+            const o = allOrders.find(x => x.id === id);
+            document.getElementById('edit_l_id').value = id;
+            document.getElementById('edit_l_patient').value = o.patientName;
+            document.getElementById('edit_l_doctor').value = o.doctorName;
+            document.getElementById('edit_l_ward').value = o.ward;
+            document.getElementById('edit_l_date').value = o.orderDate;
+            document.getElementById('edit_l_refused').checked = (o.status === 'doctor_refused' || (o.status === 'pending' && o.originalStatus === 'doctor_refused')); 
+            legacyEditModal.show();
+        };
+
+        // حفظ التعديلات وإرجاع الطلب كجديد
+        document.getElementById('legacyEditForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const id = document.getElementById('edit_l_id').value;
+            const refused = document.getElementById('edit_l_refused').checked;
+            try {
+                await updateDoc(doc(db, "meropenem_orders", id), {
+                    patientName: document.getElementById('edit_l_patient').value.trim(),
+                    doctorName: document.getElementById('edit_l_doctor').value.trim(),
+                    ward: document.getElementById('edit_l_ward').value.trim(),
+                    orderDate: document.getElementById('edit_l_date').value,
+                    status: refused ? 'doctor_refused' : 'pending',
+                    unlockedForEdit: false, // إعادة قفل التعديل
+                    auditNote: '', // مسح الملاحظة السابقة
+                    updatedAt: new Date()
+                });
+                legacyEditModal.hide();
+                showAlert('نجاح', 'تم تحديث الطلب وإعادة إرساله بنجاح!');
+            } catch(err) { showAlert('خطأ', err.message, false); }
+        });
+
+        // زر لجان التدقيق لإرجاع الطلب
+        window.unlockLegacyOrder = async (id) => {
+            const pass = await askPrompt('صلاحية اللجان', 'أدخل رمز لجنة المضادات أو الصيدلة السريرية:');
+            if(pass === null) return;
+            if(pass !== passcodes.committee && pass !== passcodes.clinical) {
+                await showAlert('مرفوض', 'الرمز غير صحيح!', false); return;
+            }
+            const note = await askPrompt('سبب الإرجاع', 'اكتب الملاحظة أو الخطأ ليراه مقدم الطلب:', 'text');
+            if(note === null || note.trim() === '') { await showAlert('مرفوض', 'يجب كتابة ملاحظة!', false); return; }
+            
+            try {
+                await updateDoc(doc(db, "meropenem_orders", id), {
+                    unlockedForEdit: true,
+                    auditNote: note,
+                    updatedAt: new Date()
+                });
+                showAlert('نجاح', 'تم إرجاع الطلب وفتح التعديل لمقدم الطلب');
+            } catch(e) { showAlert('خطأ', e.message, false); }
         };
 
         document.getElementById('searchInput').addEventListener('input', renderOrders);
