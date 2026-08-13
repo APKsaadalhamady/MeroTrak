@@ -192,12 +192,12 @@
                             </div>
                             
                             <div class="col-6">
-                                <label class="form-label">الجرعة (ملغرام - mg) <span class="text-danger">*</span></label>
+                                <label class="form-label">الجرعة (ملغرام) <span class="text-danger">*</span></label>
                                 <input type="number" id="f_potency" class="form-control" placeholder="مثال: 1000" required min="1">
                             </div>
                             <div class="col-6">
-                                <label class="form-label">التكرار (كل كم ساعة) <span class="text-danger">*</span></label>
-                                <input type="number" id="f_frequency" class="form-control" placeholder="مثال: 8" required min="1">
+                                <label class="form-label">التكرار (عدد المرات) <span class="text-danger">*</span></label>
+                                <input type="number" id="f_frequency" class="form-control" placeholder="مثال: 3" required min="1">
                             </div>
                             <div class="col-12">
                                 <label class="form-label">مدة العلاج المتوقعة (بالأيام) - اختياري</label>
@@ -223,7 +223,7 @@
                                     <option value="" disabled selected>حدد موقف العينة...</option>
                                     <option value="before">تم إرسال العينة (قبل إعطاء الجرعة الأولى)</option>
                                     <option value="after">تم إرسال العينة (بعد إعطاء الجرعة)</option>
-                                    <option value="not_sent">لم يتم إرسال عينة زرع 🚫</option>
+                                    <option value="not_sent">لم يتم إرسال عينة زرع</option>
                                 </select>
                             </div>
                             
@@ -443,8 +443,8 @@
                 ward: ward,
                 orderDate: date,
                 diagnosis: finalDiagnosis,
-                dosePotency: document.getElementById('f_potency').value + 'mg',
-                doseFrequency: 'كل ' + document.getElementById('f_frequency').value + ' ساعة',
+                dosePotency: document.getElementById('f_potency').value + ' ملغم',
+                doseFrequency: 'x ' + document.getElementById('f_frequency').value,
                 durationDays: document.getElementById('f_duration').value || "",
                 doctorName: document.getElementById('f_doctor').value.trim(),
                 pharmacistName: document.getElementById('f_pharmacist').value.trim(),
