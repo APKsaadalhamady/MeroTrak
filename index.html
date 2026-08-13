@@ -38,21 +38,19 @@
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
         .order-card { background: white; border-radius: 16px; padding: 18px; margin-bottom: 15px; border-right: 6px solid #94a3b8; box-shadow: 0 4px 12px rgba(0,0,0,0.02); }
-        .status-badge { font-size: 0.75rem; padding: 6px 12px; border-radius: 20px; font-weight: 800; }
-        .status-pending { background-color: #fef3c7; color: #b45309; }
-        .status-done { background-color: #dcfce7; color: #15803d; }
-        .status-rejected { background-color: #fee2e2; color: #b91c1c; }
-        .status-doc-refused { background-color: #f1f5f9; color: #475569; }
+        .patient-name-link { color: var(--primary); font-size: 1.1rem; font-weight: 800; text-decoration: none; cursor: pointer; transition: 0.2s; }
+        .patient-name-link:hover { color: #1e40af; text-decoration: underline; }
 
         input[type=number]::-webkit-inner-spin-button, input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
         input[type=number] { -moz-appearance: textfield; }
 
-        .ops-btn { border-radius: 15px; padding: 15px; font-weight: 800; font-size: 1.1rem; text-align: right; display: flex; align-items: center; justify-content: space-between; transition: 0.2s; border: 2px solid transparent; }
-        .ops-btn:hover { transform: translateY(-3px); box-shadow: 0 8px 15px rgba(0,0,0,0.05); }
-        .ops-btn i { font-size: 1.5rem; }
-        
-        .details-collapse { background: #f8fafc; border-radius: 12px; padding: 12px; margin-top: 10px; border: 1px solid #e2e8f0; font-size: 0.85rem; }
         .modal-content { border-radius: 24px; border: none; box-shadow: 0 20px 40px rgba(0,0,0,0.1); }
+        .role-btn { border-radius: 15px; padding: 12px; font-weight: 800; display: flex; align-items: center; justify-content: space-between; border: 2px solid transparent; width: 100%; margin-bottom: 10px; }
+        
+        /* شريط التمرير للنوافذ المنبثقة الطويلة */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
     </style>
 </head>
 <body>
@@ -72,13 +70,13 @@
 
     <div class="container mt-3">
         <nav class="top-nav">
-            <a href="javascript:void(0)" class="nav-item active" onclick="switchTab('tab-smart', this)">
-                <i class="bi bi-ui-checks-grid"></i>
-                <span>الاستمارة والعمليات</span>
+            <a href="javascript:void(0)" class="nav-item active" onclick="switchTab('tab-submit', this)">
+                <i class="bi bi-pencil-square"></i>
+                <span>تقديم طلب جديد</span>
             </a>
-            <a href="javascript:void(0)" class="nav-item" onclick="switchTab('tab-legacy', this)">
-                <i class="bi bi-clock-history"></i>
-                <span>نظام التتبع القديم</span>
+            <a href="javascript:void(0)" class="nav-item" onclick="switchTab('tab-tracking', this)">
+                <i class="bi bi-ui-checks-grid"></i>
+                <span>سجل المتابعة الشامل</span>
             </a>
             <a href="stats.html" class="nav-item">
                 <i class="bi bi-bar-chart-line-fill"></i>
@@ -86,236 +84,212 @@
             </a>
         </nav>
 
-        <div id="tab-smart" class="tab-content active">
+        <div id="tab-submit" class="tab-content active">
+            <form id="meroForm" class="needs-validation">
+                <div class="card p-4 border-top border-secondary border-4">
+                    <div class="section-title text-secondary"><i class="bi bi-building"></i> 1. البيانات الإدارية والأساسية</div>
+                    <div class="row g-3">
+                        <div class="col-6 col-md-6"><label class="form-label">دائرة الصحة <span class="text-danger">*</span></label><input type="text" id="f_directorate" class="form-control" value="صحة البصرة" required></div>
+                        <div class="col-6 col-md-6"><label class="form-label">المستشفى <span class="text-danger">*</span></label><input type="text" id="f_hospital" class="form-control" value="مستشفى الموانئ التعليمي" required></div>
+                        <div class="col-12 col-md-4"><label class="form-label">اسم المريض الثلاثي <span class="text-danger">*</span></label><input type="text" id="f_patientName" class="form-control" required></div>
+                        <div class="col-12 col-md-4"><label class="form-label">الرقم الإحصائي / الطبلة</label><input type="text" id="f_mrn" class="form-control"></div>
+                        <div class="col-12 col-md-4"><label class="form-label">الردهة / القسم <span class="text-danger">*</span></label><input type="text" id="f_ward" class="form-control" required></div>
+                    </div>
+                </div>
+
+                <div class="card p-4 border-top border-primary border-4">
+                    <div class="section-title text-primary"><i class="bi bi-clipboard2-pulse"></i> 2. القياسات والجرعة</div>
+                    <div class="row g-3">
+                        <div class="col-4 col-md-2"><label class="form-label">العمر <span class="text-danger">*</span></label><input type="number" id="f_age" class="form-control" required min="1"></div>
+                        <div class="col-4 col-md-2"><label class="form-label">الوزن <span class="text-danger">*</span></label><input type="number" id="f_weight" class="form-control" placeholder="kg" required min="1"></div>
+                        <div class="col-4 col-md-2"><label class="form-label">الطول</label><input type="number" id="f_height" class="form-control" placeholder="cm" min="1"></div>
+                        <div class="col-6 col-md-3"><label class="form-label">S. Creatinine</label><input type="text" id="f_scr" class="form-control" placeholder="إن وجد"></div>
+                        <div class="col-6 col-md-3"><label class="form-label">التحسس الدوائي</label><input type="text" id="f_allergy" class="form-control" placeholder="NKA"></div>
+
+                        <div class="col-12 mt-4">
+                            <label class="form-label">التشخيص (Diagnosis) <span class="text-danger">*</span></label>
+                            <select id="f_diagnosis" class="form-select border-primary" required onchange="toggleDiagnosisFields('f')">
+                                <option value="" disabled selected>اختر التشخيص...</option>
+                                <option value="Acute mastoiditis">Acute mastoiditis</option>
+                                <option value="Acute rhinosinusitis due to intubation">Acute rhinosinusitis due to intubation</option>
+                                <option value="Bacterial meningitis">Bacterial meningitis</option>
+                                <option value="Contaminated blast injury">Contaminated blast injury (specify location and severity)</option>
+                                <option value="Gangrenous cellulitis">Gangrenous cellulitis (necrotizing fasciitis or gas gangrene)</option>
+                                <option value="HAP Post-op, Ventilator ESBL positive">HAP Post-op, Ventilator ESBL positive</option>
+                                <option value="Infective bronchiectasis exacerbation">Infective bronchiectasis exacerbation (with severe lung impairment)</option>
+                                <option value="Lung abscess">Lung abscess</option>
+                                <option value="NVE – Acute presentation">NVE – Acute presentation (severe sepsis with ESBL)</option>
+                                <option value="Neutropenic sepsis">Neutropenic sepsis</option>
+                                <option value="Pleural empyema ESBL positive">Pleural empyema ESBL positive</option>
+                                <option value="Proven acute pancreatitis">Proven acute pancreatitis</option>
+                                <option value="Pyogenic liver abscess">Pyogenic liver abscess</option>
+                                <option value="Radical resection performed">Radical resection performed</option>
+                                <option value="Severe CAP admitted to ICU">Severe CAP admitted to ICU</option>
+                                <option value="Severe diabetic foot infection">Severe diabetic foot infection</option>
+                                <option value="Severe secondary peritonitis">Severe secondary peritonitis</option>
+                                <option value="Sepsis">Sepsis</option>
+                                <option value="Surgical site infection">Surgical site infection</option>
+                                <option value="Others">Others</option>
+                            </select>
+                        </div>
+                        <div class="col-12 d-none" id="f_div_sepsisOrigin"><label class="form-label text-danger">مصدر الإنتان <span class="text-danger">*</span></label><input type="text" id="f_sepsisOrigin" class="form-control"></div>
+                        <div class="col-12 d-none" id="f_div_otherDiagnosis"><label class="form-label">اكتب التشخيص <span class="text-danger">*</span></label><input type="text" id="f_otherDiagnosis" class="form-control"></div>
+                        <div class="col-12 d-none" id="f_div_blastInjury"><label class="form-label text-danger">الموقع والشدة <span class="text-danger">*</span></label><input type="text" id="f_blastInjury" class="form-control"></div>
+                        
+                        <div class="col-6 mt-4">
+                            <label class="form-label">الجرعة (ملغرام) <span class="text-danger">*</span></label>
+                            <input type="number" id="f_potency" class="form-control border-primary" placeholder="مثال: 1000" required min="1" max="2000">
+                        </div>
+                        <div class="col-6 mt-4">
+                            <label class="form-label">التكرار (عدد المرات) <span class="text-danger">*</span></label>
+                            <input type="number" id="f_frequency" class="form-control border-primary" placeholder="مثال: 3" required min="1" max="4">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card p-4 border-top border-warning border-4">
+                    <div class="section-title text-warning text-dark"><i class="bi bi-people"></i> 3. الملاك الطبي والمختبر</div>
+                    <div class="row g-3">
+                        <div class="col-12 col-md-6"><label class="form-label">اسم الطبيب المعالج <span class="text-danger">*</span></label><input type="text" id="f_doctor" class="form-control" required></div>
+                        <div class="col-12 col-md-6"><label class="form-label">الصيدلي السريري <span class="text-danger">*</span></label><input type="text" id="f_pharmacist" class="form-control" required></div>
+                        <div class="col-12 col-md-6"><label class="form-label">تاريخ الطلب <span class="text-danger">*</span></label><input type="date" id="f_date" class="form-control" required></div>
+                        
+                        <div class="col-12 mt-4">
+                            <label class="form-label fw-bold">حالة إرسال عينة الزرع <span class="text-danger">*</span></label>
+                            <select id="f_sampleStatus" class="form-select border-warning" required onchange="toggleSampleFields('f')">
+                                <option value="" disabled selected>حدد موقف العينة...</option>
+                                <option value="before">تم إرسال العينة (قبل إعطاء الجرعة الأولى)</option>
+                                <option value="after">تم إرسال العينة (بعد إعطاء الجرعة)</option>
+                                <option value="not_sent">لم يتم إرسال عينة زرع</option>
+                            </select>
+                        </div>
+                        <div class="col-12 d-none p-3 bg-danger bg-opacity-10 rounded-3 mt-3" id="f_div_noSampleReason">
+                            <label class="form-label text-danger fw-bold">سبب عدم إرسال العينة <span class="text-danger">*</span></label>
+                            <select id="f_noSampleReason" class="form-select border-danger" onchange="toggleOtherReason('f')">
+                                <option value="" disabled selected>اختر السبب...</option>
+                                <option value="عدم توفر أنابيب الاختبار">عدم توفر أنابيب الاختبار</option>
+                                <option value="رفض الطبيب إرسال عينة زرع">رفض الطبيب إرسال عينة زرع</option>
+                                <option value="عدم توفر الفحص خارج أوقات الدوام الرسمي">عدم توفر الفحص خارج أوقات الدوام الرسمي</option>
+                                <option value="أخرى">أخرى (يرجى الذكر)</option>
+                            </select>
+                            <input type="text" id="f_otherReason" class="form-control mt-2 border-danger d-none" placeholder="اكتب السبب هنا...">
+                        </div>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-submit w-100 shadow mb-3"><i class="bi bi-cloud-arrow-up-fill me-1"></i> إرسال الطلب</button>
+            </form>
+        </div>
+
+        <div id="tab-tracking" class="tab-content">
             
-            <div id="roles-section">
-                <h5 class="fw-bold mb-3 text-dark"><i class="bi bi-grid-1x2-fill text-primary me-2"></i> لوحة العمليات الرئيسية</h5>
-                <div class="d-grid gap-3">
-                    <button class="btn btn-light ops-btn text-primary border-primary bg-primary bg-opacity-10" onclick="showSmartForm()">
-                        <span><i class="bi bi-pencil-square me-2"></i> مقدم الطلب (الاستمارة)</span>
-                        <i class="bi bi-arrow-left-circle"></i>
-                    </button>
-                    <button class="btn btn-light ops-btn text-success border-success bg-success bg-opacity-10" onclick="loginRole('lab')">
-                        <span><i class="bi bi-virus me-2"></i> المختبر (تأكيد العينات)</span>
-                        <i class="bi bi-lock-fill"></i>
-                    </button>
-                    <button class="btn btn-light ops-btn text-danger border-danger bg-danger bg-opacity-10" onclick="loginRole('committee')">
-                        <span><i class="bi bi-shield-check me-2"></i> لجنة المضادات والتدقيق</span>
-                        <i class="bi bi-lock-fill"></i>
-                    </button>
-                    <button class="btn btn-light ops-btn text-info border-info bg-info bg-opacity-10" onclick="loginRole('clinical')">
-                        <span><i class="bi bi-heart-pulse me-2"></i> الصيدلة السريرية (تدقيق)</span>
-                        <i class="bi bi-lock-fill"></i>
-                    </button>
-                    <button class="btn btn-light ops-btn text-warning text-dark border-warning bg-warning bg-opacity-10" onclick="loginRole('pharmacy')">
-                        <span><i class="bi bi-capsule-pill me-2"></i> صيدلية الصرف والتجهيز</span>
-                        <i class="bi bi-lock-fill"></i>
-                    </button>
+            <div class="card p-4 border-top border-primary border-4 mb-4">
+                <h6 class="text-primary mb-3 fw-bold"><i class="bi bi-search me-1"></i> أدوات الفلترة والبحث</h6>
+                <div class="row g-3">
+                    <div class="col-12 col-md-6"><input type="text" id="searchInput" class="form-control" placeholder="ابحث بالاسم، الطبيب، أو الرقم..."></div>
+                    <div class="col-12 col-md-6"><input type="text" id="wardFilter" class="form-control" placeholder="فلترة باسم الردهة..."></div>
+                    <div class="col-6"><label class="form-label">من تاريخ:</label><input type="date" id="startDateFilter" class="form-control"></div>
+                    <div class="col-6"><label class="form-label">إلى تاريخ:</label><input type="date" id="endDateFilter" class="form-control"></div>
+                    <div class="col-12 text-end"><button class="btn btn-light border fw-bold w-100 mt-2" onclick="resetFilters()">مسح الفلاتر</button></div>
                 </div>
             </div>
 
-            <div id="dashboard-section" class="d-none">
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                    <h5 class="fw-bold text-dark mb-0" id="dashboardTitle">لوحة التحكم</h5>
-                    <button class="btn btn-outline-secondary btn-sm fw-bold rounded-pill" onclick="logoutRole()">
-                        <i class="bi bi-box-arrow-right me-1"></i> خروج
-                    </button>
+            <h6 class="fw-bold text-dark mb-3"><i class="bi bi-list-task me-1"></i> سجل الطلبات (اضغط على الاسم للخيارات)</h6>
+            <div id="ordersContainer"><div class="text-center text-muted py-4">جاري التحميل...</div></div>
+        </div>
+
+    </div>
+
+    <div class="modal fade" id="roleSelectModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-sm">
+            <div class="modal-content p-3">
+                <div class="modal-header border-0 pb-0">
+                    <h6 class="modal-title fw-bold text-dark"><i class="bi bi-grid-fill text-primary me-1"></i> اختر صفتك الوظيفية</h6>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
-                <div class="row g-2 mb-3">
-                    <div class="col-12 col-md-6"><input type="text" id="dashSearch" class="form-control form-control-sm" placeholder="ابحث بالاسم أو الطبيب..." oninput="renderRoleDashboard()"></div>
+                <div class="modal-body pb-2 pt-4">
+                    <button class="btn btn-light role-btn text-success border-success bg-success bg-opacity-10" onclick="verifyAndOpenAction('lab')"><span>المختبر (تأكيد)</span><i class="bi bi-virus"></i></button>
+                    <button class="btn btn-light role-btn text-danger border-danger bg-danger bg-opacity-10" onclick="verifyAndOpenAction('committee')"><span>لجنة المضادات (تدقيق)</span><i class="bi bi-shield-check"></i></button>
+                    <button class="btn btn-light role-btn text-info border-info bg-info bg-opacity-10" onclick="verifyAndOpenAction('clinical')"><span>الصيدلة السريرية (تدقيق)</span><i class="bi bi-heart-pulse"></i></button>
+                    <button class="btn btn-light role-btn text-warning text-dark border-warning bg-warning bg-opacity-10" onclick="verifyAndOpenAction('pharmacy')"><span>الصيدلية (صرف)</span><i class="bi bi-capsule-pill"></i></button>
                 </div>
-                <div id="roleOrdersContainer">
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="actionModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header bg-light border-0">
+                    <h6 class="modal-title fw-bold" id="actionModalTitle">إجراءات الطلب</h6>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body text-center p-4" id="actionModalBody">
                     </div>
             </div>
+        </div>
+    </div>
 
-            <div id="smart-form-section" class="d-none">
-                <button class="btn btn-outline-secondary mb-3 fw-bold rounded-pill" onclick="hideSmartForm()">
-                    <i class="bi bi-arrow-right me-1"></i> العودة للوحة العمليات
-                </button>
-                
-                <form id="meroForm" class="needs-validation">
+    <div class="modal fade" id="editOrderModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header bg-light border-0 py-3">
+                    <h6 class="modal-title fw-bold text-primary"><i class="bi bi-pencil-square me-1"></i> تعديل بيانات الطلب</h6>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" style="max-height: 75vh; overflow-y: auto;">
+                    <div id="editAlertNote" class="alert alert-warning fw-bold d-none mb-3 border-warning"><i class="bi bi-exclamation-triangle-fill"></i> <span id="editAlertNoteText"></span></div>
                     
-                    <div class="card p-4 border-top border-secondary border-4">
-                        <div class="section-title text-secondary"><i class="bi bi-building"></i> 1. البيانات الإدارية والأساسية</div>
-                        <div class="row g-3">
-                            <div class="col-6 col-md-6">
-                                <label class="form-label">دائرة الصحة <span class="text-danger">*</span></label>
-                                <input type="text" id="f_directorate" class="form-control" value="صحة البصرة" required>
-                            </div>
-                            <div class="col-6 col-md-6">
-                                <label class="form-label">المستشفى <span class="text-danger">*</span></label>
-                                <input type="text" id="f_hospital" class="form-control" value="مستشفى الموانئ التعليمي" required>
-                            </div>
-                            <div class="col-12 col-md-4">
-                                <label class="form-label">اسم المريض الثلاثي <span class="text-danger">*</span></label>
-                                <input type="text" id="f_patientName" class="form-control" required>
-                            </div>
-                            <div class="col-12 col-md-4">
-                                <label class="form-label">الرقم الإحصائي / الطبلة</label>
-                                <input type="text" id="f_mrn" class="form-control">
-                            </div>
-                            <div class="col-12 col-md-4">
-                                <label class="form-label">الردهة / القسم <span class="text-danger">*</span></label>
-                                <input type="text" id="f_ward" class="form-control" required>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="card p-4 border-top border-primary border-4">
-                        <div class="section-title text-primary"><i class="bi bi-clipboard2-pulse"></i> 2. القياسات والتفاصيل السريرية</div>
-                        <div class="row g-3">
-                            <div class="col-4 col-md-2">
-                                <label class="form-label">العمر <span class="text-danger">*</span></label>
-                                <input type="number" id="f_age" class="form-control" placeholder="سنة" required min="1">
-                            </div>
-                            <div class="col-4 col-md-2">
-                                <label class="form-label">الوزن <span class="text-danger">*</span></label>
-                                <input type="number" id="f_weight" class="form-control" placeholder="kg" required min="1">
-                            </div>
-                            <div class="col-4 col-md-2">
-                                <label class="form-label">الطول</label>
-                                <input type="number" id="f_height" class="form-control" placeholder="cm" min="1">
-                            </div>
-                            <div class="col-6 col-md-3">
-                                <label class="form-label">S. Creatinine</label>
-                                <input type="text" id="f_scr" class="form-control" placeholder="مستوى الكرياتينين">
-                            </div>
-                            <div class="col-6 col-md-3">
-                                <label class="form-label">التحسس الدوائي</label>
-                                <input type="text" id="f_allergy" class="form-control" placeholder="إن وجد (NKA)">
-                            </div>
-
-                            <div class="col-12 mt-4">
-                                <label class="form-label">التشخيص (Diagnosis) <span class="text-danger">*</span></label>
-                                <select id="f_diagnosis" class="form-select border-primary" required onchange="toggleDiagnosisFields()">
-                                    <option value="" disabled selected>اختر التشخيص...</option>
-                                    <option value="Acute mastoiditis">Acute mastoiditis</option>
-                                    <option value="Acute rhinosinusitis due to intubation">Acute rhinosinusitis due to intubation</option>
-                                    <option value="Bacterial meningitis">Bacterial meningitis</option>
-                                    <option value="Contaminated blast injury">Contaminated blast injury (specify location and severity)</option>
-                                    <option value="Gangrenous cellulitis">Gangrenous cellulitis (necrotizing fasciitis or gas gangrene)</option>
-                                    <option value="HAP Post-op, Ventilator ESBL positive">HAP Post-op, Ventilator ESBL positive</option>
-                                    <option value="Infective bronchiectasis exacerbation">Infective bronchiectasis exacerbation (with severe lung impairment)</option>
-                                    <option value="Lung abscess">Lung abscess</option>
-                                    <option value="NVE – Acute presentation">NVE – Acute presentation (severe sepsis with ESBL)</option>
-                                    <option value="Neutropenic sepsis">Neutropenic sepsis</option>
-                                    <option value="Pleural empyema ESBL positive">Pleural empyema ESBL positive</option>
-                                    <option value="Proven acute pancreatitis">Proven acute pancreatitis</option>
-                                    <option value="Pyogenic liver abscess">Pyogenic liver abscess</option>
-                                    <option value="Radical resection performed">Radical resection performed</option>
-                                    <option value="Severe CAP admitted to ICU">Severe CAP admitted to ICU</option>
-                                    <option value="Severe diabetic foot infection">Severe diabetic foot infection</option>
-                                    <option value="Severe secondary peritonitis">Severe secondary peritonitis</option>
-                                    <option value="Sepsis">Sepsis</option>
-                                    <option value="Surgical site infection">Surgical site infection</option>
-                                    <option value="Others">Others</option>
+                    <form id="editForm" class="row g-3">
+                        <input type="hidden" id="e_id">
+                        <div class="col-12 col-md-6"><label class="form-label">اسم المريض</label><input type="text" id="e_patientName" class="form-control" required></div>
+                        <div class="col-6 col-md-6"><label class="form-label">الردهة</label><input type="text" id="e_ward" class="form-control" required></div>
+                        
+                        <div class="col-4 col-md-2"><label class="form-label">العمر</label><input type="number" id="e_age" class="form-control" required min="1"></div>
+                        <div class="col-4 col-md-2"><label class="form-label">الوزن</label><input type="number" id="e_weight" class="form-control" required min="1"></div>
+                        <div class="col-4 col-md-2"><label class="form-label">الطول</label><input type="number" id="e_height" class="form-control" min="1"></div>
+                        <div class="col-6 col-md-3"><label class="form-label">S.Cr</label><input type="text" id="e_scr" class="form-control"></div>
+                        <div class="col-6 col-md-3"><label class="form-label">التحسس</label><input type="text" id="e_allergy" class="form-control"></div>
+                        
+                        <div class="col-12 mt-3">
+                            <label class="form-label">التشخيص</label>
+                            <select id="e_diagnosis" class="form-select border-primary" required onchange="toggleDiagnosisFields('e')">
                                 </select>
-                            </div>
-                            
-                            <div class="col-12 d-none" id="div_sepsisOrigin">
-                                <label class="form-label text-danger">مصدر الإنتان (Origin of Sepsis) <span class="text-danger">*</span></label>
-                                <input type="text" id="f_sepsisOrigin" class="form-control" placeholder="اكتب المصدر هنا...">
-                            </div>
-                            <div class="col-12 d-none" id="div_otherDiagnosis">
-                                <label class="form-label">يرجى كتابة التشخيص <span class="text-danger">*</span></label>
-                                <input type="text" id="f_otherDiagnosis" class="form-control" placeholder="التشخيص...">
-                            </div>
-                            <div class="col-12 d-none" id="div_blastInjury">
-                                <label class="form-label text-danger">حدد الموقع والشدة <span class="text-danger">*</span></label>
-                                <input type="text" id="f_blastInjury" class="form-control" placeholder="الموقع والشدة...">
-                            </div>
-                            
-                            <div class="col-6 mt-4">
-                                <label class="form-label">الجرعة (ملغرام - mg) <span class="text-danger">*</span></label>
-                                <input type="number" id="f_potency" class="form-control border-primary" placeholder="مثال: 1000" required min="1" max="2000">
-                                <div class="form-text fs-7 text-muted">الحد الأقصى: 2000 ملغم</div>
-                            </div>
-                            <div class="col-6 mt-4">
-                                <label class="form-label">التكرار (عدد المرات) <span class="text-danger">*</span></label>
-                                <input type="number" id="f_frequency" class="form-control border-primary" placeholder="مثال: 3" required min="1" max="4">
-                                <div class="form-text fs-7 text-muted">الحد الأقصى: 4 مرات باليوم</div>
-                            </div>
-                            <div class="col-12">
-                                <label class="form-label">مدة العلاج المتوقعة (بالأيام) - اختياري</label>
-                                <input type="number" id="f_duration" class="form-control" placeholder="مثال: 7" min="1">
-                            </div>
                         </div>
-                    </div>
+                        <div class="col-12 d-none" id="e_div_sepsisOrigin"><label class="form-label text-danger">مصدر الإنتان</label><input type="text" id="e_sepsisOrigin" class="form-control"></div>
+                        <div class="col-12 d-none" id="e_div_otherDiagnosis"><label class="form-label">التشخيص</label><input type="text" id="e_otherDiagnosis" class="form-control"></div>
+                        <div class="col-12 d-none" id="e_div_blastInjury"><label class="form-label text-danger">الموقع والشدة</label><input type="text" id="e_blastInjury" class="form-control"></div>
 
-                    <div class="card p-4 border-top border-warning border-4">
-                        <div class="section-title text-warning text-dark"><i class="bi bi-people"></i> 3. الملاك الطبي والمختبر</div>
-                        <div class="row g-3">
-                            <div class="col-12 col-md-6">
-                                <label class="form-label">اسم الطبيب المعالج <span class="text-danger">*</span></label>
-                                <input type="text" id="f_doctor" class="form-control" placeholder="د. " required>
-                            </div>
-                            <div class="col-12 col-md-6">
-                                <label class="form-label">اسم الصيدلي السريري <span class="text-danger">*</span></label>
-                                <input type="text" id="f_pharmacist" class="form-control" placeholder="ص. " required>
-                            </div>
-                            <div class="col-12 col-md-6">
-                                <label class="form-label">تاريخ الطلب <span class="text-danger">*</span></label>
-                                <input type="date" id="f_date" class="form-control" required>
-                            </div>
-                            
-                            <div class="col-12 mt-4">
-                                <label class="form-label fw-bold">حالة إرسال عينة الزرع (Culture) <span class="text-danger">*</span></label>
-                                <select id="f_sampleStatus" class="form-select border-warning" required onchange="toggleSampleFields()">
-                                    <option value="" disabled selected>حدد موقف العينة...</option>
-                                    <option value="before">تم إرسال العينة (قبل إعطاء الجرعة الأولى)</option>
-                                    <option value="after">تم إرسال العينة (بعد إعطاء الجرعة)</option>
-                                    <option value="not_sent">لم يتم إرسال عينة زرع</option>
-                                </select>
-                            </div>
-                            
-                            <div class="col-12 d-none p-3 bg-danger bg-opacity-10 rounded-3 mt-3" id="div_noSampleReason">
-                                <label class="form-label text-danger fw-bold">سبب عدم إرسال العينة <span class="text-danger">*</span></label>
-                                <select id="f_noSampleReason" class="form-select border-danger" onchange="toggleOtherReason()">
-                                    <option value="" disabled selected>اختر السبب...</option>
-                                    <option value="عدم توفر أنابيب الاختبار">عدم توفر أنابيب الاختبار</option>
-                                    <option value="رفض الطبيب إرسال عينة زرع">رفض الطبيب إرسال عينة زرع</option>
-                                    <option value="عدم توفر الفحص خارج أوقات الدوام الرسمي">عدم توفر الفحص خارج أوقات الدوام الرسمي</option>
-                                    <option value="أخرى">أخرى (يرجى الذكر)</option>
-                                </select>
-                                <input type="text" id="f_otherReason" class="form-control mt-2 border-danger d-none" placeholder="اكتب السبب هنا...">
-                            </div>
+                        <div class="col-6"><label class="form-label">الجرعة (mg)</label><input type="number" id="e_potency" class="form-control border-primary" required min="1" max="2000"></div>
+                        <div class="col-6"><label class="form-label">التكرار</label><input type="number" id="e_frequency" class="form-control border-primary" required min="1" max="4"></div>
+                        
+                        <div class="col-12 mt-4">
+                            <label class="form-label fw-bold">حالة العينة</label>
+                            <select id="e_sampleStatus" class="form-select border-warning" required onchange="toggleSampleFields('e')">
+                                <option value="before">تم إرسال العينة (قبل الجرعة)</option>
+                                <option value="after">تم إرسال العينة (بعد الجرعة)</option>
+                                <option value="not_sent">لم يتم إرسال عينة زرع</option>
+                            </select>
                         </div>
-                    </div>
-
-                    <button type="submit" class="btn btn-submit w-100 shadow mb-3"><i class="bi bi-cloud-arrow-up-fill me-1"></i> إرسال الاستمارة وحفظها</button>
-                </form>
-            </div>
-        </div>
-
-        <div id="tab-legacy" class="tab-content">
-            <div class="card p-4 border-top border-secondary border-4">
-                <h6 class="text-dark mb-3 fw-bold"><i class="bi bi-plus-circle-fill me-1"></i> إضافة طلب (النظام القديم)</h6>
-                <form id="legacyForm" class="row g-3">
-                    <div class="col-12 col-md-4"><label class="form-label">اسم المريض</label><input type="text" id="l_patientName" class="form-control" required></div>
-                    <div class="col-12 col-md-4"><label class="form-label">الطبيب المسؤول</label><input type="text" id="l_doctorName" class="form-control" required></div>
-                    <div class="col-6 col-md-2"><label class="form-label">الردهة</label><input type="text" id="l_ward" class="form-control" required></div>
-                    <div class="col-6 col-md-2"><label class="form-label">التاريخ</label><input type="date" id="l_orderDate" class="form-control" required></div>
-                    <div class="col-12">
-                        <div class="form-check bg-light p-2 rounded-3 border mt-2">
-                            <input class="form-check-input ms-2" type="checkbox" id="l_doctorRefused">
-                            <label class="form-check-label text-danger fw-bold fs-7" for="l_doctorRefused">رفض الطبيب إرسال عينة زرع</label>
+                        <div class="col-12 d-none p-3 bg-danger bg-opacity-10 rounded-3 mt-2" id="e_div_noSampleReason">
+                            <label class="form-label text-danger fw-bold">سبب عدم الإرسال</label>
+                            <select id="e_noSampleReason" class="form-select border-danger" onchange="toggleOtherReason('e')">
+                                <option value="عدم توفر أنابيب الاختبار">عدم توفر أنابيب الاختبار</option>
+                                <option value="رفض الطبيب إرسال عينة زرع">رفض الطبيب إرسال عينة زرع</option>
+                                <option value="عدم توفر الفحص خارج أوقات الدوام الرسمي">عدم توفر الفحص خارج أوقات الدوام الرسمي</option>
+                                <option value="أخرى">أخرى (يرجى الذكر)</option>
+                            </select>
+                            <input type="text" id="e_otherReason" class="form-control mt-2 border-danger d-none">
                         </div>
-                    </div>
-                    <div class="col-12 mt-3"><button type="submit" class="btn btn-secondary w-100 fw-bold"><i class="bi bi-send-fill me-1"></i> إرسال الطلب</button></div>
-                </form>
-            </div>
 
-            <div class="card p-4 mb-4 border-top border-primary border-4">
-                <h6 class="text-primary mb-3 fw-bold"><i class="bi bi-search me-1"></i> البحث في سجل الطلبات القديم</h6>
-                <div class="row g-2 mb-4">
-                    <div class="col-12 col-md-6"><input type="text" id="searchInput" class="form-control" placeholder="ابحث بالاسم أو الطبيب..."></div>
-                    <div class="col-12 col-md-6"><input type="text" id="wardFilter" class="form-control" placeholder="فلترة بالردهة..."></div>
+                        <div class="col-12 text-end mt-4">
+                            <button type="button" class="btn btn-light border fw-bold me-2" data-bs-dismiss="modal">إلغاء</button>
+                            <button type="submit" class="btn btn-primary fw-bold px-4">حفظ التعديلات</button>
+                        </div>
+                    </form>
                 </div>
-                <h6 class="fw-bold"><i class="bi bi-list-task"></i> سجل الطلبات الكلي</h6>
-                <div id="ordersContainer"><div class="text-center text-muted py-4">جاري تحميل البيانات...</div></div>
             </div>
         </div>
-
     </div>
 
     <div class="modal fade" id="customPromptModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
@@ -334,7 +308,6 @@
             </div>
         </div>
     </div>
-
     <div class="modal fade" id="customAlertModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered modal-sm">
             <div class="modal-content border-0 shadow-lg">
@@ -347,64 +320,17 @@
             </div>
         </div>
     </div>
-
-    <div class="modal fade" id="customConfirmModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content border-0 shadow-lg">
-                <div class="modal-body text-center p-4">
-                    <div class="mb-3 text-warning fs-1"><i class="bi bi-exclamation-triangle-fill"></i></div>
-                    <h6 id="confirmTitle" class="fw-bold mb-2 text-danger"></h6>
-                    <p id="confirmText" class="text-muted fs-7 mb-4" style="white-space: pre-line;"></p>
-                    <div class="d-flex gap-2 justify-content-center">
-                        <button class="btn btn-light px-4 fw-bold border" id="confirmCancelBtn">إلغاء</button>
-                        <button class="btn btn-danger px-4 fw-bold" id="confirmYesBtn">تأكيد المتابعة</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="modal fade" id="legacyEditModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header border-0 py-3 bg-light rounded-top-4">
-                    <h6 class="modal-title fw-bold text-primary"><i class="bi bi-pencil-square me-1"></i> تعديل بيانات الطلب القديم</h6>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body py-3">
-                    <form id="legacyEditForm" class="row g-3">
-                        <input type="hidden" id="edit_l_id">
-                        <div class="col-12"><label class="form-label">اسم المريض</label><input type="text" id="edit_l_patient" class="form-control" required></div>
-                        <div class="col-12"><label class="form-label">الطبيب المسؤول</label><input type="text" id="edit_l_doctor" class="form-control" required></div>
-                        <div class="col-6"><label class="form-label">الردهة</label><input type="text" id="edit_l_ward" class="form-control" required></div>
-                        <div class="col-6"><label class="form-label">التاريخ</label><input type="date" id="edit_l_date" class="form-control" required></div>
-                        <div class="col-12">
-                            <div class="form-check bg-light p-2 rounded-3 border mt-2">
-                                <input class="form-check-input ms-2" type="checkbox" id="edit_l_refused">
-                                <label class="form-check-label text-danger fw-bold fs-7" for="edit_l_refused">رفض الطبيب إرسال عينة زرع</label>
-                            </div>
-                        </div>
-                        <div class="col-12 mt-4 text-end">
-                            <button type="button" class="btn btn-light border fw-bold me-2" data-bs-dismiss="modal">إلغاء التعديل</button>
-                            <button type="submit" class="btn btn-primary fw-bold px-4">حفظ الطلب وتحديثه</button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
-    </div>
-
+    
     <div class="modal fade" id="aboutModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content text-center p-4">
                 <i class="bi bi-hospital text-primary mb-3" style="font-size: 3rem;"></i>
-                <h5 class="fw-bold text-dark mb-2">نظام MeroTrak</h5>
-                <span class="badge bg-primary mb-3">الإصدار 2.5 (الاستمارة المتكاملة)</span>
-                <p class="text-muted fs-7 mb-4">نظام إلكتروني متكامل لتتبع وإدارة دورة صرف مضاد الميروبينيم بين الصيدلية، المختبر، ولجنة المضادات.</p>
+                <h5 class="fw-bold text-dark mb-2">MeroTrak</h5>
+                <span class="badge bg-primary mb-3">الإصدار 3.0 (النظام الشامل)</span>
+                <p class="text-muted fs-7 mb-4">نظام إلكتروني طبي (HIS) متكامل لتتبع وإدارة دورة صرف مضاد الميروبينيم.</p>
                 <div class="bg-light p-3 rounded-4 mb-3 text-start border">
                     <h6 class="fw-bold text-dark fs-7 mb-2"><i class="bi bi-person-workspace text-primary me-1"></i> فكرة وتصميم:</h6>
                     <p class="mb-0 fs-7 text-secondary fw-bold">الصيدلي السريري / سعد نبيل الحمادي</p>
-                    <p class="mb-0 fs-7 text-secondary">عضو لجنة المضادات الحيوية</p>
                     <p class="mb-0 fs-7 text-secondary">مستشفى الموانئ التعليمي</p>
                 </div>
                 <button class="btn btn-primary w-100 fw-bold py-2" data-bs-dismiss="modal">إغلاق</button>
@@ -432,65 +358,59 @@
         const ordersRef = collection(db, "meropenem_orders");
         const settingsRef = doc(db, "settings", "lab_config");
 
-        let passcodes = { lab: "1234", committee: "1111", clinical: "2222", pharmacy: "3333", delete: "9999" };
-        let currentRole = null;
+        let passcodes = { lab: "1234", committee: "1111", clinical: "2222", pharmacy: "3333" };
         let allOrders = [];
-        let promptModal, alertModal, confirmModal, legacyEditModal;
+        let activeOrderIdForAction = null;
+        let promptModal, alertModal, roleSelectModal, actionModal, editOrderModal;
 
-        // تهيئة النوافذ المنبثقة مباشرة (بدون DOMContentLoaded لحل مشكلة الإخفاء)
-        promptModal = new bootstrap.Modal(document.getElementById('customPromptModal'));
-        alertModal = new bootstrap.Modal(document.getElementById('customAlertModal'));
-        confirmModal = new bootstrap.Modal(document.getElementById('customConfirmModal'));
-        legacyEditModal = new bootstrap.Modal(document.getElementById('legacyEditModal'));
+        // قائمة التشخيصات الديناميكية
+        const diagnosesList = [
+            "Acute mastoiditis", "Acute rhinosinusitis due to intubation", "Bacterial meningitis", 
+            "Contaminated blast injury", "Gangrenous cellulitis", "HAP Post-op, Ventilator ESBL positive", 
+            "Infective bronchiectasis exacerbation", "Lung abscess", "NVE – Acute presentation", 
+            "Neutropenic sepsis", "Pleural empyema ESBL positive", "Proven acute pancreatitis", 
+            "Pyogenic liver abscess", "Radical resection performed", "Severe CAP admitted to ICU", 
+            "Severe diabetic foot infection", "Severe secondary peritonitis", "Sepsis", "Surgical site infection", "Others"
+        ];
 
+        document.addEventListener('DOMContentLoaded', () => {
+            promptModal = new bootstrap.Modal(document.getElementById('customPromptModal'));
+            alertModal = new bootstrap.Modal(document.getElementById('customAlertModal'));
+            roleSelectModal = new bootstrap.Modal(document.getElementById('roleSelectModal'));
+            actionModal = new bootstrap.Modal(document.getElementById('actionModal'));
+            editOrderModal = new bootstrap.Modal(document.getElementById('editOrderModal'));
+
+            // تعبئة قائمة التعديل
+            const eDiag = document.getElementById('e_diagnosis');
+            eDiag.innerHTML = '<option value="" disabled selected>اختر التشخيص...</option>';
+            diagnosesList.forEach(d => { eDiag.innerHTML += `<option value="${d}">${d === 'Contaminated blast injury' ? d+' (specify location and severity)' : (d==='Gangrenous cellulitis'? d+' (necrotizing fasciitis or gas gangrene)' : d)}</option>`; });
+            
+            document.getElementById('f_date').value = new Date().toISOString().split('T')[0];
+        });
+
+        // دوال النوافذ المساعدة
         function askPrompt(title, text, type = 'password') {
             return new Promise(resolve => {
                 document.getElementById('promptTitle').innerText = title;
                 document.getElementById('promptText').innerText = text;
-                const input = document.getElementById('promptInput');
-                input.type = type; input.value = '';
-                
-                const btnConfirm = document.getElementById('promptConfirmBtn');
-                const btnCancel = document.getElementById('promptCancelBtn');
-                
+                const input = document.getElementById('promptInput'); input.type = type; input.value = '';
+                const btnConfirm = document.getElementById('promptConfirmBtn'); const btnCancel = document.getElementById('promptCancelBtn');
                 const cleanup = () => { btnConfirm.onclick = null; btnCancel.onclick = null; input.onkeyup = null; promptModal.hide(); };
                 btnConfirm.onclick = () => { resolve(input.value); cleanup(); };
                 btnCancel.onclick = () => { resolve(null); cleanup(); };
                 input.onkeyup = (e) => { if(e.key === 'Enter') { resolve(input.value); cleanup(); } };
-                
-                promptModal.show();
-                setTimeout(() => input.focus(), 500);
+                promptModal.show(); setTimeout(() => input.focus(), 500);
             });
         }
-
         function showAlert(title, text, isSuccess = true) {
             return new Promise(resolve => {
-                document.getElementById('alertTitle').innerText = title;
-                document.getElementById('alertText').innerText = text;
-                const icon = document.getElementById('alertIcon');
-                const btn = document.getElementById('alertOkBtn');
-                
+                document.getElementById('alertTitle').innerText = title; document.getElementById('alertText').innerText = text;
+                const icon = document.getElementById('alertIcon'); const btn = document.getElementById('alertOkBtn');
                 if(isSuccess) { icon.innerHTML = '<i class="bi bi-check-circle-fill text-success"></i>'; btn.className = 'btn btn-success w-100 fw-bold'; } 
                 else { icon.innerHTML = '<i class="bi bi-x-circle-fill text-danger"></i>'; btn.className = 'btn btn-danger w-100 fw-bold'; }
-                
                 const cleanup = () => { btn.onclick = null; alertModal.hide(); };
                 btn.onclick = () => { resolve(); cleanup(); };
                 alertModal.show();
-            });
-        }
-
-        function askConfirm(title, text) {
-            return new Promise(resolve => {
-                document.getElementById('confirmTitle').innerText = title;
-                document.getElementById('confirmText').innerText = text;
-                const btnYes = document.getElementById('confirmYesBtn');
-                const btnCancel = document.getElementById('confirmCancelBtn');
-                
-                const cleanup = () => { btnYes.onclick = null; btnCancel.onclick = null; confirmModal.hide(); };
-                btnYes.onclick = () => { resolve(true); cleanup(); };
-                btnCancel.onclick = () => { resolve(false); cleanup(); };
-                
-                confirmModal.show();
             });
         }
 
@@ -507,97 +427,52 @@
         window.switchTab = (tabId, element) => {
             document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
             document.querySelectorAll('.nav-item').forEach(nav => nav.classList.remove('active'));
-            document.getElementById(tabId).classList.add('active');
-            element.classList.add('active');
+            document.getElementById(tabId).classList.add('active'); element.classList.add('active');
         };
 
-        window.showSmartForm = () => {
-            document.getElementById('roles-section').classList.add('d-none');
-            document.getElementById('smart-form-section').classList.remove('d-none');
+        // ديناميكية الحقول للاستمارة (f) والتعديل (e)
+        window.toggleDiagnosisFields = (prefix) => {
+            const val = document.getElementById(`${prefix}_diagnosis`).value;
+            document.getElementById(`${prefix}_div_sepsisOrigin`).classList.toggle('d-none', val !== 'Sepsis');
+            document.getElementById(`${prefix}_sepsisOrigin`).required = (val === 'Sepsis');
+            document.getElementById(`${prefix}_div_otherDiagnosis`).classList.toggle('d-none', val !== 'Others');
+            document.getElementById(`${prefix}_otherDiagnosis`).required = (val === 'Others');
+            document.getElementById(`${prefix}_div_blastInjury`).classList.toggle('d-none', val !== 'Contaminated blast injury');
+            document.getElementById(`${prefix}_blastInjury`).required = (val === 'Contaminated blast injury');
         };
-        window.hideSmartForm = () => {
-            document.getElementById('smart-form-section').classList.add('d-none');
-            document.getElementById('roles-section').classList.remove('d-none');
-        };
-
-        window.loginRole = async (role) => {
-            let roleName = ''; let expectedPass = '';
-            if(role === 'lab') { roleName = 'المختبر 🧪'; expectedPass = passcodes.lab; }
-            if(role === 'committee') { roleName = 'اللجنة والتدقيق 🛡️'; expectedPass = passcodes.committee; }
-            if(role === 'clinical') { roleName = 'الصيدلة السريرية 🩺'; expectedPass = passcodes.clinical; }
-            if(role === 'pharmacy') { roleName = 'صيدلية الصرف 💊'; expectedPass = passcodes.pharmacy; }
-
-            const enteredPass = await askPrompt(`تسجيل دخول: ${roleName}`, `الرجاء إدخال كلمة المرور الخاصة بـ ${roleName}:`);
-            if (enteredPass === null) return;
-            if (enteredPass !== expectedPass) { await showAlert('فشل الدخول', 'كلمة المرور غير صحيحة!', false); return; }
-
-            currentRole = role;
-            document.getElementById('roles-section').classList.add('d-none');
-            document.getElementById('dashboard-section').classList.remove('d-none');
-            document.getElementById('dashboardTitle').innerText = `لوحة التحكم - ${roleName}`;
-            renderRoleDashboard();
-        };
-
-        window.logoutRole = () => {
-            currentRole = null;
-            document.getElementById('dashboard-section').classList.add('d-none');
-            document.getElementById('roles-section').classList.remove('d-none');
-        };
-
-        window.toggleDiagnosisFields = () => {
-            const val = document.getElementById('f_diagnosis').value;
-            document.getElementById('div_sepsisOrigin').classList.toggle('d-none', val !== 'Sepsis');
-            document.getElementById('f_sepsisOrigin').required = (val === 'Sepsis');
-            document.getElementById('div_otherDiagnosis').classList.toggle('d-none', val !== 'Others');
-            document.getElementById('f_otherDiagnosis').required = (val === 'Others');
-            document.getElementById('div_blastInjury').classList.toggle('d-none', val !== 'Contaminated blast injury');
-            document.getElementById('f_blastInjury').required = (val === 'Contaminated blast injury');
-        };
-
-        window.toggleSampleFields = () => {
-            const val = document.getElementById('f_sampleStatus').value;
+        window.toggleSampleFields = (prefix) => {
+            const val = document.getElementById(`${prefix}_sampleStatus`).value;
             if (val === 'not_sent') {
-                document.getElementById('div_noSampleReason').classList.remove('d-none');
-                document.getElementById('f_noSampleReason').required = true;
+                document.getElementById(`${prefix}_div_noSampleReason`).classList.remove('d-none');
+                document.getElementById(`${prefix}_noSampleReason`).required = true;
             } else {
-                document.getElementById('div_noSampleReason').classList.add('d-none');
-                document.getElementById('f_noSampleReason').required = false;
-                document.getElementById('f_noSampleReason').value = '';
-                document.getElementById('f_otherReason').classList.add('d-none');
+                document.getElementById(`${prefix}_div_noSampleReason`).classList.add('d-none');
+                document.getElementById(`${prefix}_noSampleReason`).required = false;
+                document.getElementById(`${prefix}_noSampleReason`).value = '';
+                document.getElementById(`${prefix}_otherReason`).classList.add('d-none');
             }
         };
-
-        window.toggleOtherReason = () => {
-            const val = document.getElementById('f_noSampleReason').value;
-            if (val === 'أخرى') { document.getElementById('f_otherReason').classList.remove('d-none'); document.getElementById('f_otherReason').required = true; } 
-            else { document.getElementById('f_otherReason').classList.add('d-none'); document.getElementById('f_otherReason').required = false; }
+        window.toggleOtherReason = (prefix) => {
+            const val = document.getElementById(`${prefix}_noSampleReason`).value;
+            if (val === 'أخرى') { document.getElementById(`${prefix}_otherReason`).classList.remove('d-none'); document.getElementById(`${prefix}_otherReason`).required = true; } 
+            else { document.getElementById(`${prefix}_otherReason`).classList.add('d-none'); document.getElementById(`${prefix}_otherReason`).required = false; }
         };
 
-        const formatLocaleDate = (rawDateStr) => {
-            if (!rawDateStr) return '-';
-            const parts = rawDateStr.split('-');
-            if (parts.length === 3) return `${parts[2]}/${parts[1]}/${parts[0]}`;
-            return rawDateStr;
-        };
+        // جلب البيانات
+        const q = query(ordersRef, orderBy("createdAt", "desc"));
+        onSnapshot(q, (snapshot) => {
+            allOrders = [];
+            snapshot.forEach((doc) => { allOrders.push({ id: doc.id, ...doc.data() }); });
+            renderOrders();
+        });
 
-        function normalizeName(name) {
-            return name ? name.trim().replace(/[أإآ]/g, "ا").replace(/ى/g, "ي").replace(/\s+/g, " ") : "";
-        }
-
-        // ================== الإرسال للاستمارة الذكية ==================
+        // تقديم طلب جديد
         document.getElementById('meroForm').addEventListener('submit', async (e) => {
             e.preventDefault();
-
-            // فحص القيود
             const potency = parseInt(document.getElementById('f_potency').value);
             const freq = parseInt(document.getElementById('f_frequency').value);
-            if (potency > 2000) { await showAlert('تنبيه', 'الجرعة القصوى المسموحة هي 2000 ملغم فقط.', false); return; }
-            if (freq > 4) { await showAlert('تنبيه', 'أقصى عدد لتكرار الجرعة هو 4 مرات فقط.', false); return; }
-
-            const name = document.getElementById('f_patientName').value.trim();
-            const mrn = document.getElementById('f_mrn').value.trim();
-            const date = document.getElementById('f_date').value;
-            const ward = document.getElementById('f_ward').value.trim();
+            if (potency > 2000) { await showAlert('تنبيه', 'الجرعة القصوى 2000 ملغم.', false); return; }
+            if (freq > 4) { await showAlert('تنبيه', 'أقصى عدد لتكرار الجرعة 4 مرات.', false); return; }
 
             const diagnosisBase = document.getElementById('f_diagnosis').value;
             let finalDiagnosis = diagnosisBase;
@@ -616,246 +491,86 @@
             if (sampleStatus === 'not_sent' && finalReason.includes('رفض الطبيب')) masterStatus = 'doctor_refused';
             else if (sampleStatus === 'not_sent') masterStatus = 'rejected';
 
-            const normalizedNewName = normalizeName(name);
-            const thirtyDaysAgo = new Date(); thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-            const duplicateOrder = allOrders.find(o => {
-                if (o.isDeleted) return false;
-                const isSameMRN = mrn !== "" && o.mrn && o.mrn.trim() === mrn;
-                const isSameName = normalizeName(o.patientName) === normalizedNewName;
-                return (isSameMRN || isSameName) && (new Date(o.orderDate) >= thirtyDaysAgo);
-            });
-
-            if (duplicateOrder) {
-                const proceed = await askConfirm('تنبيه: مريض مكرر', `يوجد مريض مطابق مسجل سابقاً خلال آخر 30 يوماً:\nالاسم: ${duplicateOrder.patientName}\nالتاريخ: ${formatLocaleDate(duplicateOrder.orderDate)}\nالردهة: ${duplicateOrder.ward}`);
-                if (!proceed) return;
-            }
-
             const formData = {
-                directorate: document.getElementById('f_directorate').value.trim(),
-                hospital: document.getElementById('f_hospital').value.trim(),
-                patientName: name, mrn: mrn, ward: ward, orderDate: date,
-                age: document.getElementById('f_age').value, weight: document.getElementById('f_weight').value,
-                height: document.getElementById('f_height').value || "", scr: document.getElementById('f_scr').value || "",
-                allergy: document.getElementById('f_allergy').value || "إن وجد (NKA)",
-                diagnosis: finalDiagnosis, 
-                dosePotency: potency.toString(), 
-                doseFrequency: freq.toString(),
-                durationDays: document.getElementById('f_duration').value || "",
-                doctorName: document.getElementById('f_doctor').value.trim(),
-                pharmacistName: document.getElementById('f_pharmacist').value.trim(),
+                directorate: document.getElementById('f_directorate').value.trim(), hospital: document.getElementById('f_hospital').value.trim(),
+                patientName: document.getElementById('f_patientName').value.trim(), mrn: document.getElementById('f_mrn').value.trim(),
+                ward: document.getElementById('f_ward').value.trim(), orderDate: document.getElementById('f_date').value,
+                age: document.getElementById('f_age').value, weight: document.getElementById('f_weight').value, height: document.getElementById('f_height').value || "",
+                scr: document.getElementById('f_scr').value || "", allergy: document.getElementById('f_allergy').value || "إن وجد (NKA)",
+                diagnosis: finalDiagnosis, dosePotency: potency.toString(), doseFrequency: freq.toString(), durationDays: document.getElementById('f_duration').value || "",
+                doctorName: document.getElementById('f_doctor').value.trim(), pharmacistName: document.getElementById('f_pharmacist').value.trim(),
                 sampleStatus: sampleStatus, noSampleReason: finalReason,
-                status: masterStatus, auditStatus: 'pending', auditNote: '', dispenseStatus: 'pending',
-                isDeleted: false, isSmartForm: true, createdAt: new Date()
+                status: masterStatus, auditStatus: 'pending', auditNote: '', needsCorrection: false, dispenseStatus: 'pending',
+                isDeleted: false, createdAt: new Date()
             };
 
             try {
                 await addDoc(ordersRef, formData);
-                await showAlert('نجاح', 'تم حفظ الاستمارة الذكية بنجاح!');
+                await showAlert('نجاح', 'تم تسجيل الطلب بنجاح!');
                 document.getElementById('meroForm').reset();
                 document.getElementById('f_date').value = new Date().toISOString().split('T')[0];
-                document.getElementById('f_directorate').value = "صحة البصرة";
-                document.getElementById('f_hospital').value = "مستشفى الموانئ التعليمي";
-                hideSmartForm();
+                switchTab('tab-tracking', document.querySelectorAll('.nav-item')[1]);
             } catch (error) { await showAlert('خطأ', error.message, false); }
         });
 
-        // ================== إرسال الاستمارة القديمة ==================
-        document.getElementById('legacyForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const name = document.getElementById('l_patientName').value.trim();
-            try {
-                await addDoc(ordersRef, { 
-                    patientName: name, doctorName: document.getElementById('l_doctorName').value.trim(), 
-                    ward: document.getElementById('l_ward').value.trim(), orderDate: document.getElementById('l_orderDate').value, 
-                    status: document.getElementById('l_doctorRefused').checked ? 'doctor_refused' : 'pending', 
-                    unlockedForEdit: false, auditNote: '',
-                    isDeleted: false, isSmartForm: false, createdAt: new Date() 
-                });
-                document.getElementById('legacyForm').reset();
-                document.getElementById('l_orderDate').value = new Date().toISOString().split('T')[0];
-                await showAlert('نجاح', 'تم إرسال الطلب المبسط بنجاح!');
-            } catch (err) { await showAlert('خطأ', err.message, false); }
-        });
-
-        const q = query(ordersRef, orderBy("createdAt", "desc"));
-        onSnapshot(q, (snapshot) => {
-            allOrders = [];
-            snapshot.forEach((doc) => { allOrders.push({ id: doc.id, ...doc.data() }); });
-            renderOrders();
-            if(currentRole) renderRoleDashboard();
-        });
-
-        window.renderRoleDashboard = () => {
-            const container = document.getElementById('roleOrdersContainer');
-            const searchVal = document.getElementById('dashSearch').value.toLowerCase();
-            let html = '';
-
-            let filteredOrders = allOrders.filter(o => !o.isDeleted && o.isSmartForm);
-            
-            if(searchVal) {
-                filteredOrders = filteredOrders.filter(o => o.patientName.toLowerCase().includes(searchVal) || (o.doctorName && o.doctorName.toLowerCase().includes(searchVal)));
-            }
-
-            if(currentRole === 'lab') {
-                filteredOrders = filteredOrders.filter(o => o.sampleStatus !== 'not_sent');
-            }
-
-            if (filteredOrders.length === 0) {
-                container.innerHTML = '<div class="text-center text-muted py-5"><i class="bi bi-inbox fs-1"></i><p class="mt-2">لا توجد طلبات لعرضها هنا.</p></div>';
-                return;
-            }
-
-            filteredOrders.forEach(o => {
-                let labBadge = o.status === 'confirmed' ? '✅ العينة مؤكدة' : o.status === 'rejected' ? '❌ العينة منفية' : '⏳ بانتظار المختبر';
-                
-                let sampleDisplay = 'غير محدد';
-                if(o.sampleStatus === 'before') sampleDisplay = 'تم الإرسال (قبل الجرعة الأولى)';
-                else if(o.sampleStatus === 'after') sampleDisplay = 'تم الإرسال (بعد الجرعة)';
-                else if(o.sampleStatus === 'not_sent') sampleDisplay = `لم ترسل 🚫 (${o.noSampleReason})`;
-
-                let actionHtml = '';
-                
-                if(currentRole === 'lab') {
-                    actionHtml = `
-                        <div class="d-flex gap-2 mt-3">
-                            <button class="btn btn-success btn-sm w-50 fw-bold" onclick="updateLabStatus('${o.id}', 'confirmed')">تأكيد الإرسال ✅</button>
-                            <button class="btn btn-danger btn-sm w-50 fw-bold" onclick="updateLabStatus('${o.id}', 'rejected')">نفي الإرسال ❌</button>
-                        </div>
-                    `;
-                }
-                
-                if(currentRole === 'committee' || currentRole === 'clinical') {
-                    let auditBadge = '';
-                    if(o.auditStatus === 'approved') auditBadge = '<span class="badge bg-success">تم التدقيق والموافقة ✅</span>';
-                    else if(o.auditStatus === 'rejected') auditBadge = '<span class="badge bg-danger">مرفوض من اللجنة ❌</span>';
-                    else auditBadge = '<span class="badge bg-warning text-dark">بانتظار التدقيق ⏳</span>';
-                    
-                    actionHtml = `
-                        <div class="mt-2 mb-2">${auditBadge}</div>
-                        <div class="d-flex gap-2 mt-2">
-                            <button class="btn btn-success btn-sm flex-fill fw-bold" onclick="updateAuditStatus('${o.id}', 'approved')"><i class="bi bi-check-lg"></i> موافقة</button>
-                            <button class="btn btn-danger btn-sm flex-fill fw-bold" onclick="updateAuditStatus('${o.id}', 'rejected')"><i class="bi bi-x-lg"></i> رفض وملاحظة</button>
-                        </div>
-                    `;
-                }
-                
-                const totalDailyDose = (Number(o.dosePotency) || 0) * (Number(o.doseFrequency) || 0);
-
-                if(currentRole === 'pharmacy') {
-                    let dispBadge = '';
-                    if(o.dispenseStatus === 'dispensed') dispBadge = '<span class="badge bg-success">تم التجهيز ✅</span>';
-                    else if(o.dispenseStatus === 'rejected') dispBadge = '<span class="badge bg-danger">مرفوض للتجهيز ❌</span>';
-                    else if(o.dispenseStatus === 'out_of_stock') dispBadge = '<span class="badge bg-secondary">غير متوفر ⚠️</span>';
-                    else dispBadge = '<span class="badge bg-warning text-dark">بانتظار الصرف ⏳</span>';
-
-                    actionHtml = `
-                        <div class="mt-3 mb-2 p-3 rounded bg-light border border-primary text-center">
-                            <span class="fs-7 text-muted block mb-1">الجرعة المطلوبة</span><br>
-                            <span dir="ltr" class="fw-bold fs-5 text-primary">${o.dosePotency}mg x ${o.doseFrequency}</span><br>
-                            <div class="mt-2"><span class="badge bg-primary bg-opacity-10 text-primary border border-primary fs-6">إجمالي الجرعة: ${totalDailyDose}mg / يوم</span></div>
-                        </div>
-                        <div class="mb-2 text-center">${dispBadge}</div>
-                        <div class="d-flex gap-2 mt-2 flex-wrap">
-                            <button class="btn btn-success btn-sm flex-fill fw-bold" onclick="updateDispenseStatus('${o.id}', 'dispensed')">تم التجهيز ✅</button>
-                            <button class="btn btn-danger btn-sm flex-fill fw-bold" onclick="updateDispenseStatus('${o.id}', 'rejected')">رفض التجهيز ❌</button>
-                            <button class="btn btn-secondary btn-sm flex-fill fw-bold" onclick="updateDispenseStatus('${o.id}', 'out_of_stock')">غير متوفر ⚠️</button>
-                        </div>
-                    `;
-                }
-
-                const totalDailyDoseInfo = (Number(o.dosePotency) || 0) * (Number(o.doseFrequency) || 0);
-
-                html += `
-                    <div class="order-card border-end border-5 border-primary">
-                        <div class="d-flex justify-content-between">
-                            <h6 class="fw-bold mb-1">${o.patientName}</h6>
-                            <span class="badge bg-light text-dark border">${formatLocaleDate(o.orderDate)}</span>
-                        </div>
-                        <div class="fs-7 text-muted mb-2">ردهة: ${o.ward} | د. ${o.doctorName}</div>
-                        <div class="fs-7 mb-2">موقف المختبر: <strong>${labBadge}</strong></div>
-                        ${o.auditNote ? `<div class="fs-7 mb-2 text-danger fw-bold"><i class="bi bi-exclamation-circle-fill"></i> ملاحظة المدقق: ${o.auditNote}</div>` : ''}
-                        
-                        <a href="#details-${o.id}" data-bs-toggle="collapse" class="text-decoration-none fs-7 fw-bold">عرض باقي التفاصيل <i class="bi bi-chevron-down"></i></a>
-                        <div id="details-${o.id}" class="collapse details-collapse">
-                            <div class="row g-2">
-                                <div class="col-6"><strong>العمر:</strong> ${o.age || '-'} سنة</div>
-                                <div class="col-6"><strong>الوزن:</strong> ${o.weight || '-'} kg</div>
-                                <div class="col-6"><strong>S.Cr:</strong> <span dir="ltr">${o.scr || '-'}</span></div>
-                                <div class="col-6"><strong>التحسس:</strong> ${o.allergy || '-'}</div>
-                                <div class="col-12 border-top pt-2 mt-2"><strong>التشخيص:</strong> ${o.diagnosis}</div>
-                                <div class="col-12"><strong>الجرعة المدخلة:</strong> <span dir="ltr" class="fw-bold text-primary">${o.dosePotency}mg x ${o.doseFrequency}</span> <span class="badge bg-light text-dark border ms-1">المجموع: ${totalDailyDoseInfo}mg/day</span></div>
-                                <div class="col-12"><strong>موقف العينة بالاستمارة:</strong> ${sampleDisplay}</div>
-                            </div>
-                        </div>
-                        ${actionHtml}
-                    </div>
-                `;
-            });
-            container.innerHTML = html;
-        };
-
-        window.updateLabStatus = async (id, status) => {
-            await updateDoc(doc(db, "meropenem_orders", id), { status: status });
-        };
-        
-        window.updateAuditStatus = async (id, status) => {
-            const note = await askPrompt(status === 'approved' ? 'ملاحظة للموافقة (اختياري)' : 'سبب الرفض (مطلوب)', 'أدخل ملاحظة لتصل لمقدم الطلب:', 'text');
-            if (note === null) return;
-            if (status === 'rejected' && note.trim() === '') { await showAlert('تنبيه', 'يجب إدخال سبب الرفض!', false); return; }
-            await updateDoc(doc(db, "meropenem_orders", id), { auditStatus: status, auditNote: note });
-        };
-
-        window.updateDispenseStatus = async (id, status) => {
-            await updateDoc(doc(db, "meropenem_orders", id), { dispenseStatus: status });
-        };
-
-
-        // ================== نظام التتبع القديم (النسخة المبسطة + ميزة التعديل والملاحظات) ==================
-
+        // عرض سجل المتابعة
         window.renderOrders = () => {
             const searchVal = document.getElementById('searchInput').value.toLowerCase();
             const wardVal = document.getElementById('wardFilter').value.toLowerCase();
-            const filtered = allOrders.filter(o => !o.isDeleted && !o.isSmartForm && (o.patientName.toLowerCase().includes(searchVal) || (o.doctorName && o.doctorName.toLowerCase().includes(searchVal))) && o.ward.toLowerCase().includes(wardVal));
+            const sDate = document.getElementById('startDateFilter').value;
+            const eDate = document.getElementById('endDateFilter').value;
+
+            const filtered = allOrders.filter(o => {
+                if (o.isDeleted) return false;
+                const matchName = o.patientName.toLowerCase().includes(searchVal) || (o.doctorName && o.doctorName.toLowerCase().includes(searchVal));
+                const matchWard = o.ward.toLowerCase().includes(wardVal);
+                let matchDate = true;
+                if (sDate && eDate) matchDate = o.orderDate >= sDate && o.orderDate <= eDate;
+                else if (sDate) matchDate = o.orderDate >= sDate;
+                else if (eDate) matchDate = o.orderDate <= eDate;
+                return matchName && matchWard && matchDate;
+            });
 
             const container = document.getElementById('ordersContainer');
-            if (filtered.length === 0) { container.innerHTML = '<div class="card p-4 text-center text-muted fw-bold">لا توجد بيانات مسجلة بالنظام القديم</div>'; return; }
+            if (filtered.length === 0) { container.innerHTML = '<div class="card p-4 text-center text-muted fw-bold">لا توجد طلبات مطابقة</div>'; return; }
 
             container.innerHTML = filtered.map(o => {
-                let statusBadge = '<span class="status-badge status-pending">بانتظار العينة</span>';
-                if (o.status === 'doctor_refused') statusBadge = '<span class="status-badge status-doc-refused">رفض الطبيب</span>';
-                else if (o.status === 'confirmed') statusBadge = '<span class="status-badge status-done">مؤكدة ✅</span>';
-                else if (o.status === 'rejected') statusBadge = '<span class=\"status-badge status-rejected\">منفية ❌</span>';
+                let labBadge = o.status === 'confirmed' ? '✅ مؤكدة (مختبر)' : o.status === 'rejected' ? '❌ منفية (مختبر)' : o.status === 'doctor_refused' ? '🚫 رفض طبيب' : '⏳ بانتظار المختبر';
+                let labColor = o.status === 'confirmed' ? 'text-success' : o.status === 'rejected' || o.status === 'doctor_refused' ? 'text-danger' : 'text-warning text-dark';
                 
-                // زر التعديل لمقدم الطلب
+                let auditBadge = '';
+                if(o.auditStatus === 'approved') auditBadge = '<span class="badge bg-success">دُققت ووافقت ✅</span>';
+                else if(o.auditStatus === 'needs_correction') auditBadge = '<span class="badge bg-danger">مرفوضة وتحتاج تعديل ⚠️</span>';
+                else if(o.auditStatus === 'corrected') auditBadge = '<span class="badge bg-primary">تم التعديل 🔄</span>';
+                
+                let dispBadge = o.dispenseStatus === 'dispensed' ? '<span class="badge bg-success">تم الصرف 💊</span>' : '';
+
                 let editBtn = '';
-                if (o.status === 'pending' || o.unlockedForEdit) {
-                    editBtn = `<button class="btn btn-sm btn-outline-primary bg-white fw-bold ms-2" onclick="openLegacyEdit('${o.id}')"><i class="bi bi-pencil-fill"></i> تعديل</button>`;
+                // إظهار زر التعديل لمقدم الطلب:
+                // مسموح إذا لم يتم صرفه + (الطلب جديد أو اللجنة طلبت تعديل)
+                if (o.dispenseStatus !== 'dispensed') {
+                    if (o.auditStatus === 'needs_correction' || o.auditStatus === 'pending' || o.auditStatus === 'corrected') {
+                        editBtn = `<button class="btn btn-sm btn-outline-primary bg-white border fw-bold ms-2 mt-2" onclick="openEditForm('${o.id}')"><i class="bi bi-pencil-fill"></i> تعديل</button>`;
+                    }
                 }
 
-                // زر الإرجاع للجان (مخفي بكلمة مرور)
-                let unlockBtn = '';
-                if (o.status !== 'pending' && !o.unlockedForEdit) {
-                    unlockBtn = `<button class="btn btn-sm btn-outline-danger bg-white fw-bold ms-2" onclick="unlockLegacyOrder('${o.id}')"><i class="bi bi-unlock-fill"></i> إرجاع (للجان)</button>`;
-                }
-
-                // ملاحظة اللجان باللون الأصفر البارز
-                let noteHtml = '';
-                if (o.auditNote && o.unlockedForEdit) {
-                    noteHtml = `<div class="alert alert-warning p-2 mt-2 mb-0 fs-7 fw-bold border-warning"><i class="bi bi-exclamation-triangle-fill me-1"></i> ملاحظة المدقق: ${o.auditNote}</div>`;
-                }
+                let noteHtml = (o.needsCorrection && o.auditNote) ? `<div class="alert alert-danger p-2 mt-2 mb-0 fs-7 fw-bold border-danger"><i class="bi bi-exclamation-triangle-fill me-1"></i> ملاحظة المدقق: ${o.auditNote}</div>` : '';
 
                 return `
-                    <div class="order-card status-pending-border">
+                    <div class="order-card">
                         <div class="d-flex justify-content-between align-items-start mb-2">
                             <div>
-                                <h6 class="fw-bold mb-1">${o.patientName}</h6>
-                                <span class="badge bg-light text-dark border">${o.ward}</span>
-                                <span class="badge bg-primary bg-opacity-10 text-primary border">د. ${o.doctorName || ''}</span>
+                                <a class="patient-name-link" onclick="openRoleSelection('${o.id}')">${o.patientName} <i class="bi bi-gear-fill ms-1 fs-6"></i></a>
+                                <div class="mt-1">
+                                    <span class="badge bg-light text-dark border">${o.ward}</span>
+                                    <span class="badge bg-primary bg-opacity-10 text-primary border">د. ${o.doctorName}</span>
+                                </div>
                                 ${noteHtml}
                             </div>
                             <div class="text-end">
-                                <div>${statusBadge}</div>
-                                <div class="mt-2">${editBtn}${unlockBtn}</div>
+                                <div class="fs-7 fw-bold ${labColor}">${labBadge}</div>
+                                <div class="mt-1">${auditBadge} ${dispBadge}</div>
+                                ${editBtn}
                             </div>
                         </div>
                     </div>
@@ -863,61 +578,191 @@
             }).join('');
         };
 
-        // فتح نافذة التعديل
-        window.openLegacyEdit = (id) => {
-            const o = allOrders.find(x => x.id === id);
-            document.getElementById('edit_l_id').value = id;
-            document.getElementById('edit_l_patient').value = o.patientName;
-            document.getElementById('edit_l_doctor').value = o.doctorName;
-            document.getElementById('edit_l_ward').value = o.ward;
-            document.getElementById('edit_l_date').value = o.orderDate;
-            document.getElementById('edit_l_refused').checked = (o.status === 'doctor_refused' || (o.status === 'pending' && o.originalStatus === 'doctor_refused')); 
-            legacyEditModal.show();
+        window.resetFilters = () => {
+            ['searchInput', 'wardFilter', 'startDateFilter', 'endDateFilter'].forEach(id => document.getElementById(id).value = '');
+            renderOrders();
         };
 
-        // حفظ التعديلات وإرجاع الطلب كجديد
-        document.getElementById('legacyEditForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const id = document.getElementById('edit_l_id').value;
-            const refused = document.getElementById('edit_l_refused').checked;
-            try {
-                await updateDoc(doc(db, "meropenem_orders", id), {
-                    patientName: document.getElementById('edit_l_patient').value.trim(),
-                    doctorName: document.getElementById('edit_l_doctor').value.trim(),
-                    ward: document.getElementById('edit_l_ward').value.trim(),
-                    orderDate: document.getElementById('edit_l_date').value,
-                    status: refused ? 'doctor_refused' : 'pending',
-                    unlockedForEdit: false, // إعادة قفل التعديل
-                    auditNote: '', // مسح الملاحظة السابقة
-                    updatedAt: new Date()
-                });
-                legacyEditModal.hide();
-                showAlert('نجاح', 'تم تحديث الطلب وإعادة إرساله بنجاح!');
-            } catch(err) { showAlert('خطأ', err.message, false); }
-        });
+        // ================== نظام الصلاحيات المباشر (عند الضغط على الاسم) ==================
+        window.openRoleSelection = (id) => {
+            activeOrderIdForAction = id;
+            roleSelectModal.show();
+        };
 
-        // زر لجان التدقيق لإرجاع الطلب
-        window.unlockLegacyOrder = async (id) => {
-            const pass = await askPrompt('صلاحية اللجان', 'أدخل رمز لجنة المضادات أو الصيدلة السريرية:');
-            if(pass === null) return;
-            if(pass !== passcodes.committee && pass !== passcodes.clinical) {
-                await showAlert('مرفوض', 'الرمز غير صحيح!', false); return;
+        window.verifyAndOpenAction = async (role) => {
+            roleSelectModal.hide();
+            let roleName = ''; let expectedPass = '';
+            if(role === 'lab') { roleName = 'المختبر 🧪'; expectedPass = passcodes.lab; }
+            if(role === 'committee') { roleName = 'لجنة المضادات 🛡️'; expectedPass = passcodes.committee; }
+            if(role === 'clinical') { roleName = 'الصيدلة السريرية 🩺'; expectedPass = passcodes.clinical; }
+            if(role === 'pharmacy') { roleName = 'صيدلية الصرف 💊'; expectedPass = passcodes.pharmacy; }
+
+            const enteredPass = await askPrompt(`صلاحية ${roleName}`, `أدخل رمز ${roleName}:`);
+            if (enteredPass === null) return;
+            if (enteredPass !== expectedPass) { await showAlert('مرفوض', 'الرمز غير صحيح!', false); return; }
+
+            const order = allOrders.find(o => o.id === activeOrderIdForAction);
+            document.getElementById('actionModalTitle').innerText = `إجراءات ${roleName} للمريض (${order.patientName})`;
+            
+            let bodyHtml = '';
+            const totalDailyDose = (Number(order.dosePotency) || 0) * (Number(order.doseFrequency) || 0);
+
+            if (role === 'lab') {
+                bodyHtml = `
+                    <p class="fw-bold text-muted mb-4">هل استلمت عينة زرع لهذا المريض؟</p>
+                    <button class="btn btn-success w-100 mb-2 fw-bold py-2" onclick="processAction('lab', 'confirmed')">نعم، تم استلام العينة ✅</button>
+                    <button class="btn btn-danger w-100 fw-bold py-2" onclick="processAction('lab', 'rejected')">لا، العينة لم ترسل ❌</button>
+                `;
+            } else if (role === 'committee' || role === 'clinical') {
+                bodyHtml = `
+                    <div class="alert alert-light border text-start fs-7 fw-bold mb-3">
+                        <div>التشخيص: <span class="text-primary">${order.diagnosis}</span></div>
+                        <div>الجرعة المطلوبة: <span dir="ltr" class="text-primary">${order.dosePotency}mg x ${order.doseFrequency}</span></div>
+                        <div>المجموع الكلي: <span class="text-danger">${totalDailyDose}mg / يوم</span></div>
+                    </div>
+                    <button class="btn btn-success w-100 mb-2 fw-bold py-2" onclick="processAction('audit', 'approved')"><i class="bi bi-check-lg"></i> تدقيق وموافقة</button>
+                    <button class="btn btn-danger w-100 fw-bold py-2" onclick="processAction('audit', 'needs_correction')"><i class="bi bi-pencil-fill"></i> رفض وإرجاع للتعديل (بملاحظة)</button>
+                `;
+            } else if (role === 'pharmacy') {
+                bodyHtml = `
+                    <div class="alert alert-info border-info fs-5 fw-bold mb-4" dir="ltr">${order.dosePotency}mg x ${order.doseFrequency}<br><span class="fs-6 text-danger">Total: ${totalDailyDose}mg/day</span></div>
+                    <button class="btn btn-success w-100 mb-2 fw-bold py-2" onclick="processAction('dispense', 'dispensed')">تم التجهيز وصرف الدواء ✅</button>
+                    <button class="btn btn-danger w-100 mb-2 fw-bold py-2" onclick="processAction('dispense', 'rejected')">رفض التجهيز ❌</button>
+                    <button class="btn btn-secondary w-100 fw-bold py-2" onclick="processAction('dispense', 'out_of_stock')">غير متوفر ⚠️</button>
+                `;
             }
-            const note = await askPrompt('سبب الإرجاع', 'اكتب الملاحظة أو الخطأ ليراه مقدم الطلب:', 'text');
-            if(note === null || note.trim() === '') { await showAlert('مرفوض', 'يجب كتابة ملاحظة!', false); return; }
+
+            document.getElementById('actionModalBody').innerHTML = bodyHtml;
+            actionModal.show();
+        };
+
+        window.processAction = async (actionType, status) => {
+            const id = activeOrderIdForAction;
+            actionModal.hide();
             
             try {
-                await updateDoc(doc(db, "meropenem_orders", id), {
-                    unlockedForEdit: true,
-                    auditNote: note,
-                    updatedAt: new Date()
-                });
-                showAlert('نجاح', 'تم إرجاع الطلب وفتح التعديل لمقدم الطلب');
-            } catch(e) { showAlert('خطأ', e.message, false); }
+                if (actionType === 'lab') {
+                    await updateDoc(doc(db, "meropenem_orders", id), { status: status, updatedAt: new Date() });
+                    await showAlert('نجاح', 'تم تحديث حالة المختبر بنجاح!');
+                } 
+                else if (actionType === 'audit') {
+                    if (status === 'needs_correction') {
+                        const note = await askPrompt('سبب الرفض والتعديل', 'اكتب الملاحظة ليراها مقدم الطلب ويعدلها:', 'text');
+                        if (!note || note.trim() === '') { await showAlert('خطأ', 'يجب كتابة الملاحظة للإرجاع!', false); return; }
+                        await updateDoc(doc(db, "meropenem_orders", id), { auditStatus: 'needs_correction', needsCorrection: true, auditNote: note, updatedAt: new Date() });
+                    } else {
+                        await updateDoc(doc(db, "meropenem_orders", id), { auditStatus: 'approved', needsCorrection: false, auditNote: '', updatedAt: new Date() });
+                    }
+                    await showAlert('نجاح', 'تم تحديث حالة التدقيق بنجاح!');
+                }
+                else if (actionType === 'dispense') {
+                    await updateDoc(doc(db, "meropenem_orders", id), { dispenseStatus: status, updatedAt: new Date() });
+                    await showAlert('نجاح', 'تم تحديث حالة التجهيز بنجاح!');
+                }
+            } catch (e) { await showAlert('خطأ', e.message, false); }
         };
 
-        document.getElementById('searchInput').addEventListener('input', renderOrders);
-        document.getElementById('wardFilter').addEventListener('input', renderOrders);
+        // ================== نظام التعديل الذكي لمقدم الطلب ==================
+        window.openEditForm = (id) => {
+            const o = allOrders.find(x => x.id === id);
+            document.getElementById('e_id').value = id;
+            
+            document.getElementById('e_patientName').value = o.patientName;
+            document.getElementById('e_ward').value = o.ward;
+            document.getElementById('e_sampleStatus').value = o.sampleStatus;
+            
+            // قفل الحقول الأساسية إذا المختبر قام بالتأكيد أو النفي
+            const labProcessed = (o.status === 'confirmed' || o.status === 'rejected' || o.status === 'doctor_refused');
+            document.getElementById('e_patientName').disabled = labProcessed;
+            document.getElementById('e_ward').disabled = labProcessed;
+            document.getElementById('e_sampleStatus').disabled = labProcessed;
+
+            document.getElementById('e_age').value = o.age;
+            document.getElementById('e_weight').value = o.weight;
+            document.getElementById('e_height').value = o.height || '';
+            document.getElementById('e_scr').value = o.scr || '';
+            document.getElementById('e_allergy').value = o.allergy || '';
+            
+            const rawDiag = o.diagnosis;
+            let baseDiag = rawDiag;
+            if(rawDiag.startsWith('Sepsis')) { baseDiag = 'Sepsis'; document.getElementById('e_sepsisOrigin').value = rawDiag.replace('Sepsis (Origin: ', '').replace(')', ''); }
+            else if(rawDiag.startsWith('Contaminated blast injury')) { baseDiag = 'Contaminated blast injury'; document.getElementById('e_blastInjury').value = rawDiag.replace('Contaminated blast injury (', '').replace(')', ''); }
+            else if(!diagnosesList.includes(rawDiag)) { baseDiag = 'Others'; document.getElementById('e_otherDiagnosis').value = rawDiag; }
+            
+            document.getElementById('e_diagnosis').value = baseDiag;
+            toggleDiagnosisFields('e');
+
+            document.getElementById('e_potency').value = o.dosePotency;
+            document.getElementById('e_frequency').value = o.doseFrequency;
+
+            if (o.needsCorrection && o.auditNote) {
+                document.getElementById('editAlertNote').classList.remove('d-none');
+                document.getElementById('editAlertNoteText').innerText = o.auditNote;
+            } else {
+                document.getElementById('editAlertNote').classList.add('d-none');
+            }
+
+            editOrderModal.show();
+        };
+
+        document.getElementById('editForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const id = document.getElementById('e_id').value;
+            const o = allOrders.find(x => x.id === id);
+
+            const potency = parseInt(document.getElementById('e_potency').value);
+            const freq = parseInt(document.getElementById('e_frequency').value);
+            if (potency > 2000) { await showAlert('تنبيه', 'الجرعة القصوى 2000 ملغم.', false); return; }
+            if (freq > 4) { await showAlert('تنبيه', 'أقصى عدد لتكرار الجرعة 4 مرات.', false); return; }
+
+            const diagnosisBase = document.getElementById('e_diagnosis').value;
+            let finalDiagnosis = diagnosisBase;
+            if(diagnosisBase === 'Sepsis') finalDiagnosis = `Sepsis (Origin: ${document.getElementById('e_sepsisOrigin').value})`;
+            if(diagnosisBase === 'Others') finalDiagnosis = document.getElementById('e_otherDiagnosis').value;
+            if(diagnosisBase === 'Contaminated blast injury') finalDiagnosis = `Contaminated blast injury (${document.getElementById('e_blastInjury').value})`;
+
+            let updates = {
+                age: document.getElementById('e_age').value, weight: document.getElementById('e_weight').value,
+                height: document.getElementById('e_height').value, scr: document.getElementById('e_scr').value,
+                allergy: document.getElementById('e_allergy').value, diagnosis: finalDiagnosis,
+                dosePotency: potency.toString(), doseFrequency: freq.toString(),
+                updatedAt: new Date()
+            };
+
+            const labProcessed = (o.status === 'confirmed' || o.status === 'rejected' || o.status === 'doctor_refused');
+            if (!labProcessed) {
+                updates.patientName = document.getElementById('e_patientName').value.trim();
+                updates.ward = document.getElementById('e_ward').value.trim();
+                
+                const sampleStatus = document.getElementById('e_sampleStatus').value;
+                let finalReason = "";
+                if(sampleStatus === 'not_sent') {
+                    const r = document.getElementById('e_noSampleReason').value;
+                    finalReason = (r === 'أخرى') ? document.getElementById('e_otherReason').value : r;
+                }
+                let masterStatus = 'pending';
+                if (sampleStatus === 'not_sent' && finalReason.includes('رفض الطبيب')) masterStatus = 'doctor_refused';
+                else if (sampleStatus === 'not_sent') masterStatus = 'rejected';
+
+                updates.sampleStatus = sampleStatus;
+                updates.noSampleReason = finalReason;
+                updates.status = masterStatus;
+            }
+
+            // إذا كان التعديل بناءً على طلب اللجنة، نزيل الملاحظة ونضع حالة "تم التعديل"
+            if (o.needsCorrection) {
+                updates.auditStatus = 'corrected';
+                updates.needsCorrection = false;
+                updates.auditNote = '';
+            }
+
+            try {
+                await updateDoc(doc(db, "meropenem_orders", id), updates);
+                editOrderModal.hide();
+                await showAlert('نجاح', 'تم حفظ التعديلات بنجاح!');
+            } catch (err) { await showAlert('خطأ', err.message, false); }
+        });
+
     </script>
 </body>
 </html>
