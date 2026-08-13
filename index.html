@@ -40,12 +40,6 @@
         .order-card { background: white; border-radius: 16px; padding: 18px; margin-bottom: 15px; border-right: 6px solid #94a3b8; box-shadow: 0 4px 12px rgba(0,0,0,0.02); }
         .patient-name-link { color: var(--primary); font-size: 1.1rem; font-weight: 800; text-decoration: none; cursor: pointer; transition: 0.2s; }
         
-        .status-badge { font-size: 0.75rem; padding: 6px 12px; border-radius: 20px; font-weight: 800; }
-        .status-pending { background-color: #fef3c7; color: #b45309; }
-        .status-done { background-color: #dcfce7; color: #15803d; }
-        .status-rejected { background-color: #fee2e2; color: #b91c1c; }
-        .status-doc-refused { background-color: #f1f5f9; color: #475569; }
-
         input[type=number]::-webkit-inner-spin-button, input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
         input[type=number] { -moz-appearance: textfield; }
 
@@ -55,6 +49,11 @@
         .role-btn:hover { transform: translateY(-3px); box-shadow: 0 8px 15px rgba(0,0,0,0.05); }
 
         .details-collapse { background: #f8fafc; border-radius: 12px; padding: 15px; margin-top: 10px; border: 1px solid #e2e8f0; font-size: 0.85rem; }
+        
+        /* تنسيق جدول الردهات للصيدلية */
+        .pharmacy-ward-table { width: 100%; font-size: 0.85rem; margin-bottom: 0; }
+        .pharmacy-ward-table th { background-color: #f1f5f9; color: #334155; padding: 10px; font-weight: 700; text-align: center; }
+        .pharmacy-ward-table td { padding: 10px; vertical-align: middle; text-align: center; border-bottom: 1px solid #f1f5f9; }
         
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 10px; }
@@ -93,6 +92,14 @@
         </nav>
 
         <div id="tab-submit" class="tab-content active">
+            
+            <div class="card p-3 mb-4 bg-primary bg-opacity-10 border border-primary border-opacity-25">
+                <label class="form-label text-primary fw-bold mb-2"><i class="bi bi-arrow-repeat me-1"></i> هل تريد تكرار طلب لمريض مسجل خلال آخر 72 ساعة؟</label>
+                <select id="quickPatientSelect" class="form-select border-primary" onchange="fillPatientForNextDay(this.value)">
+                    <option value="" selected>-- اختر المريض لتعبئة بياناته تلقائياً (اختياري) --</option>
+                </select>
+            </div>
+
             <form id="meroForm" class="needs-validation">
                 <div class="card p-4 border-top border-secondary border-4">
                     <div class="section-title text-secondary"><i class="bi bi-building"></i> 1. البيانات الإدارية والأساسية</div>
@@ -232,23 +239,6 @@
             </div>
             
             <div id="ordersContainer"><div class="text-center text-muted py-4">جاري التحميل...</div></div>
-            
-            <div class="card p-4 border-top border-secondary border-4 mt-5">
-                <h6 class="text-dark mb-3 fw-bold"><i class="bi bi-plus-circle-fill me-1"></i> تقديم طلب (بالنظام القديم المبسط)</h6>
-                <form id="legacyForm" class="row g-3">
-                    <div class="col-12 col-md-4"><label class="form-label">اسم المريض</label><input type="text" id="l_patientName" class="form-control" required></div>
-                    <div class="col-12 col-md-4"><label class="form-label">الطبيب المسؤول</label><input type="text" id="l_doctorName" class="form-control" required></div>
-                    <div class="col-6 col-md-2"><label class="form-label">الردهة</label><input type="text" id="l_ward" class="form-control" required></div>
-                    <div class="col-6 col-md-2"><label class="form-label">التاريخ</label><input type="date" id="l_orderDate" class="form-control" required></div>
-                    <div class="col-12">
-                        <div class="form-check bg-light p-2 rounded-3 border mt-2">
-                            <input class="form-check-input ms-2" type="checkbox" id="l_doctorRefused">
-                            <label class="form-check-label text-danger fw-bold fs-7" for="l_doctorRefused">رفض الطبيب إرسال عينة زرع</label>
-                        </div>
-                    </div>
-                    <div class="col-12 mt-3"><button type="submit" class="btn btn-secondary w-100 fw-bold"><i class="bi bi-send-fill me-1"></i> إرسال الطلب المبسط</button></div>
-                </form>
-            </div>
         </div>
 
     </div>
@@ -362,43 +352,13 @@
         </div>
     </div>
 
-    <div class="modal fade" id="legacyEditModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header border-0 py-3 bg-light rounded-top-4">
-                    <h6 class="modal-title fw-bold text-primary"><i class="bi bi-pencil-square me-1"></i> تعديل بيانات الطلب القديم</h6>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body py-3">
-                    <form id="legacyEditForm" class="row g-3">
-                        <input type="hidden" id="edit_l_id">
-                        <div class="col-12"><label class="form-label">اسم المريض</label><input type="text" id="edit_l_patient" class="form-control" required></div>
-                        <div class="col-12"><label class="form-label">الطبيب المسؤول</label><input type="text" id="edit_l_doctor" class="form-control" required></div>
-                        <div class="col-6"><label class="form-label">الردهة</label><input type="text" id="edit_l_ward" class="form-control" required></div>
-                        <div class="col-6"><label class="form-label">التاريخ</label><input type="date" id="edit_l_date" class="form-control" required></div>
-                        <div class="col-12">
-                            <div class="form-check bg-light p-2 rounded-3 border mt-2">
-                                <input class="form-check-input ms-2" type="checkbox" id="edit_l_refused">
-                                <label class="form-check-label text-danger fw-bold fs-7" for="edit_l_refused">رفض الطبيب إرسال عينة زرع</label>
-                            </div>
-                        </div>
-                        <div class="col-12 mt-4 text-end">
-                            <button type="button" class="btn btn-light border fw-bold me-2" data-bs-dismiss="modal">إلغاء التعديل</button>
-                            <button type="submit" class="btn btn-primary fw-bold px-4">حفظ وتحديث</button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
-    </div>
-
     <div class="modal fade" id="aboutModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content text-center p-4">
                 <i class="bi bi-hospital text-primary mb-3" style="font-size: 3rem;"></i>
                 <h5 class="fw-bold text-dark mb-2">MeroTrak</h5>
-                <span class="badge bg-primary mb-3">الإصدار 4.0 (HIS)</span>
-                <p class="text-muted fs-7 mb-4">نظام إلكتروني طبي متكامل لتتبع وإدارة دورة صرف مضاد الميروبينيم.</p>
+                <span class="badge bg-primary mb-3">الإصدار 4.5 (HIS Pro)</span>
+                <p class="text-muted fs-7 mb-4">نظام إلكتروني طبي متكامل لإدارة صرف الميروبينيم وصرفيات الردهات.</p>
                 <div class="bg-light p-3 rounded-4 mb-3 text-start border">
                     <h6 class="fw-bold text-dark fs-7 mb-2"><i class="bi bi-person-workspace text-primary me-1"></i> فكرة وتصميم:</h6>
                     <p class="mb-0 fs-7 text-secondary fw-bold">الصيدلي السريري / سعد نبيل الحمادي</p>
@@ -432,7 +392,7 @@
         let passcodes = { lab: "1234", committee: "1111", clinical: "2222", pharmacy: "3333" };
         let allOrders = [];
         let currentRole = null;
-        let promptModal, alertModal, confirmModal, editOrderModal, legacyEditModal;
+        let promptModal, alertModal, confirmModal, editOrderModal;
 
         const diagnosesList = [
             "Acute mastoiditis", "Acute rhinosinusitis due to intubation", "Bacterial meningitis", 
@@ -448,17 +408,14 @@
             alertModal = new bootstrap.Modal(document.getElementById('customAlertModal'));
             confirmModal = new bootstrap.Modal(document.getElementById('customConfirmModal'));
             editOrderModal = new bootstrap.Modal(document.getElementById('editOrderModal'));
-            legacyEditModal = new bootstrap.Modal(document.getElementById('legacyEditModal'));
 
             const eDiag = document.getElementById('e_diagnosis');
             eDiag.innerHTML = '<option value="" disabled selected>اختر التشخيص...</option>';
             diagnosesList.forEach(d => { eDiag.innerHTML += `<option value="${d}">${d === 'Contaminated blast injury' ? d+' (specify location and severity)' : (d==='Gangrenous cellulitis'? d+' (necrotizing fasciitis or gas gangrene)' : d)}</option>`; });
             
             document.getElementById('f_date').value = new Date().toISOString().split('T')[0];
-            document.getElementById('l_orderDate').value = new Date().toISOString().split('T')[0];
         });
 
-        // دوال مساعدة (Modals)
         function askPrompt(title, text, type = 'password') {
             return new Promise(resolve => {
                 document.getElementById('promptTitle').innerText = title;
@@ -500,16 +457,141 @@
             document.getElementById(tabId).classList.add('active'); element.classList.add('active');
         };
 
-        window.showSmartForm = () => {
-            document.getElementById('roles-section').classList.add('d-none');
-            document.getElementById('smart-form-section').classList.remove('d-none');
-        };
-        window.hideSmartForm = () => {
-            document.getElementById('smart-form-section').classList.add('d-none');
-            document.getElementById('roles-section').classList.remove('d-none');
+        // تحديث القائمة المنسدلة للمرضى بفلتر 72 ساعة
+        window.updateQuickPatientSelect = () => {
+            const select = document.getElementById('quickPatientSelect');
+            select.innerHTML = '<option value="" selected>-- اختر المريض لتعبئة بياناته تلقائياً (اختياري) --</option>';
+            
+            const now = new Date();
+            const seventyTwoHoursAgo = new Date(now.getTime() - (72 * 60 * 60 * 1000));
+
+            // جمع فريد لأسماء المرضى آخر 72 ساعة
+            const recentPatients = {};
+            allOrders.forEach(o => {
+                if (!o.isDeleted && o.isSmartForm && o.createdAt) {
+                    const orderTime = o.createdAt.toDate ? o.createdAt.toDate() : new Date(o.createdAt);
+                    if (orderTime >= seventyTwoHoursAgo) {
+                        const nameKey = normalizeName(o.patientName);
+                        if (!recentPatients[nameKey]) {
+                            recentPatients[nameKey] = o; // نحتفظ بآخر نسخة للمريض
+                        }
+                    }
+                }
+            });
+
+            Object.values(recentPatients).forEach(p => {
+                select.innerHTML += `<option value="${p.id}">${p.patientName} (ردهة: ${p.ward})</option>`;
+            });
         };
 
-        // تسجيل الدخول للأقسام وتغيير الباسورد
+        // تعبئة البيانات تلقائياً عند اختيار مريض من قائمة 72 ساعة
+        window.fillPatientForNextDay = (id) => {
+            if(!id) return;
+            const o = allOrders.find(x => x.id === id);
+            if(!o) return;
+            
+            document.getElementById('f_patientName').value = o.patientName;
+            document.getElementById('f_mrn').value = o.mrn || '';
+            document.getElementById('f_ward').value = o.ward;
+            document.getElementById('f_age').value = o.age;
+            document.getElementById('f_weight').value = o.weight;
+            document.getElementById('f_height').value = o.height || '';
+            document.getElementById('f_scr').value = o.scr || '';
+            document.getElementById('f_allergy').value = o.allergy || '';
+            document.getElementById('f_doctor').value = o.doctorName;
+            document.getElementById('f_pharmacist').value = o.pharmacistName;
+            document.getElementById('f_potency').value = o.dosePotency;
+            document.getElementById('f_frequency').value = o.doseFrequency;
+        };
+
+        // ديناميكية الحقول
+        window.toggleDiagnosisFields = (prefix) => {
+            const val = document.getElementById(`${prefix}_diagnosis`).value;
+            document.getElementById(`${prefix}_div_sepsisOrigin`).classList.toggle('d-none', val !== 'Sepsis');
+            document.getElementById(`${prefix}_sepsisOrigin`).required = (val === 'Sepsis');
+            document.getElementById(`${prefix}_div_otherDiagnosis`).classList.toggle('d-none', val !== 'Others');
+            document.getElementById(`${prefix}_otherDiagnosis`).required = (val === 'Others');
+            document.getElementById(`${prefix}_div_blastInjury`).classList.toggle('d-none', val !== 'Contaminated blast injury');
+            document.getElementById(`${prefix}_blastInjury`).required = (val === 'Contaminated blast injury');
+        };
+        window.toggleSampleFields = (prefix) => {
+            const val = document.getElementById(`${prefix}_sampleStatus`).value;
+            if (val === 'not_sent') {
+                document.getElementById(`${prefix}_div_noSampleReason`).classList.remove('d-none');
+                document.getElementById(`${prefix}_noSampleReason`).required = true;
+            } else {
+                document.getElementById(`${prefix}_div_noSampleReason`).classList.add('d-none');
+                document.getElementById(`${prefix}_noSampleReason`).required = false;
+                document.getElementById(`${prefix}_noSampleReason`).value = '';
+                document.getElementById(`${prefix}_otherReason`).classList.add('d-none');
+            }
+        };
+        window.toggleOtherReason = (prefix) => {
+            const val = document.getElementById(`${prefix}_noSampleReason`).value;
+            if (val === 'أخرى') { document.getElementById(`${prefix}_otherReason`).classList.remove('d-none'); document.getElementById(`${prefix}_otherReason`).required = true; } 
+            else { document.getElementById(`${prefix}_otherReason`).classList.add('d-none'); document.getElementById(`${prefix}_otherReason`).required = false; }
+        };
+
+        // جلب البيانات
+        const q = query(ordersRef, orderBy("createdAt", "desc"));
+        onSnapshot(q, (snapshot) => {
+            allOrders = [];
+            snapshot.forEach((doc) => { allOrders.push({ id: doc.id, ...doc.data() }); });
+            updateQuickPatientSelect();
+            renderTrackingOrders();
+            if(currentRole) renderInboxDashboard();
+        });
+
+        // تقديم طلب جديد
+        document.getElementById('meroForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const potency = parseInt(document.getElementById('f_potency').value);
+            const freq = parseInt(document.getElementById('f_frequency').value);
+            if (potency > 2000) { await showAlert('تنبيه', 'الجرعة القصوى 2000 ملغم.', false); return; }
+            if (freq > 4) { await showAlert('تنبيه', 'أقصى عدد لتكرار الجرعة 4 مرات.', false); return; }
+
+            const diagnosisBase = document.getElementById('f_diagnosis').value;
+            let finalDiagnosis = diagnosisBase;
+            if(diagnosisBase === 'Sepsis') finalDiagnosis = `Sepsis (Origin: ${document.getElementById('f_sepsisOrigin').value})`;
+            if(diagnosisBase === 'Others') finalDiagnosis = document.getElementById('f_otherDiagnosis').value;
+            if(diagnosisBase === 'Contaminated blast injury') finalDiagnosis = `Contaminated blast injury (${document.getElementById('f_blastInjury').value})`;
+
+            const sampleStatus = document.getElementById('f_sampleStatus').value;
+            let finalReason = "";
+            if(sampleStatus === 'not_sent') {
+                const r = document.getElementById('f_noSampleReason').value;
+                finalReason = (r === 'أخرى') ? document.getElementById('f_otherReason').value : r;
+            }
+
+            let masterStatus = 'pending';
+            if (sampleStatus === 'not_sent' && finalReason.includes('رفض الطبيب')) masterStatus = 'doctor_refused';
+            else if (sampleStatus === 'not_sent') masterStatus = 'rejected';
+
+            const formData = {
+                directorate: document.getElementById('f_directorate').value.trim(), hospital: document.getElementById('f_hospital').value.trim(),
+                patientName: document.getElementById('f_patientName').value.trim(), mrn: document.getElementById('f_mrn').value.trim(),
+                ward: document.getElementById('f_ward').value.trim(), orderDate: document.getElementById('f_date').value,
+                age: document.getElementById('f_age').value, weight: document.getElementById('f_weight').value, height: document.getElementById('f_height').value || "",
+                scr: document.getElementById('f_scr').value || "", allergy: document.getElementById('f_allergy').value || "إن وجد (NKA)",
+                diagnosis: finalDiagnosis, dosePotency: potency.toString(), doseFrequency: freq.toString(), durationDays: document.getElementById('f_duration').value || "",
+                doctorName: document.getElementById('f_doctor').value.trim(), pharmacistName: document.getElementById('f_pharmacist').value.trim(),
+                sampleStatus: sampleStatus, noSampleReason: finalReason,
+                status: masterStatus, auditStatus: 'pending', auditNote: '', needsCorrection: false, dispenseStatus: 'pending',
+                isDeleted: false, createdAt: new Date()
+            };
+
+            try {
+                await addDoc(ordersRef, formData);
+                await showAlert('نجاح', 'تم تسجيل الطلب بنجاح!');
+                document.getElementById('meroForm').reset();
+                document.getElementById('f_date').value = new Date().toISOString().split('T')[0];
+                document.getElementById('f_directorate').value = "صحة البصرة";
+                document.getElementById('f_hospital').value = "مستشفى الموانئ التعليمي";
+                switchTab('tab-tracking', document.querySelectorAll('.nav-item')[2]);
+            } catch (error) { await showAlert('خطأ', error.message, false); }
+        });
+
+        // ================= صندوق المهام وتنسيق جداول الصيدلية حسب الردهات =================
         window.loginRole = async (role) => {
             let roleName = ''; let expectedPass = '';
             if(role === 'lab') { roleName = 'المختبر 🧪'; expectedPass = passcodes.lab; }
@@ -549,104 +631,10 @@
             } catch(e) { await showAlert('خطأ', e.message, false); }
         };
 
-        // ديناميكية الحقول
-        window.toggleDiagnosisFields = (prefix) => {
-            const val = document.getElementById(`${prefix}_diagnosis`).value;
-            document.getElementById(`${prefix}_div_sepsisOrigin`).classList.toggle('d-none', val !== 'Sepsis');
-            document.getElementById(`${prefix}_sepsisOrigin`).required = (val === 'Sepsis');
-            document.getElementById(`${prefix}_div_otherDiagnosis`).classList.toggle('d-none', val !== 'Others');
-            document.getElementById(`${prefix}_otherDiagnosis`).required = (val === 'Others');
-            document.getElementById(`${prefix}_div_blastInjury`).classList.toggle('d-none', val !== 'Contaminated blast injury');
-            document.getElementById(`${prefix}_blastInjury`).required = (val === 'Contaminated blast injury');
-        };
-        window.toggleSampleFields = (prefix) => {
-            const val = document.getElementById(`${prefix}_sampleStatus`).value;
-            if (val === 'not_sent') {
-                document.getElementById(`${prefix}_div_noSampleReason`).classList.remove('d-none');
-                document.getElementById(`${prefix}_noSampleReason`).required = true;
-            } else {
-                document.getElementById(`${prefix}_div_noSampleReason`).classList.add('d-none');
-                document.getElementById(`${prefix}_noSampleReason`).required = false;
-                document.getElementById(`${prefix}_noSampleReason`).value = '';
-                document.getElementById(`${prefix}_otherReason`).classList.add('d-none');
-            }
-        };
-        window.toggleOtherReason = (prefix) => {
-            const val = document.getElementById(`${prefix}_noSampleReason`).value;
-            if (val === 'أخرى') { document.getElementById(`${prefix}_otherReason`).classList.remove('d-none'); document.getElementById(`${prefix}_otherReason`).required = true; } 
-            else { document.getElementById(`${prefix}_otherReason`).classList.add('d-none'); document.getElementById(`${prefix}_otherReason`).required = false; }
-        };
-
-        const formatLocaleDate = (rawDateStr) => {
-            if (!rawDateStr) return '-'; const parts = rawDateStr.split('-');
-            if (parts.length === 3) return `${parts[2]}/${parts[1]}/${parts[0]}`; return rawDateStr;
-        };
-        function normalizeName(name) { return name ? name.trim().replace(/[أإآ]/g, "ا").replace(/ى/g, "ي").replace(/\s+/g, " ") : ""; }
-
-        // ================= تقديم طلب جديد =================
-        document.getElementById('meroForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const potency = parseInt(document.getElementById('f_potency').value);
-            const freq = parseInt(document.getElementById('f_frequency').value);
-            if (potency > 2000) { await showAlert('تنبيه', 'الجرعة القصوى 2000 ملغم.', false); return; }
-            if (freq > 4) { await showAlert('تنبيه', 'أقصى عدد للتكرار 4 مرات.', false); return; }
-
-            const diagnosisBase = document.getElementById('f_diagnosis').value;
-            let finalDiagnosis = diagnosisBase;
-            if(diagnosisBase === 'Sepsis') finalDiagnosis = `Sepsis (Origin: ${document.getElementById('f_sepsisOrigin').value})`;
-            if(diagnosisBase === 'Others') finalDiagnosis = document.getElementById('f_otherDiagnosis').value;
-            if(diagnosisBase === 'Contaminated blast injury') finalDiagnosis = `Contaminated blast injury (${document.getElementById('f_blastInjury').value})`;
-
-            const sampleStatus = document.getElementById('f_sampleStatus').value;
-            let finalReason = "";
-            if(sampleStatus === 'not_sent') {
-                const r = document.getElementById('f_noSampleReason').value;
-                finalReason = (r === 'أخرى') ? document.getElementById('f_otherReason').value : r;
-            }
-
-            let masterStatus = 'pending';
-            if (sampleStatus === 'not_sent' && finalReason.includes('رفض الطبيب')) masterStatus = 'doctor_refused';
-            else if (sampleStatus === 'not_sent') masterStatus = 'rejected';
-
-            const formData = {
-                directorate: document.getElementById('f_directorate').value.trim(), hospital: document.getElementById('f_hospital').value.trim(),
-                patientName: document.getElementById('f_patientName').value.trim(), mrn: document.getElementById('f_mrn').value.trim(),
-                ward: document.getElementById('f_ward').value.trim(), orderDate: document.getElementById('f_date').value,
-                age: document.getElementById('f_age').value, weight: document.getElementById('f_weight').value, height: document.getElementById('f_height').value || "",
-                scr: document.getElementById('f_scr').value || "", allergy: document.getElementById('f_allergy').value || "إن وجد (NKA)",
-                diagnosis: finalDiagnosis, dosePotency: potency.toString(), doseFrequency: freq.toString(), durationDays: document.getElementById('f_duration').value || "",
-                doctorName: document.getElementById('f_doctor').value.trim(), pharmacistName: document.getElementById('f_pharmacist').value.trim(),
-                sampleStatus: sampleStatus, noSampleReason: finalReason,
-                status: masterStatus, auditStatus: 'pending', auditNote: '', needsCorrection: false, dispenseStatus: 'pending',
-                isDeleted: false, isSmartForm: true, createdAt: new Date()
-            };
-
-            try {
-                await addDoc(ordersRef, formData);
-                await showAlert('نجاح', 'تم تسجيل الطلب بنجاح!');
-                document.getElementById('meroForm').reset();
-                document.getElementById('f_date').value = new Date().toISOString().split('T')[0];
-                document.getElementById('f_directorate').value = "صحة البصرة";
-                document.getElementById('f_hospital').value = "مستشفى الموانئ التعليمي";
-                hideSmartForm();
-            } catch (error) { await showAlert('خطأ', error.message, false); }
-        });
-
-        // ================= جلب البيانات =================
-        const q = query(ordersRef, orderBy("createdAt", "desc"));
-        onSnapshot(q, (snapshot) => {
-            allOrders = [];
-            snapshot.forEach((doc) => { allOrders.push({ id: doc.id, ...doc.data() }); });
-            renderTrackingOrders();
-            if(currentRole) renderInboxDashboard();
-        });
-
-        // ================= صندوق المهام (Inbox) للجان والمختبر =================
         window.renderInboxDashboard = () => {
             const container = document.getElementById('inboxContainer');
             let pendingOrders = allOrders.filter(o => !o.isDeleted && o.isSmartForm);
 
-            // تصفية المهام حسب القسم (يظهر فقط ما يحتاج إجراء)
             if(currentRole === 'lab') {
                 pendingOrders = pendingOrders.filter(o => o.sampleStatus !== 'not_sent' && o.status === 'pending');
             } else if (currentRole === 'committee' || currentRole === 'clinical') {
@@ -660,6 +648,74 @@
                 return;
             }
 
+            // إذا كانت الصيدلية، نعرض الطلبات مقسمة في جداول حسب الردهات
+            if (currentRole === 'pharmacy') {
+                const wardsMap = {};
+                pendingOrders.forEach(o => {
+                    const w = o.ward ? o.ward.trim() : 'أخرى';
+                    if(!wardsMap[w]) wardsMap[w] = [];
+                    wardsMap[w].push(o);
+                });
+
+                let pharmacyHtml = '';
+                Object.keys(wardsMap).forEach(wardName => {
+                    let wardOrders = wardsMap[wardName];
+                    let wardTotalGrams = 0;
+
+                    let rowsHtml = wardOrders.map(o => {
+                        const dailyDoseMg = (Number(o.dosePotency) || 0) * (Number(o.doseFrequency) || 0);
+                        let labSign = o.status === 'confirmed' ? '✅ مؤكدة' : o.status === 'rejected' ? '❌ منفية' : '⏳ معلقة';
+                        let auditSign = o.auditStatus === 'approved' ? '✅ موافقة' : o.auditStatus === 'needs_correction' ? '⚠️ تطلب تعديل' : '⏳ بانتظار';
+
+                        return `
+                            <tr>
+                                <td class="fw-bold text-start">${o.patientName}</td>
+                                <td dir="ltr" class="fw-bold text-primary">${o.dosePotency}mg x ${o.doseFrequency}<br><small class="text-muted">(${dailyDoseMg}mg/day)</small></td>
+                                <td><span class="badge bg-light text-dark border">${labSign}</span></td>
+                                <td><span class="badge bg-light text-dark border">${auditSign}</span></td>
+                                <td>
+                                    <div class="d-flex justify-content-center gap-1">
+                                        <button class="btn btn-sm btn-success fw-bold px-2 py-1" onclick="updateStatusInbox('${o.id}', 'dispense', 'dispensed')" title="موافقة صرف">صرف ✅</button>
+                                        <button class="btn btn-sm btn-danger fw-bold px-2 py-1" onclick="updateStatusInbox('${o.id}', 'dispense', 'rejected')" title="رفض صرف">رفض ❌</button>
+                                    </div>
+                                </td>
+                            </tr>
+                        `;
+                    }).join('');
+
+                    // حساب إجمالي الجرعات للردهة بناء على من تم عرضهم (أو حساب الجميع كإجمالي مطلوب للردهة)
+                    wardOrders.forEach(o => { wardTotalGrams += ((Number(o.dosePotency) || 0) * (Number(o.doseFrequency) || 0)) / 1000; });
+
+                    pharmacyHtml += `
+                        <div class="card mb-4 border shadow-sm">
+                            <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center py-2">
+                                <h6 class="mb-0 fw-bold"><i class="bi bi-hospital me-1"></i> ردهة: ${wardName}</h6>
+                                <span class="badge bg-warning text-dark fw-bold">إجمالي المطلوب: ${wardTotalGrams.toFixed(2)} غرام (gm)</span>
+                            </div>
+                            <div class="table-responsive">
+                                <table class="table pharmacy-ward-table">
+                                    <thead>
+                                        <tr>
+                                            <th class="text-start">اسم المريض</th>
+                                            <th>الجرعة اليومية</th>
+                                            <th>المختبر</th>
+                                            <th>اللجنة</th>
+                                            <th>إجراءات الصرف</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        ${rowsHtml}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    `;
+                });
+                container.innerHTML = pharmacyHtml;
+                return;
+            }
+
+            // عرض البطاقات العادية للمختبر واللجان
             container.innerHTML = pendingOrders.map(o => {
                 let actionHtml = '';
                 const totalDailyDose = (Number(o.dosePotency) || 0) * (Number(o.doseFrequency) || 0);
@@ -679,14 +735,6 @@
                         <div class="d-flex gap-2 mt-3">
                             <button class="btn btn-success btn-sm flex-fill fw-bold" onclick="updateStatusInbox('${o.id}', 'audit', 'approved')"><i class="bi bi-check-lg"></i> موافقة</button>
                             <button class="btn btn-danger btn-sm flex-fill fw-bold" onclick="updateStatusInbox('${o.id}', 'audit', 'needs_correction')"><i class="bi bi-x-lg"></i> رفض وملاحظة</button>
-                        </div>
-                    `;
-                } else if(currentRole === 'pharmacy') {
-                    actionHtml = `
-                        <div class="d-flex gap-2 mt-3 flex-wrap">
-                            <button class="btn btn-success btn-sm flex-fill fw-bold" onclick="updateStatusInbox('${o.id}', 'dispense', 'dispensed')">تم التجهيز ✅</button>
-                            <button class="btn btn-danger btn-sm flex-fill fw-bold" onclick="updateStatusInbox('${o.id}', 'dispense', 'rejected')">رفض ❌</button>
-                            <button class="btn btn-secondary btn-sm flex-fill fw-bold" onclick="updateStatusInbox('${o.id}', 'dispense', 'out_of_stock')">غير متوفر ⚠️</button>
                         </div>
                     `;
                 }
@@ -737,8 +785,7 @@
             } catch (e) { await showAlert('خطأ', e.message, false); }
         };
 
-
-        // ================= سجل المتابعة الشامل والتعديل =================
+        // ================= السجل الشامل =================
         window.renderTrackingOrders = () => {
             const searchVal = document.getElementById('searchInput').value.toLowerCase();
             const wardVal = document.getElementById('wardFilter').value.toLowerCase();
@@ -757,49 +804,25 @@
             });
 
             const container = document.getElementById('ordersContainer');
-            if (filtered.length === 0) { container.innerHTML = '<div class="card p-4 text-center text-muted fw-bold">لا توجد بيانات مطابقة</div>'; return; }
+            if (filtered.length === 0) { container.innerHTML = '<div class="card p-4 text-center text-muted fw-bold">لا توجد طلبات مطابقة</div>'; return; }
 
             container.innerHTML = filtered.map(o => {
-                let labBadge = o.status === 'confirmed' ? '✅ مؤكدة (مختبر)' : o.status === 'rejected' ? '❌ منفية (مختبر)' : o.status === 'doctor_refused' ? '🚫 رفض طبيب' : '⏳ بانتظار المختبر';
-                
-                let auditBadge = '';
-                if(o.auditStatus === 'approved') auditBadge = '<span class="badge bg-success">دُققت ووافقت ✅</span>';
-                else if(o.auditStatus === 'needs_correction') auditBadge = '<span class="badge bg-danger">مرفوضة للتعديل ⚠️</span>';
-                else if(o.auditStatus === 'corrected') auditBadge = '<span class="badge bg-primary">تم التعديل 🔄</span>';
-                
-                let dispBadge = o.dispenseStatus === 'dispensed' ? '<span class="badge bg-success mt-1">تم الصرف 💊</span>' : '';
-
-                // زر التعديل لمقدم الطلب (متاح اذا لم تصرف الصيدلية الدواء)
-                let editBtn = '';
-                if (o.dispenseStatus !== 'dispensed') {
-                    if (o.isSmartForm) {
-                        editBtn = `<button class="btn btn-sm btn-outline-primary bg-white border fw-bold ms-2 mt-2" onclick="openSmartEdit('${o.id}')"><i class="bi bi-pencil-fill"></i> تعديل المعلومات</button>`;
-                    } else if (!o.isSmartForm && (o.status === 'pending' || o.unlockedForEdit)) {
-                        editBtn = `<button class="btn btn-sm btn-outline-primary bg-white border fw-bold ms-2 mt-2" onclick="openLegacyEdit('${o.id}')"><i class="bi bi-pencil-fill"></i> تعديل الطلب</button>`;
-                    }
-                }
-
-                // زر الإرجاع الخاص باللجنة للنظام القديم
-                let unlockBtn = '';
-                if (!o.isSmartForm && o.status !== 'pending' && !o.unlockedForEdit && o.dispenseStatus !== 'dispensed') {
-                    unlockBtn = `<button class="btn btn-sm btn-outline-danger bg-white border fw-bold ms-2 mt-2" onclick="unlockLegacyOrder('${o.id}')"><i class="bi bi-unlock-fill"></i> إرجاع (للجان)</button>`;
-                }
-
-                let noteHtml = (o.auditNote) ? `<div class="alert alert-danger p-2 mt-2 mb-0 fs-7 fw-bold border-danger"><i class="bi bi-exclamation-triangle-fill me-1"></i> ملاحظة المدقق: ${o.auditNote}</div>` : '';
+                let labBadge = o.status === 'confirmed' ? '✅ مؤكدة' : o.status === 'rejected' ? '❌ منفية' : o.status === 'doctor_refused' ? '🚫 رفض طبيب' : '⏳ بانتظار';
+                let auditBadge = o.auditStatus === 'approved' ? '✅ دُققت' : o.auditStatus === 'needs_correction' ? '⚠️ تعديل' : '';
+                let dispBadge = o.dispenseStatus === 'dispensed' ? '💊 صُرف' : '';
+                let editBtn = (o.dispenseStatus !== 'dispensed' && o.isSmartForm) ? `<button class="btn btn-sm btn-outline-primary bg-white border fw-bold ms-2 mt-2" onclick="openSmartEdit('${o.id}')"><i class="bi bi-pencil-fill"></i> تعديل</button>` : '';
 
                 return `
                     <div class="order-card">
                         <div class="d-flex justify-content-between align-items-start mb-2">
                             <div>
-                                <h6 class="fw-bold mb-1">${o.patientName} ${o.isSmartForm ? '🌟' : ''}</h6>
+                                <h6 class="fw-bold mb-1">${o.patientName}</h6>
                                 <span class="badge bg-light text-dark border">${o.ward}</span>
-                                <span class="badge bg-primary bg-opacity-10 text-primary border">د. ${o.doctorName || ''}</span>
-                                ${noteHtml}
+                                <span class="badge bg-primary bg-opacity-10 text-primary border">د. ${o.doctorName}</span>
                             </div>
                             <div class="text-end">
-                                <div class="fs-7 fw-bold text-muted">${labBadge}</div>
-                                <div class="mt-1">${auditBadge} <br> ${dispBadge}</div>
-                                <div>${editBtn}${unlockBtn}</div>
+                                <div class="fs-7 fw-bold text-muted">${labBadge} | ${auditBadge} | ${dispBadge}</div>
+                                <div>${editBtn}</div>
                             </div>
                         </div>
                     </div>
@@ -812,137 +835,39 @@
             renderTrackingOrders();
         };
 
-        // ================== التعديل للنظام الذكي ==================
+        // التعديل الذكي
         window.openSmartEdit = (id) => {
             const o = allOrders.find(x => x.id === id);
             document.getElementById('e_id').value = id;
-            
             document.getElementById('e_patientName').value = o.patientName;
             document.getElementById('e_ward').value = o.ward;
-            document.getElementById('e_sampleStatus').value = o.sampleStatus;
-            
-            // قفل الحقول إذا المختبر تدخل
-            const labProcessed = (o.status === 'confirmed' || o.status === 'rejected' || o.status === 'doctor_refused');
-            document.getElementById('e_patientName').disabled = labProcessed;
-            document.getElementById('e_ward').disabled = labProcessed;
-            document.getElementById('e_sampleStatus').disabled = labProcessed;
-
             document.getElementById('e_age').value = o.age;
             document.getElementById('e_weight').value = o.weight;
             document.getElementById('e_height').value = o.height || '';
             document.getElementById('e_scr').value = o.scr || '';
             document.getElementById('e_allergy').value = o.allergy || '';
-            
-            const rawDiag = o.diagnosis;
-            let baseDiag = rawDiag;
-            if(rawDiag.startsWith('Sepsis')) { baseDiag = 'Sepsis'; document.getElementById('e_sepsisOrigin').value = rawDiag.replace('Sepsis (Origin: ', '').replace(')', ''); }
-            else if(rawDiag.startsWith('Contaminated blast injury')) { baseDiag = 'Contaminated blast injury'; document.getElementById('e_blastInjury').value = rawDiag.replace('Contaminated blast injury (', '').replace(')', ''); }
-            else if(!diagnosesList.includes(rawDiag)) { baseDiag = 'Others'; document.getElementById('e_otherDiagnosis').value = rawDiag; }
-            
-            document.getElementById('e_diagnosis').value = baseDiag;
-            toggleDiagnosisFields('e');
-
             document.getElementById('e_potency').value = o.dosePotency;
             document.getElementById('e_frequency').value = o.doseFrequency;
-
-            if (o.auditNote) {
-                document.getElementById('editAlertNote').classList.remove('d-none');
-                document.getElementById('editAlertNoteText').innerText = o.auditNote;
-            } else { document.getElementById('editAlertNote').classList.add('d-none'); }
-
             editOrderModal.show();
         };
 
         document.getElementById('editForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const id = document.getElementById('e_id').value;
-            const o = allOrders.find(x => x.id === id);
-
-            const potency = parseInt(document.getElementById('e_potency').value);
-            const freq = parseInt(document.getElementById('e_frequency').value);
-            if (potency > 2000) { await showAlert('تنبيه', 'الجرعة القصوى 2000 ملغم.', false); return; }
-            if (freq > 4) { await showAlert('تنبيه', 'أقصى عدد للتكرار 4 مرات.', false); return; }
-
-            const diagnosisBase = document.getElementById('e_diagnosis').value;
-            let finalDiagnosis = diagnosisBase;
-            if(diagnosisBase === 'Sepsis') finalDiagnosis = `Sepsis (Origin: ${document.getElementById('e_sepsisOrigin').value})`;
-            if(diagnosisBase === 'Others') finalDiagnosis = document.getElementById('e_otherDiagnosis').value;
-            if(diagnosisBase === 'Contaminated blast injury') finalDiagnosis = `Contaminated blast injury (${document.getElementById('e_blastInjury').value})`;
-
-            let updates = {
-                age: document.getElementById('e_age').value, weight: document.getElementById('e_weight').value,
-                height: document.getElementById('e_height').value, scr: document.getElementById('e_scr').value,
-                allergy: document.getElementById('e_allergy').value, diagnosis: finalDiagnosis,
-                dosePotency: potency.toString(), doseFrequency: freq.toString(), updatedAt: new Date()
-            };
-
-            const labProcessed = (o.status === 'confirmed' || o.status === 'rejected' || o.status === 'doctor_refused');
-            if (!labProcessed) {
-                updates.patientName = document.getElementById('e_patientName').value.trim();
-                updates.ward = document.getElementById('e_ward').value.trim();
-                const sampleStatus = document.getElementById('e_sampleStatus').value;
-                let finalReason = "";
-                if(sampleStatus === 'not_sent') {
-                    const r = document.getElementById('e_noSampleReason').value; finalReason = (r === 'أخرى') ? document.getElementById('e_otherReason').value : r;
-                }
-                let masterStatus = 'pending';
-                if (sampleStatus === 'not_sent' && finalReason.includes('رفض الطبيب')) masterStatus = 'doctor_refused';
-                else if (sampleStatus === 'not_sent') masterStatus = 'rejected';
-
-                updates.sampleStatus = sampleStatus; updates.noSampleReason = finalReason; updates.status = masterStatus;
-            }
-
-            if (o.needsCorrection) {
-                updates.auditStatus = 'corrected'; updates.needsCorrection = false; updates.auditNote = '';
-            }
-
-            try {
-                await updateDoc(doc(db, "meropenem_orders", id), updates);
-                editOrderModal.hide(); await showAlert('نجاح', 'تم حفظ التعديلات بنجاح!');
-            } catch (err) { await showAlert('خطأ', err.message, false); }
-        });
-
-        // ================== التعديل والإرجاع للنظام القديم ==================
-        window.openLegacyEdit = (id) => {
-            const o = allOrders.find(x => x.id === id);
-            document.getElementById('edit_l_id').value = id;
-            document.getElementById('edit_l_patient').value = o.patientName;
-            document.getElementById('edit_l_doctor').value = o.doctorName;
-            document.getElementById('edit_l_ward').value = o.ward;
-            document.getElementById('edit_l_date').value = o.orderDate;
-            document.getElementById('edit_l_refused').checked = (o.status === 'doctor_refused' || (o.status === 'pending' && o.originalStatus === 'doctor_refused')); 
-            legacyEditModal.show();
-        };
-
-        document.getElementById('legacyEditForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const id = document.getElementById('edit_l_id').value;
-            const refused = document.getElementById('edit_l_refused').checked;
             try {
                 await updateDoc(doc(db, "meropenem_orders", id), {
-                    patientName: document.getElementById('edit_l_patient').value.trim(),
-                    doctorName: document.getElementById('edit_l_doctor').value.trim(),
-                    ward: document.getElementById('edit_l_ward').value.trim(), orderDate: document.getElementById('edit_l_date').value,
-                    status: refused ? 'doctor_refused' : 'pending', unlockedForEdit: false, auditNote: '', updatedAt: new Date()
+                    patientName: document.getElementById('e_patientName').value.trim(),
+                    ward: document.getElementById('e_ward').value.trim(),
+                    age: document.getElementById('e_age').value, weight: document.getElementById('e_weight').value,
+                    height: document.getElementById('e_height').value, scr: document.getElementById('e_scr').value,
+                    allergy: document.getElementById('e_allergy').value,
+                    dosePotency: document.getElementById('e_potency').value,
+                    doseFrequency: document.getElementById('e_frequency').value,
+                    updatedAt: new Date()
                 });
-                legacyEditModal.hide(); showAlert('نجاح', 'تم تحديث الطلب وإعادة إرساله بنجاح!');
-            } catch(err) { showAlert('خطأ', err.message, false); }
+                editOrderModal.hide(); await showAlert('نجاح', 'تم الحفظ بنجاح!');
+            } catch (err) { await showAlert('خطأ', err.message, false); }
         });
-
-        window.unlockLegacyOrder = async (id) => {
-            const pass = await askPrompt('صلاحية اللجان', 'أدخل رمز لجنة المضادات أو الصيدلة السريرية:');
-            if(pass === null) return;
-            if(pass !== passcodes.committee && pass !== passcodes.clinical) { await showAlert('مرفوض', 'الرمز غير صحيح!', false); return; }
-            
-            const note = await askPrompt('سبب الإرجاع', 'اكتب الملاحظة أو الخطأ ليراه مقدم الطلب:', 'text');
-            if(note === null || note.trim() === '') { await showAlert('مرفوض', 'يجب كتابة ملاحظة!', false); return; }
-            
-            try {
-                await updateDoc(doc(db, "meropenem_orders", id), { unlockedForEdit: true, auditNote: note, updatedAt: new Date() });
-                showAlert('نجاح', 'تم إرجاع الطلب وفتح التعديل لمقدم الطلب');
-            } catch(e) { showAlert('خطأ', e.message, false); }
-        };
-
     </script>
 </body>
 </html>
