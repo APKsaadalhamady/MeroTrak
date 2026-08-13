@@ -14,22 +14,21 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
     
     <style>
-        /* التنسيقات الحديثة المتوافقة مع الهواتف */
-        :root { --primary: #2563eb; --bg: #f8fafc; --text: #1e293b; --nav-height: 65px; }
-        body { font-family: 'Cairo', sans-serif; background-color: var(--bg); color: var(--text); padding-bottom: calc(var(--nav-height) + 20px); }
+        /* التنسيقات الحديثة */
+        :root { --primary: #2563eb; --bg: #f8fafc; --text: #1e293b; }
+        body { font-family: 'Cairo', sans-serif; background-color: var(--bg); color: var(--text); padding-bottom: 20px; }
         
         /* الترويسة العلوية */
-        .app-header { background: linear-gradient(135deg, #1e40af, #3b82f6); color: white; padding: 15px 20px; border-radius: 0 0 25px 25px; box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3); position: sticky; top: 0; z-index: 1000; display: flex; justify-content: space-between; align-items: center; }
+        .app-header { background: linear-gradient(135deg, #1e40af, #3b82f6); color: white; padding: 15px 20px; border-radius: 0 0 25px 25px; box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3); display: flex; justify-content: space-between; align-items: center; }
         .app-header h5 { margin: 0; font-weight: 800; font-size: 1.2rem; }
         .about-btn { background: rgba(255,255,255,0.2); border: none; color: white; border-radius: 50%; width: 35px; height: 35px; display: flex; justify-content: center; align-items: center; cursor: pointer; transition: 0.2s; }
         .about-btn:hover { background: rgba(255,255,255,0.3); }
 
-        /* شريط التنقل السفلي */
-        .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; height: var(--nav-height); background: white; box-shadow: 0 -4px 20px rgba(0,0,0,0.05); display: flex; justify-content: space-around; align-items: center; padding: 0 10px; z-index: 1000; border-radius: 20px 20px 0 0; }
-        .nav-item { display: flex; flex-direction: column; align-items: center; justify-content: center; color: #64748b; text-decoration: none; width: 33%; height: 100%; transition: 0.3s; border-radius: 15px; margin: 5px; }
-        .nav-item i { font-size: 1.3rem; margin-bottom: 2px; }
-        .nav-item span { font-size: 0.7rem; font-weight: 700; }
-        .nav-item.active { color: var(--primary); background: #eff6ff; }
+        /* شريط التنقل العلوي (التبويبات) */
+        .top-nav { background: white; border-radius: 16px; padding: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.03); display: flex; gap: 8px; margin-bottom: 20px; }
+        .nav-item { flex: 1; text-align: center; padding: 10px 5px; color: #64748b; font-weight: 700; font-size: 0.85rem; border-radius: 12px; text-decoration: none; transition: 0.3s; display: flex; flex-direction: column; align-items: center; gap: 4px; }
+        .nav-item i { font-size: 1.2rem; }
+        .nav-item.active { background: #eff6ff; color: var(--primary); }
 
         /* البطاقات والنماذج */
         .card { border-radius: 20px; border: none; box-shadow: 0 4px 15px rgba(0,0,0,0.03); background: #ffffff; margin-bottom: 20px; }
@@ -37,16 +36,31 @@
         .form-control, .form-select { border-radius: 12px; border: 1px solid #cbd5e1; padding: 10px 15px; font-size: 0.9rem; font-weight: 600; background-color: #f8fafc; }
         .form-control:focus, .form-select:focus { border-color: var(--primary); box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1); background-color: #fff; }
         .form-label { font-size: 0.8rem; font-weight: 700; color: #475569; margin-bottom: 6px; }
-        .btn-submit { border-radius: 12px; font-weight: 800; padding: 12px; font-size: 1rem; background: linear-gradient(135deg, #10b981, #059669); border: none; }
-        .btn-submit:hover { background: linear-gradient(135deg, #059669, #047857); }
+        .btn-submit { border-radius: 12px; font-weight: 800; padding: 12px; font-size: 1rem; background: linear-gradient(135deg, #10b981, #059669); border: none; color: white; }
+        .btn-submit:hover { background: linear-gradient(135deg, #059669, #047857); color: white; }
 
         /* التبويبات (إخفاء وإظهار) */
         .tab-content { display: none; animation: fadeIn 0.3s ease; }
         .tab-content.active { display: block; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* تصميم النوافذ المنبثقة */
-        .modal-content { border-radius: 24px; border: none; box-shadow: 0 20px 40px rgba(0,0,0,0.1); }
+        /* تصميم بطاقات الطلبات القديمة */
+        .order-card { background: white; border-radius: 16px; padding: 18px; margin-bottom: 15px; border-right: 6px solid #94a3b8; box-shadow: 0 4px 12px rgba(0,0,0,0.02); }
+        .status-badge { font-size: 0.75rem; padding: 6px 12px; border-radius: 20px; font-weight: 800; }
+        .status-pending { background-color: #fef3c7; color: #b45309; }
+        .status-done { background-color: #dcfce7; color: #15803d; }
+        .status-rejected { background-color: #fee2e2; color: #b91c1c; }
+        .status-doc-refused { background-color: #f1f5f9; color: #475569; }
+
+        /* إخفاء أسهم الأرقام في حقول الإدخال */
+        input[type=number]::-webkit-inner-spin-button, 
+        input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+        input[type=number] { -moz-appearance: textfield; }
+
+        /* أزرار العمليات */
+        .ops-btn { border-radius: 15px; padding: 15px; font-weight: 800; font-size: 1.1rem; text-align: right; display: flex; align-items: center; justify-content: space-between; transition: 0.2s; border: 2px solid transparent; }
+        .ops-btn:hover { transform: translateY(-3px); box-shadow: 0 8px 15px rgba(0,0,0,0.05); }
+        .ops-btn i { font-size: 1.5rem; }
     </style>
 </head>
 <body>
@@ -64,171 +78,237 @@
         </button>
     </header>
 
-    <div class="container mt-4">
+    <div class="container mt-3">
         
-        <div id="tab-form" class="tab-content active">
-            <form id="meroForm" class="needs-validation">
-                
-                <div class="card p-4 border-top border-primary border-4">
-                    <div class="section-title"><i class="bi bi-person-vcard"></i> 1. بيانات المريض</div>
-                    <div class="row g-3">
-                        <div class="col-12 col-md-6">
-                            <label class="form-label">اسم المريض الثلاثي <span class="text-danger">*</span></label>
-                            <input type="text" id="f_patientName" class="form-control" required>
-                        </div>
-                        <div class="col-6 col-md-6">
-                            <label class="form-label">الرقم الإحصائي / الطبلة</label>
-                            <input type="text" id="f_mrn" class="form-control">
-                        </div>
-                        <div class="col-6 col-md-6">
-                            <label class="form-label">الردهة / القسم <span class="text-danger">*</span></label>
-                            <input type="text" id="f_ward" class="form-control" required>
-                        </div>
-                        <div class="col-12 col-md-6">
-                            <label class="form-label">تاريخ الطلب <span class="text-danger">*</span></label>
-                            <input type="date" id="f_date" class="form-control" required>
-                        </div>
-                    </div>
-                </div>
+        <nav class="top-nav">
+            <a href="#" class="nav-item active" onclick="switchTab('tab-smart', this)">
+                <i class="bi bi-ui-checks-grid"></i>
+                <span>الاستمارة والعمليات</span>
+            </a>
+            <a href="#" class="nav-item" onclick="switchTab('tab-legacy', this)">
+                <i class="bi bi-clock-history"></i>
+                <span>نظام التتبع السابق</span>
+            </a>
+            <a href="stats.html" class="nav-item">
+                <i class="bi bi-bar-chart-line-fill"></i>
+                <span>الإحصائيات</span>
+            </a>
+        </nav>
 
-                <div class="card p-4 border-top border-success border-4">
-                    <div class="section-title text-success"><i class="bi bi-clipboard2-pulse"></i> 2. التفاصيل السريرية والجرعة</div>
-                    <div class="row g-3">
-                        <div class="col-12">
-                            <label class="form-label">التشخيص (Diagnosis) <span class="text-danger">*</span></label>
-                            <select id="f_diagnosis" class="form-select" required onchange="toggleDiagnosisFields()">
-                                <option value="" disabled selected>اختر التشخيص...</option>
-                                <option value="Pneumonia">Pneumonia</option>
-                                <option value="UTI">Urinary Tract Infection (UTI)</option>
-                                <option value="Intra-abdominal">Intra-abdominal Infection</option>
-                                <option value="Sepsis">Sepsis</option>
-                                <option value="Meningitis">Meningitis</option>
-                                <option value="Others">أخرى (Others)</option>
-                            </select>
-                        </div>
-                        <div class="col-12 d-none" id="div_sepsisOrigin">
-                            <label class="form-label text-danger">مصدر الإنتان (Origin of Sepsis) <span class="text-danger">*</span></label>
-                            <input type="text" id="f_sepsisOrigin" class="form-control" placeholder="اكتب المصدر هنا...">
-                        </div>
-                        <div class="col-12 d-none" id="div_otherDiagnosis">
-                            <label class="form-label">يرجى كتابة التشخيص <span class="text-danger">*</span></label>
-                            <input type="text" id="f_otherDiagnosis" class="form-control" placeholder="التشخيص...">
-                        </div>
-                        
-                        <div class="col-6">
-                            <label class="form-label">الجرعة (Potency) <span class="text-danger">*</span></label>
-                            <select id="f_potency" class="form-select" required>
-                                <option value="500mg">500 mg</option>
-                                <option value="1g" selected>1 g</option>
-                                <option value="2g">2 g</option>
-                            </select>
-                        </div>
-                        <div class="col-6">
-                            <label class="form-label">التكرار (Frequency) <span class="text-danger">*</span></label>
-                            <select id="f_frequency" class="form-select" required>
-                                <option value="كل 8 ساعات" selected>كل 8 ساعات</option>
-                                <option value="كل 12 ساعة">كل 12 ساعة</option>
-                                <option value="كل 24 ساعة">كل 24 ساعة</option>
-                            </select>
-                        </div>
-                        <div class="col-12">
-                            <label class="form-label">مدة العلاج المتوقعة (بالأيام) - اختياري</label>
-                            <input type="number" id="f_duration" class="form-control" placeholder="مثال: 7">
-                        </div>
-                    </div>
-                </div>
-
-                <div class="card p-4 border-top border-warning border-4">
-                    <div class="section-title text-warning text-dark"><i class="bi bi-people"></i> 3. الملاك الطبي وعينة الزرع</div>
-                    <div class="row g-3">
-                        <div class="col-12 col-md-6">
-                            <label class="form-label">اسم الطبيب المعالج <span class="text-danger">*</span></label>
-                            <input type="text" id="f_doctor" class="form-control" placeholder="د. " required>
-                        </div>
-                        <div class="col-12 col-md-6">
-                            <label class="form-label">اسم الصيدلي السريري <span class="text-danger">*</span></label>
-                            <input type="text" id="f_pharmacist" class="form-control" placeholder="ص. " required>
-                        </div>
-                        <div class="col-12 mt-4">
-                            <label class="form-label fw-bold">حالة إرسال عينة الزرع (Culture) <span class="text-danger">*</span></label>
-                            <select id="f_sampleStatus" class="form-select border-warning" required onchange="toggleSampleFields()">
-                                <option value="" disabled selected>حدد موقف العينة...</option>
-                                <option value="before">تم إرسال العينة (قبل إعطاء الجرعة الأولى)</option>
-                                <option value="after">تم إرسال العينة (بعد إعطاء الجرعة)</option>
-                                <option value="not_sent">لم يتم إرسال عينة زرع 🚫</option>
-                            </select>
-                        </div>
-                        
-                        <div class="col-12 d-none p-3 bg-danger bg-opacity-10 rounded-3 mt-3" id="div_noSampleReason">
-                            <label class="form-label text-danger fw-bold">سبب عدم إرسال العينة <span class="text-danger">*</span></label>
-                            <select id="f_noSampleReason" class="form-select border-danger" onchange="toggleOtherReason()">
-                                <option value="" disabled selected>اختر السبب...</option>
-                                <option value="عدم توفر أنابيب الاختبار">عدم توفر أنابيب الاختبار</option>
-                                <option value="رفض الطبيب إرسال عينة زرع">رفض الطبيب إرسال عينة زرع</option>
-                                <option value="عدم توفر الفحص خارج أوقات الدوام الرسمي">عدم توفر الفحص خارج أوقات الدوام الرسمي</option>
-                                <option value="أخرى">أخرى (يرجى الذكر)</option>
-                            </select>
-                            <input type="text" id="f_otherReason" class="form-control mt-2 border-danger d-none" placeholder="اكتب السبب هنا...">
-                        </div>
-                    </div>
-                </div>
-
-                <button type="submit" class="btn btn-submit text-white w-100 shadow mb-3">
-                    <i class="bi bi-cloud-arrow-up-fill me-1"></i> إرسال الاستمارة وحفظها
-                </button>
-            </form>
-        </div>
-
-        <div id="tab-ops" class="tab-content">
-            <div class="card p-5 text-center mt-4 border-0 shadow-sm">
-                <i class="bi bi-lock-fill text-primary mb-3" style="font-size: 3rem;"></i>
-                <h5 class="fw-bold mb-3">لوحة العمليات والتدقيق</h5>
-                <p class="text-muted fs-7 mb-4">هذه اللوحة مخصصة للكوادر المسؤولة (المختبر، لجنة المضادات، والصيدلية). سيتم تفعيل نظام تسجيل الدخول الخاص بها في المرحلة القادمة.</p>
-                <div class="d-grid gap-2">
-                    <button class="btn btn-outline-primary fw-bold" onclick="alert('سيتم تفعيلها في المرحلة الثانية')">دخول المختبر 🧪</button>
-                    <button class="btn btn-outline-success fw-bold" onclick="alert('سيتم تفعيلها في المرحلة الثانية')">دخول لجنة المضادات 🛡️</button>
-                    <button class="btn btn-outline-danger fw-bold" onclick="alert('سيتم تفعيلها في المرحلة الثانية')">دخول الصيدلية (الصرف) 💊</button>
+        <div id="tab-smart" class="tab-content active">
+            
+            <div id="roles-section">
+                <h5 class="fw-bold mb-3 text-dark"><i class="bi bi-grid-1x2-fill text-primary me-2"></i> لوحة العمليات الرئيسية</h5>
+                <div class="d-grid gap-3">
+                    <button class="btn btn-light ops-btn text-primary border-primary bg-primary bg-opacity-10" onclick="showSmartForm()">
+                        <span><i class="bi bi-pencil-square me-2"></i> مقدم الطلب (الاستمارة)</span>
+                        <i class="bi bi-arrow-left-circle"></i>
+                    </button>
+                    <button class="btn btn-light ops-btn text-success border-success bg-success bg-opacity-10" onclick="alert('سيتم تفعيلها في المرحلة الثانية')">
+                        <span><i class="bi bi-virus me-2"></i> المختبر (تأكيد العينات)</span>
+                        <i class="bi bi-lock-fill"></i>
+                    </button>
+                    <button class="btn btn-light ops-btn text-danger border-danger bg-danger bg-opacity-10" onclick="alert('سيتم تفعيلها في المرحلة الثانية')">
+                        <span><i class="bi bi-shield-check me-2"></i> لجنة المضادات والسريرية</span>
+                        <i class="bi bi-lock-fill"></i>
+                    </button>
+                    <button class="btn btn-light ops-btn text-warning text-dark border-warning bg-warning bg-opacity-10" onclick="alert('سيتم تفعيلها في المرحلة الثانية')">
+                        <span><i class="bi bi-capsule-pill me-2"></i> صيدلية الصرف والتجهيز</span>
+                        <i class="bi bi-lock-fill"></i>
+                    </button>
                 </div>
             </div>
+
+            <div id="smart-form-section" class="d-none">
+                <button class="btn btn-outline-secondary mb-3 fw-bold rounded-pill" onclick="hideSmartForm()">
+                    <i class="bi bi-arrow-right me-1"></i> العودة للوحة العمليات
+                </button>
+                
+                <form id="meroForm" class="needs-validation">
+                    
+                    <div class="card p-4 border-top border-primary border-4">
+                        <div class="section-title"><i class="bi bi-person-vcard"></i> 1. بيانات المريض</div>
+                        <div class="row g-3">
+                            <div class="col-12 col-md-6">
+                                <label class="form-label">اسم المريض الثلاثي <span class="text-danger">*</span></label>
+                                <input type="text" id="f_patientName" class="form-control" required>
+                            </div>
+                            <div class="col-6 col-md-6">
+                                <label class="form-label">الرقم الإحصائي / الطبلة</label>
+                                <input type="text" id="f_mrn" class="form-control">
+                            </div>
+                            <div class="col-6 col-md-6">
+                                <label class="form-label">الردهة / القسم <span class="text-danger">*</span></label>
+                                <input type="text" id="f_ward" class="form-control" required>
+                            </div>
+                            <div class="col-12 col-md-6">
+                                <label class="form-label">تاريخ الطلب <span class="text-danger">*</span></label>
+                                <input type="date" id="f_date" class="form-control" required>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card p-4 border-top border-success border-4">
+                        <div class="section-title text-success"><i class="bi bi-clipboard2-pulse"></i> 2. التفاصيل السريرية والجرعة</div>
+                        <div class="row g-3">
+                            <div class="col-12">
+                                <label class="form-label">التشخيص (Diagnosis) <span class="text-danger">*</span></label>
+                                <select id="f_diagnosis" class="form-select" required onchange="toggleDiagnosisFields()">
+                                    <option value="" disabled selected>اختر التشخيص...</option>
+                                    <option value="Acute mastoiditis">Acute mastoiditis</option>
+                                    <option value="Acute rhinosinusitis due to intubation">Acute rhinosinusitis due to intubation</option>
+                                    <option value="Bacterial meningitis">Bacterial meningitis</option>
+                                    <option value="Contaminated blast injury">Contaminated blast injury (specify location and severity)</option>
+                                    <option value="Gangrenous cellulitis">Gangrenous cellulitis (necrotizing fasciitis or gas gangrene)</option>
+                                    <option value="HAP Post-op, Ventilator ESBL positive">HAP Post-op, Ventilator ESBL positive</option>
+                                    <option value="Infective bronchiectasis exacerbation">Infective bronchiectasis exacerbation (with severe lung impairment)</option>
+                                    <option value="Lung abscess">Lung abscess</option>
+                                    <option value="NVE – Acute presentation">NVE – Acute presentation (severe sepsis with ESBL)</option>
+                                    <option value="Neutropenic sepsis">Neutropenic sepsis</option>
+                                    <option value="Pleural empyema ESBL positive">Pleural empyema ESBL positive</option>
+                                    <option value="Proven acute pancreatitis">Proven acute pancreatitis</option>
+                                    <option value="Pyogenic liver abscess">Pyogenic liver abscess</option>
+                                    <option value="Radical resection performed">Radical resection performed</option>
+                                    <option value="Severe CAP admitted to ICU">Severe CAP admitted to ICU</option>
+                                    <option value="Severe diabetic foot infection">Severe diabetic foot infection</option>
+                                    <option value="Severe secondary peritonitis">Severe secondary peritonitis</option>
+                                    <option value="Sepsis">Sepsis</option>
+                                    <option value="Surgical site infection">Surgical site infection</option>
+                                    <option value="Others">Others</option>
+                                </select>
+                            </div>
+                            
+                            <div class="col-12 d-none" id="div_sepsisOrigin">
+                                <label class="form-label text-danger">مصدر الإنتان (Origin of Sepsis) <span class="text-danger">*</span></label>
+                                <input type="text" id="f_sepsisOrigin" class="form-control" placeholder="اكتب المصدر هنا...">
+                            </div>
+                            <div class="col-12 d-none" id="div_otherDiagnosis">
+                                <label class="form-label">يرجى كتابة التشخيص <span class="text-danger">*</span></label>
+                                <input type="text" id="f_otherDiagnosis" class="form-control" placeholder="التشخيص...">
+                            </div>
+                            <div class="col-12 d-none" id="div_blastInjury">
+                                <label class="form-label text-danger">حدد الموقع والشدة (Location and Severity) <span class="text-danger">*</span></label>
+                                <input type="text" id="f_blastInjury" class="form-control" placeholder="الموقع والشدة...">
+                            </div>
+                            
+                            <div class="col-6">
+                                <label class="form-label">الجرعة (ملغرام - mg) <span class="text-danger">*</span></label>
+                                <input type="number" id="f_potency" class="form-control" placeholder="مثال: 1000" required min="1">
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label">التكرار (كل كم ساعة) <span class="text-danger">*</span></label>
+                                <input type="number" id="f_frequency" class="form-control" placeholder="مثال: 8" required min="1">
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label">مدة العلاج المتوقعة (بالأيام) - اختياري</label>
+                                <input type="number" id="f_duration" class="form-control" placeholder="مثال: 7" min="1">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card p-4 border-top border-warning border-4">
+                        <div class="section-title text-warning text-dark"><i class="bi bi-people"></i> 3. الملاك الطبي وعينة الزرع</div>
+                        <div class="row g-3">
+                            <div class="col-12 col-md-6">
+                                <label class="form-label">اسم الطبيب المعالج <span class="text-danger">*</span></label>
+                                <input type="text" id="f_doctor" class="form-control" placeholder="د. " required>
+                            </div>
+                            <div class="col-12 col-md-6">
+                                <label class="form-label">اسم الصيدلي السريري <span class="text-danger">*</span></label>
+                                <input type="text" id="f_pharmacist" class="form-control" placeholder="ص. " required>
+                            </div>
+                            <div class="col-12 mt-4">
+                                <label class="form-label fw-bold">حالة إرسال عينة الزرع (Culture) <span class="text-danger">*</span></label>
+                                <select id="f_sampleStatus" class="form-select border-warning" required onchange="toggleSampleFields()">
+                                    <option value="" disabled selected>حدد موقف العينة...</option>
+                                    <option value="before">تم إرسال العينة (قبل إعطاء الجرعة الأولى)</option>
+                                    <option value="after">تم إرسال العينة (بعد إعطاء الجرعة)</option>
+                                    <option value="not_sent">لم يتم إرسال عينة زرع 🚫</option>
+                                </select>
+                            </div>
+                            
+                            <div class="col-12 d-none p-3 bg-danger bg-opacity-10 rounded-3 mt-3" id="div_noSampleReason">
+                                <label class="form-label text-danger fw-bold">سبب عدم إرسال العينة <span class="text-danger">*</span></label>
+                                <select id="f_noSampleReason" class="form-select border-danger" onchange="toggleOtherReason()">
+                                    <option value="" disabled selected>اختر السبب...</option>
+                                    <option value="عدم توفر أنابيب الاختبار">عدم توفر أنابيب الاختبار</option>
+                                    <option value="رفض الطبيب إرسال عينة زرع">رفض الطبيب إرسال عينة زرع</option>
+                                    <option value="عدم توفر الفحص خارج أوقات الدوام الرسمي">عدم توفر الفحص خارج أوقات الدوام الرسمي</option>
+                                    <option value="أخرى">أخرى (يرجى الذكر)</option>
+                                </select>
+                                <input type="text" id="f_otherReason" class="form-control mt-2 border-danger d-none" placeholder="اكتب السبب هنا...">
+                            </div>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-submit w-100 shadow mb-3">
+                        <i class="bi bi-cloud-arrow-up-fill me-1"></i> إرسال الاستمارة وحفظها
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <div id="tab-legacy" class="tab-content">
             
-            <div class="mt-4" id="oldListContainer" style="display:none;">
-                <h6 class="fw-bold"><i class="bi bi-list-task"></i> سجل الطلبات (النسخة السابقة)</h6>
-                <div id="ordersContainer"></div>
+            <div class="card p-4">
+                <h6 class="text-primary mb-3 fw-bold"><i class="bi bi-plus-circle-fill me-1"></i> إضافة طلب مبسط (النظام القديم)</h6>
+                <form id="legacyForm" class="row g-3">
+                    <div class="col-12 col-md-4">
+                        <label class="filter-label">اسم المريض</label>
+                        <input type="text" id="l_patientName" class="form-control" required>
+                    </div>
+                    <div class="col-12 col-md-4">
+                        <label class="filter-label">الطبيب المسؤول</label>
+                        <input type="text" id="l_doctorName" class="form-control" required>
+                    </div>
+                    <div class="col-6 col-md-2">
+                        <label class="filter-label">الردهة</label>
+                        <input type="text" id="l_ward" class="form-control" required>
+                    </div>
+                    <div class="col-6 col-md-2">
+                        <label class="filter-label">التاريخ</label>
+                        <input type="date" id="l_orderDate" class="form-control" required>
+                    </div>
+                    <div class="col-12">
+                        <div class="form-check bg-light p-2 rounded-3 border mt-2">
+                            <input class="form-check-input ms-2" type="checkbox" id="l_doctorRefused">
+                            <label class="form-check-label text-danger fw-bold fs-7" for="l_doctorRefused">رفض الطبيب ارسال عينة زرع</label>
+                        </div>
+                    </div>
+                    <div class="col-12 mt-3">
+                        <button type="submit" class="btn btn-primary w-100"><i class="bi bi-send-fill me-1"></i> إرسال الطلب</button>
+                    </div>
+                </form>
+            </div>
+
+            <div class="card p-4 mb-4">
+                <h6 class="text-secondary mb-3 fw-bold"><i class="bi bi-search me-1"></i> البحث في سجل الطلبات</h6>
+                <div class="row g-2 mb-4">
+                    <div class="col-12 col-md-6"><input type="text" id="searchInput" class="form-control" placeholder="ابحث بالاسم أو الطبيب..."></div>
+                    <div class="col-12 col-md-6"><input type="text" id="wardFilter" class="form-control" placeholder="فلترة بالردهة..."></div>
+                </div>
+                <h6 class="fw-bold"><i class="bi bi-list-task"></i> سجل الطلبات الكلي</h6>
+                <div id="ordersContainer">
+                    <div class="text-center text-muted py-4">جاري تحميل البيانات...</div>
+                </div>
             </div>
         </div>
 
     </div>
-
-    <nav class="bottom-nav">
-        <a href="#" class="nav-item active" onclick="switchTab('tab-form', this)">
-            <i class="bi bi-ui-checks"></i>
-            <span>الاستمارة</span>
-        </a>
-        <a href="#" class="nav-item" onclick="switchTab('tab-ops', this); document.getElementById('oldListContainer').style.display='block';">
-            <i class="bi bi-arrow-repeat"></i>
-            <span>لوحة العمليات</span>
-        </a>
-        <a href="stats.html" class="nav-item">
-            <i class="bi bi-bar-chart-line-fill"></i>
-            <span>الإحصائيات</span>
-        </a>
-    </nav>
 
     <div class="modal fade" id="aboutModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content text-center p-4">
                 <i class="bi bi-hospital text-primary mb-3" style="font-size: 3rem;"></i>
                 <h5 class="fw-bold text-dark mb-2">نظام MeroTrak</h5>
-                <span class="badge bg-primary mb-3">الإصدار 2.0 (الاستمارة الذكية)</span>
-                <p class="text-muted fs-7 mb-4">نظام إلكتروني متكامل لتتبع وإدارة دورة صرف مضاد الميروبينيم (Meropenem) بين الصيدلية، المختبر، ولجنة المضادات الحيوية.</p>
-                
+                <span class="badge bg-primary mb-3">الإصدار 2.0</span>
+                <p class="text-muted fs-7 mb-4">نظام إلكتروني متكامل لتتبع وإدارة دورة صرف مضاد الميروبينيم بين الصيدلية، المختبر، ولجنة المضادات.</p>
                 <div class="bg-light p-3 rounded-4 mb-3 text-start border">
-                    <h6 class="fw-bold text-dark fs-7 mb-2"><i class="bi bi-person-workspace text-primary"></i> فكرة وتصميم:</h6>
+                    <h6 class="fw-bold text-dark fs-7 mb-2"><i class="bi bi-person-workspace text-primary me-1"></i> فكرة وتصميم:</h6>
                     <p class="mb-0 fs-7 text-secondary fw-bold">الصيدلي السريري / سعد نبيل الحمادي</p>
                     <p class="mb-0 fs-7 text-secondary">عضو لجنة المضادات الحيوية</p>
-                    <p class="mb-0 fs-7 text-secondary">مستشفى الموانئ التعليمي - البصرة</p>
+                    <p class="mb-0 fs-7 text-secondary">مستشفى الموانئ التعليمي</p>
                 </div>
-                
                 <button class="btn btn-primary w-100 fw-bold py-2" data-bs-dismiss="modal">إغلاق</button>
             </div>
         </div>
@@ -238,7 +318,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, collection, addDoc, onSnapshot, query, orderBy } 
+        import { getFirestore, collection, addDoc, onSnapshot, doc, updateDoc, query, orderBy } 
         from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const firebaseConfig = {
@@ -255,8 +335,9 @@
         const ordersRef = collection(db, "meropenem_orders");
 
         document.getElementById('f_date').value = new Date().toISOString().split('T')[0];
+        document.getElementById('l_orderDate').value = new Date().toISOString().split('T')[0];
 
-        // التنقل بين التبويبات
+        // التنقل بين التبويبات العلوية
         window.switchTab = (tabId, element) => {
             document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
             document.querySelectorAll('.nav-item').forEach(nav => nav.classList.remove('active'));
@@ -264,14 +345,28 @@
             element.classList.add('active');
         };
 
+        // إظهار وإخفاء الاستمارة الذكية
+        window.showSmartForm = () => {
+            document.getElementById('roles-section').classList.add('d-none');
+            document.getElementById('smart-form-section').classList.remove('d-none');
+        };
+        window.hideSmartForm = () => {
+            document.getElementById('smart-form-section').classList.add('d-none');
+            document.getElementById('roles-section').classList.remove('d-none');
+        };
+
         // ديناميكية حقول التشخيص
         window.toggleDiagnosisFields = () => {
             const val = document.getElementById('f_diagnosis').value;
-            document.getElementById('div_sepsisOrigin').classList.toggle('d-none', val !== 'Sepsis');
-            document.getElementById('div_otherDiagnosis').classList.toggle('d-none', val !== 'Others');
             
+            document.getElementById('div_sepsisOrigin').classList.toggle('d-none', val !== 'Sepsis');
             document.getElementById('f_sepsisOrigin').required = (val === 'Sepsis');
+            
+            document.getElementById('div_otherDiagnosis').classList.toggle('d-none', val !== 'Others');
             document.getElementById('f_otherDiagnosis').required = (val === 'Others');
+            
+            document.getElementById('div_blastInjury').classList.toggle('d-none', val !== 'Contaminated blast injury');
+            document.getElementById('f_blastInjury').required = (val === 'Contaminated blast injury');
         };
 
         // ديناميكية حقول حالة العينة
@@ -303,19 +398,30 @@
             }
         };
 
-        // إرسال الاستمارة للفايربيز
+        // دالة مساعدة لتنعيم الاسم
+        function normalizeName(name) {
+            if (!name) return "";
+            return name.trim().replace(/[أإآ]/g, "ا").replace(/ى/g, "ي").replace(/\s+/g, " ");
+        }
+
+        let allOrders = [];
+
+        // 1. إرسال الاستمارة الذكية
         document.getElementById('meroForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             
-            const submitBtn = document.querySelector('.btn-submit');
-            submitBtn.disabled = true;
-            submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> جاري الإرسال...';
+            const name = document.getElementById('f_patientName').value.trim();
+            const ward = document.getElementById('f_ward').value.trim();
+            const date = document.getElementById('f_date').value;
 
+            // بناء التشخيص النهائي
             const diagnosisBase = document.getElementById('f_diagnosis').value;
             let finalDiagnosis = diagnosisBase;
             if(diagnosisBase === 'Sepsis') finalDiagnosis = `Sepsis (Origin: ${document.getElementById('f_sepsisOrigin').value})`;
             if(diagnosisBase === 'Others') finalDiagnosis = document.getElementById('f_otherDiagnosis').value;
+            if(diagnosisBase === 'Contaminated blast injury') finalDiagnosis = `Contaminated blast injury (${document.getElementById('f_blastInjury').value})`;
 
+            // بناء سبب عدم الإرسال
             const sampleStatus = document.getElementById('f_sampleStatus').value;
             let finalReason = "";
             if(sampleStatus === 'not_sent') {
@@ -323,52 +429,127 @@
                 finalReason = (r === 'أخرى') ? document.getElementById('f_otherReason').value : r;
             }
 
-            // ربط حالة المريض بالنظام القديم لضمان عمل الإحصائيات (Pending أو Doctor Refused)
+            // ربط حالة المريض بالنظام القديم
             let masterStatus = 'pending';
             if (sampleStatus === 'not_sent' && finalReason.includes('رفض الطبيب')) {
                 masterStatus = 'doctor_refused';
+            } else if (sampleStatus === 'not_sent') {
+                masterStatus = 'rejected'; // لم ترسل لأسباب أخرى
             }
 
             const formData = {
-                patientName: document.getElementById('f_patientName').value.trim(),
+                patientName: name,
                 mrn: document.getElementById('f_mrn').value.trim(),
-                ward: document.getElementById('f_ward').value.trim(),
-                orderDate: document.getElementById('f_date').value,
+                ward: ward,
+                orderDate: date,
                 diagnosis: finalDiagnosis,
-                dosePotency: document.getElementById('f_potency').value,
-                doseFrequency: document.getElementById('f_frequency').value,
+                dosePotency: document.getElementById('f_potency').value + 'mg',
+                doseFrequency: 'كل ' + document.getElementById('f_frequency').value + ' ساعة',
                 durationDays: document.getElementById('f_duration').value || "",
                 doctorName: document.getElementById('f_doctor').value.trim(),
                 pharmacistName: document.getElementById('f_pharmacist').value.trim(),
                 sampleStatus: sampleStatus,
                 noSampleReason: finalReason,
-                status: masterStatus, // للحفاظ على توافق الإحصائيات
+                status: masterStatus, 
                 notes: '',
                 isDeleted: false,
+                isSmartForm: true,
                 createdAt: new Date()
             };
 
             try {
                 await addDoc(ordersRef, formData);
-                alert('✅ تم إرسال الاستمارة بنجاح!');
+                alert('✅ تم حفظ الاستمارة الذكية بنجاح!');
                 document.getElementById('meroForm').reset();
                 document.getElementById('f_date').value = new Date().toISOString().split('T')[0];
-                window.toggleDiagnosisFields();
-                window.toggleSampleFields();
-            } catch (error) {
-                alert('❌ حدث خطأ أثناء الإرسال: ' + error.message);
-            } finally {
-                submitBtn.disabled = false;
-                submitBtn.innerHTML = '<i class="bi bi-cloud-arrow-up-fill me-1"></i> إرسال الاستمارة وحفظها';
-            }
+                hideSmartForm();
+            } catch (error) { alert('❌ حدث خطأ: ' + error.message); }
         });
 
-        // رسالة تثبيت التطبيق PWA (تظهر تلقائياً على الهواتف المدعومة)
+        // 2. إرسال الاستمارة القديمة (المبسطة)
+        document.getElementById('legacyForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const name = document.getElementById('l_patientName').value.trim();
+            const doctor = document.getElementById('l_doctorName').value.trim();
+            const ward = document.getElementById('l_ward').value.trim();
+            const date = document.getElementById('l_orderDate').value;
+            const doctorRefused = document.getElementById('l_doctorRefused').checked;
+
+            try {
+                await addDoc(ordersRef, {
+                    patientName: name,
+                    doctorName: doctor,
+                    ward: ward,
+                    orderDate: date,
+                    status: doctorRefused ? 'doctor_refused' : 'pending',
+                    notes: '',
+                    isDeleted: false,
+                    isSmartForm: false,
+                    createdAt: new Date()
+                });
+                document.getElementById('legacyForm').reset();
+                document.getElementById('l_orderDate').value = new Date().toISOString().split('T')[0];
+                alert('✅ تم إرسال الطلب المبسط بنجاح');
+            } catch (err) { alert('حدث خطأ: ' + err.message); }
+        });
+
+        // جلب وعرض البيانات في النظام القديم
+        const q = query(ordersRef, orderBy("createdAt", "desc"));
+        onSnapshot(q, (snapshot) => {
+            allOrders = [];
+            snapshot.forEach((doc) => { allOrders.push({ id: doc.id, ...doc.data() }); });
+            renderOrders();
+        });
+
+        window.renderOrders = () => {
+            const searchVal = document.getElementById('searchInput').value.toLowerCase();
+            const wardVal = document.getElementById('wardFilter').value.toLowerCase();
+
+            const filtered = allOrders.filter(o => {
+                if (o.isDeleted) return false;
+                const matchName = o.patientName.toLowerCase().includes(searchVal) || (o.doctorName && o.doctorName.toLowerCase().includes(searchVal));
+                const matchWard = o.ward.toLowerCase().includes(wardVal);
+                return matchName && matchWard;
+            });
+
+            const container = document.getElementById('ordersContainer');
+            if (filtered.length === 0) {
+                container.innerHTML = '<div class="card p-4 text-center text-muted fw-bold">لا توجد بيانات</div>';
+                return;
+            }
+
+            container.innerHTML = filtered.map(o => {
+                let statusBadge = '<span class="status-badge status-pending">بانتظار العينة</span>';
+                if (o.status === 'doctor_refused') statusBadge = '<span class="status-badge status-doc-refused">رفض الطبيب</span>';
+                else if (o.status === 'confirmed') statusBadge = '<span class="status-badge status-done">مؤكدة ✅</span>';
+                else if (o.status === 'rejected') statusBadge = '<span class="status-badge status-rejected">منفية ❌</span>';
+                
+                const formatDose = o.isSmartForm ? `<span class="badge bg-secondary">الجرعة: ${o.dosePotency} ${o.doseFrequency}</span>` : '';
+
+                return `
+                    <div class="order-card status-pending-border">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <div>
+                                <h6 class="fw-bold">${o.patientName} ${o.isSmartForm ? '🌟' : ''}</h6>
+                                <span class="badge bg-light text-dark border">${o.ward}</span>
+                                <span class="badge bg-primary bg-opacity-10 text-primary border">د. ${o.doctorName || ''}</span>
+                                ${formatDose}
+                            </div>
+                            <div>${statusBadge}</div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        };
+
+        document.getElementById('searchInput').addEventListener('input', renderOrders);
+        document.getElementById('wardFilter').addEventListener('input', renderOrders);
+
+        // رسالة التثبيت
         let deferredPrompt;
         window.addEventListener('beforeinstallprompt', (e) => {
             e.preventDefault();
             deferredPrompt = e;
-            // يمكننا لاحقاً إضافة زر "تثبيت التطبيق" في القائمة
         });
     </script>
 </body>
