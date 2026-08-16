@@ -74,9 +74,9 @@
     </header>
     <div class="container mt-3">
         <nav class="top-nav no-print">
-            <a href="javascript:void(0)" class="nav-item active" onclick="switchTab('tab-main', this)"><i class="bi bi-ui-checks"></i><span>الطلبات والسجل</span></a>
-            <a href="javascript:void(0)" class="nav-item" onclick="switchTab('tab-lab', this)"><i class="bi bi-virus"></i><span>صندوق المختبر</span></a>
-            <a href="javascript:void(0)" class="nav-item" onclick="switchTab('tab-stats', this)"><i class="bi bi-bar-chart-fill"></i><span>الإحصائيات</span></a>
+            <a href="javascript:void(0)" class="nav-item active" onclick="window.switchTab('tab-main', this)"><i class="bi bi-ui-checks"></i><span>الطلبات والسجل</span></a>
+            <a href="javascript:void(0)" class="nav-item" onclick="window.switchTab('tab-lab', this)"><i class="bi bi-virus"></i><span>صندوق المختبر</span></a>
+            <a href="javascript:void(0)" class="nav-item" onclick="window.switchTab('tab-stats', this)"><i class="bi bi-bar-chart-fill"></i><span>الإحصائيات</span></a>
         </nav>
         
         <div id="tab-main" class="tab-content active no-print">
@@ -512,7 +512,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getFirestore, collection, addDoc, onSnapshot, doc, updateDoc, query, orderBy, serverTimestamp, setDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
         
         const firebaseConfig = { apiKey: "AIzaSyCqm16V1ESpEbZZ8SJA8GTzFdtbexrPwaE", authDomain: "meropenem-app.firebaseapp.com", projectId: "meropenem-app", storageBucket: "meropenem-app.firebasestorage.app", messagingSenderId: "387581088853", appId: "1:387581088853:web:2a4e1a37c8372bf20af0dc" };
         const app = initializeApp(firebaseConfig); 
@@ -545,15 +545,14 @@
         for (let y = 2024; y <= 2035; y++) { const opt = document.createElement('option'); opt.value = y; opt.innerText = y; if (y.toString() === currentYear) opt.selected = true; yearSelect.appendChild(opt); }
 
         async function ensureAnonymousUser() {
-            if (auth.currentUser) {
-                return auth.currentUser;
-            }
             try {
+                await setPersistence(auth, browserLocalPersistence);
+                if (auth.currentUser) return auth.currentUser;
                 const cred = await signInAnonymously(auth);
                 return cred.user;
             } catch (err) {
-                console.warn("Auth fallback", err);
-                return null;
+                console.error("Auth Error:", err);
+                return auth.currentUser;
             }
         }
         ensureAnonymousUser();
@@ -580,7 +579,7 @@
                 labPasscode = docSnap.data().passcode || "1234"; 
                 systemAdminPass = docSnap.data().adminPass || "admin123"; 
             } 
-        }, (error) => { console.error("Settings listener error:", error); });
+        }, (error) => { console.error("Settings error:", error); });
 
         document.getElementById('legacyForm').addEventListener('submit', async (e) => {
             e.preventDefault();
@@ -598,8 +597,8 @@
                 else if (sStatus === 'not_sent') {
                     status = 'not_sent'; notSentReason = document.getElementById('l_noSampleReason').value;
                     if (!notSentReason) { await showAlert('خطأ', 'يرجى اختيار سبب عدم إرسال العينة.', false); return; }
-                    if (notSentReason === 'no_tools') { notSentDetails = document.getElementById('l_sampleType').value; if (!notSentDetails) { await showAlert('خطأ', 'يرجى كتابة نوع العينة المفقود.', false); return; } } 
-                    else if (notSentReason === 'no_service') { let timing = document.getElementById('l_serviceTiming').value; let hours = document.getElementById('l_serviceTime').value; if (!hours) { await showAlert('خطأ', 'يرجى تحديد وقت طلب الزرع بالساعات.', false); return; } notSentDetails = timing + ' (الساعة: ' + hours + ')'; } 
+                    if (notSentReason === 'no_tools') { notSentDetails = document.getElementById('l_sampleType').value; if (!notSentDetails) { await showAlert('خطأ', 'يرجى إدخال نوع العينة.', false); return; } } 
+                    else if (notSentReason === 'no_service') { let timing = document.getElementById('l_serviceTiming').value; let hours = document.getElementById('l_serviceTime').value; if (!hours) { await showAlert('خطأ', 'يرجى تحديد وقت الطلب.', false); return; } notSentDetails = timing + ' (الساعة: ' + hours + ')'; } 
                     else if (notSentReason === 'other') { notSentDetails = document.getElementById('l_otherReason').value; if (!notSentDetails) { await showAlert('خطأ', 'يرجى كتابة السبب التوضيحي.', false); return; } }
                 }
 
@@ -624,32 +623,26 @@
         window.deleteOrder = async (id) => {
             if(confirm('هل أنت متأكد من رغبتك في حذف هذا السجل من العرض؟')) {
                 try { await updateDoc(doc(db, "meropenem_orders", id), { isDeleted: true }); } 
-                catch (e) { await showAlert('مرفوض', 'تم رفض العملية! إما أنك لست المالك أو انتهت المدة المسموحة.', false); }
+                catch (e) { await showAlert('مرفوض', 'عذراً، انتهت مدة التعديل أو لا تملك الصلاحية.', false); }
             }
         };
 
         const q = query(ordersRef, orderBy("createdAt", "desc"));
+        
         onSnapshot(q, (snapshot) => { 
             allOrders = []; 
             snapshot.forEach((docSnap) => { allOrders.push({ id: docSnap.id, ...docSnap.data() }); }); 
             
             allOrders.sort((a, b) => {
-                let timeA = new Date(); let timeB = new Date();
-                if (a.createdAt && typeof a.createdAt.toDate === 'function') timeA = a.createdAt.toDate();
-                else if (a.createdAt) timeA = new Date(a.createdAt);
-                else if (a.orderDate) timeA = new Date(a.orderDate);
-                
-                if (b.createdAt && typeof b.createdAt.toDate === 'function') timeB = b.createdAt.toDate();
-                else if (b.createdAt) timeB = new Date(b.createdAt);
-                else if (b.orderDate) timeB = new Date(b.orderDate);
-
+                const timeA = a.createdAt?.toMillis ? a.createdAt.toMillis() : (new Date(a.orderDate || 0).getTime());
+                const timeB = b.createdAt?.toMillis ? b.createdAt.toMillis() : (new Date(b.orderDate || 0).getTime());
                 return timeB - timeA;
             });
 
             window.renderMainOrders(); 
             if(isLabLoggedIn) window.renderLabInbox(); 
             window.loadAnalytics();
-        }, (error) => { console.error("Orders listener error:", error); document.getElementById('ordersContainer').innerHTML = '<div class="card p-4 text-center text-danger fw-bold">عذراً، حدث خطأ في تحميل السجل.</div>'; });
+        }, (error) => { console.error("Orders listener error:", error); document.getElementById('ordersContainer').innerHTML = '<div class="card p-4 text-center text-danger fw-bold">حدث خطأ في تحميل السجل.</div>'; });
 
         onAuthStateChanged(auth, (user) => { if(user) window.renderMainOrders(); });
 
@@ -701,11 +694,8 @@
                 let orderTime = new Date();
                 if (o.createdAt && typeof o.createdAt.toDate === 'function') { orderTime = o.createdAt.toDate(); }
                 else if (o.createdAt) { orderTime = new Date(o.createdAt); }
-                else if (o.orderDate) { orderTime = new Date(o.orderDate); }
-
-                const hoursDiff = (new Date() - orderTime) / (1000 * 60 * 60);
                 
-                // إظهار أزرار المالك
+                const hoursDiff = (new Date() - orderTime) / (1000 * 60 * 60);
                 const isMyOrder = (currentUid && o.submitterId === currentUid) || (o.submitterId === 'anonymous_guest');
                 const canEditOrDelete = isMyOrder && (o.status === 'pending' || o.status === 'not_sent') && (hoursDiff < 24);
 
@@ -731,7 +721,7 @@
                         <div class="d-flex justify-content-between align-items-center bg-light p-2 rounded mt-1 border">
                             <div class="fs-7 fw-bold ${textCol}">
                                 ${badge} 
-                                <i class="bi bi-pencil-fill text-dark ms-2 icon-btn border bg-white rounded" onclick="window.openLabModal('${o.id}')" title="تعديل حالة المختبر"></i>
+                                <i class="bi bi-pencil-fill text-dark ms-2 icon-btn border bg-white rounded shadow-sm" onclick="window.openLabModal('${o.id}')" title="تحديث حالة المختبر"></i>
                             </div>
                             <div class="fs-8 text-muted">${isMyOrder ? '<i class="bi bi-shield-check text-success"></i> طلبك الخاص' : ''}</div>
                         </div>
