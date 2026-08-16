@@ -51,12 +51,15 @@
         .table th { background-color: #f8fafc; color: #475569; font-weight: 700; font-size: 0.85rem; border-bottom: 2px solid #e2e8f0; }
         .table td { vertical-align: middle; font-size: 0.85rem; color: #334155; font-weight: 600; }
         
+        .locked-overlay { background: #f8fafc; border: 2px dashed #cbd5e1; border-radius: 16px; padding: 40px 20px; text-align: center; cursor: pointer; transition: 0.3s; }
+        .locked-overlay:hover { background: #e2e8f0; border-color: #94a3b8; }
+        
         ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 10px; }
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
         ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
         
-        @media print { .no-print { display: none !important; } .collapse-content { display: block !important; } }
+        @media print { .no-print { display: none !important; } .collapse-content { display: block !important; } .locked-overlay { display: none !important; } }
     </style>
 </head>
 <body>
@@ -109,7 +112,9 @@
                         <div class="bg-light p-3 rounded-3 border mt-2">
                             <label class="form-label fw-bold text-dark mb-2"><i class="bi bi-droplet-half text-primary me-1"></i> حالة إرسال عينة الزرع:</label>
                             <select id="l_sampleStatus" class="form-select border-primary" onchange="toggleAddSampleStatus()" required>
-                                <option value="sent" selected>بانتظار وصول العينة للمختبر (وضع طبيعي)</option>
+                                <option value="" disabled selected>اختر حالة العينة...</option>
+                                <option value="sent_before">أُرسلت العينة (قبل) البدء بالمضادات الحيوية</option>
+                                <option value="sent_after">أُرسلت العينة (بعد) البدء بالمضادات الحيوية</option>
                                 <option value="not_sent">لم يتم إرسال عينة زرع</option>
                             </select>
                             
@@ -120,6 +125,7 @@
                                     <option value="doctor_refused">رفض الطبيب ارسال عينة زرع</option>
                                     <option value="no_tools">عدم توفر الادوات اللازمة لجمع او زرع العينة</option>
                                     <option value="no_service">عدم توفر خدمة زرع العينات</option>
+                                    <option value="other">أخرى...</option>
                                 </select>
                                 
                                 <div id="addToolsBlock" class="d-none mt-3">
@@ -128,12 +134,25 @@
                                 </div>
                                 
                                 <div id="addServiceBlock" class="d-none mt-3">
-                                    <label class="form-label fs-7 fw-bold text-muted">حدد وقت طلب عمل الزرع:</label>
-                                    <select id="l_serviceTiming" class="form-select">
-                                        <option value="خلال الدوام الرسمي">خلال الدوام الرسمي</option>
-                                        <option value="بعد الدوام الرسمي">بعد الدوام الرسمي</option>
-                                        <option value="عطلة">عطلة</option>
-                                    </select>
+                                    <div class="row g-2">
+                                        <div class="col-12 col-md-6">
+                                            <label class="form-label fs-7 fw-bold text-muted">الخدمة غير متوفرة خلال:</label>
+                                            <select id="l_serviceTiming" class="form-select">
+                                                <option value="خلال الدوام الرسمي">خلال الدوام الرسمي</option>
+                                                <option value="بعد الدوام الرسمي">بعد الدوام الرسمي</option>
+                                                <option value="عطلة">عطلة</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-12 col-md-6">
+                                            <label class="form-label fs-7 fw-bold text-muted">حدد وقت طلب عمل الزرع (بالساعات):</label>
+                                            <input type="time" id="l_serviceTime" class="form-control">
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div id="addOtherBlock" class="d-none mt-3">
+                                    <label class="form-label fs-7 fw-bold text-muted">السبب (يرجى التوضيح):</label>
+                                    <input type="text" id="l_otherReason" class="form-control" placeholder="اكتب سبب عدم إرسال العينة هنا...">
                                 </div>
                             </div>
                         </div>
@@ -142,6 +161,7 @@
                     <div class="col-12 mt-3"><button type="submit" class="btn btn-primary w-100 fw-bold py-2"><i class="bi bi-send-fill me-1"></i> إرسال الطلب</button></div>
                 </form>
             </div>
+            
             <div class="card p-4 mb-4 bg-light border">
                 <h6 class="text-secondary mb-3 fw-bold"><i class="bi bi-search me-1"></i> البحث (تظهر طلبات اليوم فقط افتراضياً)</h6>
                 <div class="row g-3">
@@ -229,11 +249,11 @@
 
             <div class="card">
                 <div class="card-header bg-white p-3 d-flex justify-content-between align-items-center collapsible-header" onclick="toggleSection('summaryContent', 'summaryChevron')">
-                    <h6 class="mb-0 text-primary fw-bold fs-6"><i class="bi bi-speedometer2 me-2"></i> ملخص الإحصائيات</h6>
+                    <h6 class="mb-0 text-primary fw-bold fs-6"><i class="bi bi-speedometer2 me-2"></i> ملخص الإحصائيات العامة (متاح للجميع)</h6>
                     <i class="bi bi-chevron-down chevron-icon" id="summaryChevron"></i>
                 </div>
                 <div id="summaryContent" class="collapse-content card-body p-3 border-top border-light">
-                    <div class="row g-2">
+                    <div class="row g-2 mb-4">
                         <div class="col-6 col-md">
                             <div class="kpi-card" style="border-top-color: #3b82f6;">
                                 <div class="kpi-label">إجمالي الطلبات</div>
@@ -254,7 +274,7 @@
                         </div>
                         <div class="col-6 col-md">
                             <div class="kpi-card" style="border-top-color: #f59e0b;">
-                                <div class="kpi-label">بانتظار وصول العينة ⏳</div>
+                                <div class="kpi-label">بانتظار الوصول ⏳</div>
                                 <div class="kpi-value text-warning" id="pendingCount">0 <span class="fs-7 text-muted"></span></div>
                             </div>
                         </div>
@@ -265,19 +285,11 @@
                             </div>
                         </div>
                     </div>
-                </div>
-            </div>
 
-            <div class="card">
-                <div class="card-header bg-white p-3 d-flex justify-content-between align-items-center collapsible-header" onclick="toggleSection('chartsContent', 'chartsChevron')">
-                    <h6 class="mb-0 text-primary fw-bold fs-6"><i class="bi bi-pie-chart-fill me-2"></i> الرسوم البيانية للعينات</h6>
-                    <i class="bi bi-chevron-down chevron-icon" id="chartsChevron"></i>
-                </div>
-                <div id="chartsContent" class="collapse-content card-body p-3 border-top border-light">
                     <div class="row g-3">
                         <div class="col-12 col-md-4">
                             <div class="card p-3 text-center h-100 border shadow-sm">
-                                <h6 class="text-muted fw-bold mb-3 fs-7">توزيع نسب العينات</h6>
+                                <h6 class="text-muted fw-bold mb-3 fs-7">توزيع نسب استلام العينات</h6>
                                 <div style="height: 250px; display: flex; justify-content: center;">
                                     <canvas id="statusPieChart"></canvas>
                                 </div>
@@ -285,11 +297,9 @@
                         </div>
                         <div class="col-12 col-md-4">
                             <div class="card p-3 text-center h-100 border shadow-sm">
-                                <h6 class="text-muted fw-bold mb-3 fs-7">الأطباء الأكثر طلباً للميروبينيم</h6>
-                                <div style="height: 250px; overflow-y: auto; overflow-x: hidden; padding-left: 5px;" dir="ltr">
-                                    <div id="docsChartWrapper" dir="rtl" style="height: 250px; position: relative;">
-                                        <canvas id="doctorsBarChart"></canvas>
-                                    </div>
+                                <h6 class="text-muted fw-bold mb-3 fs-7">أسباب عدم إرسال العينة 🚫</h6>
+                                <div style="height: 250px; display: flex; justify-content: center;">
+                                    <canvas id="reasonsPieChart"></canvas>
                                 </div>
                             </div>
                         </div>
@@ -307,48 +317,71 @@
                 </div>
             </div>
 
-            <div class="card">
-                <div class="card-header bg-white p-3 d-flex justify-content-between align-items-center collapsible-header" onclick="toggleSection('docRefusalContent', 'docRefusalChevron')">
-                    <h6 class="mb-0 text-danger fw-bold fs-6"><i class="bi bi-slash-circle-fill me-2"></i> إحصائيات الأطباء لعدم إرسال العينات 🚫</h6>
-                    <i class="bi bi-chevron-down chevron-icon" id="docRefusalChevron"></i>
-                </div>
-                <div id="docRefusalContent" class="collapse-content card-body p-0 border-top border-light">
-                    <div class="table-responsive">
-                        <table class="table table-hover align-middle mb-0">
-                            <thead class="table-light fs-7">
-                                <tr>
-                                    <th class="px-4 py-2">الطبيب</th>
-                                    <th class="text-center py-2">حالات (لم ترسل العينة)</th>
-                                    <th class="text-center py-2">إجمالي الطلبات</th>
-                                    <th class="text-center py-2">النسبة 📊</th>
-                                </tr>
-                            </thead>
-                            <tbody id="doctorsRefusalBody" class="fs-7"></tbody>
-                        </table>
-                    </div>
-                </div>
+            <div id="adminLockedView" class="locked-overlay no-print" onclick="unlockAdminStats()">
+                <i class="bi bi-lock-fill text-secondary" style="font-size: 3rem;"></i>
+                <h5 class="fw-bold mt-3 text-dark">إحصائيات الأطباء مقفلة</h5>
+                <p class="text-muted fs-7">اضغط هنا لإدخال كلمة مرور الإدارة وعرض تفاصيل نسب الأطباء</p>
             </div>
 
-            <div class="card">
-                <div class="card-header bg-white p-3 d-flex justify-content-between align-items-center collapsible-header" onclick="toggleSection('docCombinedContent', 'docCombinedChevron')">
-                    <h6 class="mb-0 text-dark fw-bold fs-6"><i class="bi bi-journal-x me-2"></i> سجل غياب العينات الكلي (لم تُستلم + لم تُرسل) 📊</h6>
-                    <i class="bi bi-chevron-down chevron-icon" id="docCombinedChevron"></i>
-                </div>
-                <div id="docCombinedContent" class="collapse-content card-body p-0 border-top border-light">
-                    <div class="table-responsive">
-                        <table class="table table-hover align-middle mb-0">
-                            <thead class="table-light fs-7">
-                                <tr>
-                                    <th class="px-4 py-2">الطبيب</th>
-                                    <th class="text-center py-2">لم تُستلم بالمختبر ❌</th>
-                                    <th class="text-center py-2">لم تُرسل أساساً 🚫</th>
-                                    <th class="text-center py-2">المجموع</th>
-                                    <th class="text-center py-2">الإجمالي</th>
-                                    <th class="text-center py-2">النسبة 📊</th>
-                                </tr>
-                            </thead>
-                            <tbody id="doctorsCombinedBody" class="fs-7"></tbody>
-                        </table>
+            <div id="adminUnlockedView" class="d-none">
+                <div class="card border-danger border-2 mt-4">
+                    <div class="card-header bg-danger bg-opacity-10 p-3 d-flex justify-content-between align-items-center">
+                        <h6 class="mb-0 text-danger fw-bold fs-6"><i class="bi bi-unlock-fill me-2"></i> قسم الإدارة (سري)</h6>
+                        <button class="btn btn-sm btn-outline-danger fw-bold rounded-pill" onclick="lockAdminStats()">قفل</button>
+                    </div>
+                    <div class="card-body p-3">
+                        <div class="card p-3 text-center border shadow-sm mb-4">
+                            <h6 class="text-muted fw-bold mb-3 fs-7">الأطباء الأكثر طلباً للميروبينيم</h6>
+                            <div style="height: 300px; overflow-y: auto; overflow-x: hidden; padding-left: 5px;" dir="ltr">
+                                <div id="docsChartWrapper" dir="rtl" style="height: 300px; position: relative;">
+                                    <canvas id="doctorsBarChart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card border shadow-sm mb-4">
+                            <div class="card-header bg-white p-3">
+                                <h6 class="mb-0 text-danger fw-bold fs-6"><i class="bi bi-slash-circle-fill me-2"></i> نسبة رفض ارسال العينات من قبل الاطباء 🚫</h6>
+                            </div>
+                            <div class="card-body p-0">
+                                <div class="table-responsive">
+                                    <table class="table table-hover align-middle mb-0">
+                                        <thead class="table-light fs-7">
+                                            <tr>
+                                                <th class="px-4 py-2">اسم الطبيب</th>
+                                                <th class="text-center py-2">حالات (رفض الطبيب إرسال عينة)</th>
+                                                <th class="text-center py-2">إجمالي طلبات الطبيب</th>
+                                                <th class="text-center py-2">النسبة 📊</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="doctorsRefusalBody" class="fs-7"></tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card border shadow-sm">
+                            <div class="card-header bg-white p-3">
+                                <h6 class="mb-0 text-dark fw-bold fs-6"><i class="bi bi-journal-x me-2"></i> نسبة الغياب الكلي للارسال (لم تُستلم + لم تُرسل) 📊</h6>
+                            </div>
+                            <div class="card-body p-0">
+                                <div class="table-responsive">
+                                    <table class="table table-hover align-middle mb-0">
+                                        <thead class="table-light fs-7">
+                                            <tr>
+                                                <th class="px-4 py-2">اسم الطبيب</th>
+                                                <th class="text-center py-2">لم تُستلم ❌</th>
+                                                <th class="text-center py-2">لم تُرسل 🚫</th>
+                                                <th class="text-center py-2">المجموع</th>
+                                                <th class="text-center py-2">الإجمالي</th>
+                                                <th class="text-center py-2">النسبة الكلية 📊</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="doctorsCombinedBody" class="fs-7"></tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -400,7 +433,9 @@
                             <div class="bg-light p-3 rounded-3 border mt-2">
                                 <label class="form-label fw-bold text-dark mb-2"><i class="bi bi-droplet-half text-primary me-1"></i> حالة إرسال عينة الزرع:</label>
                                 <select id="edit_l_sampleStatus" class="form-select border-primary" onchange="toggleEditSampleStatus()" required>
-                                    <option value="sent">بانتظار وصول العينة للمختبر (وضع طبيعي)</option>
+                                    <option value="" disabled selected>اختر حالة العينة...</option>
+                                    <option value="sent_before">أُرسلت العينة (قبل) البدء بالمضادات الحيوية</option>
+                                    <option value="sent_after">أُرسلت العينة (بعد) البدء بالمضادات الحيوية</option>
                                     <option value="not_sent">لم يتم إرسال عينة زرع</option>
                                 </select>
                                 
@@ -411,6 +446,7 @@
                                         <option value="doctor_refused">رفض الطبيب ارسال عينة زرع</option>
                                         <option value="no_tools">عدم توفر الادوات اللازمة لجمع او زرع العينة</option>
                                         <option value="no_service">عدم توفر خدمة زرع العينات</option>
+                                        <option value="other">أخرى...</option>
                                     </select>
                                     
                                     <div id="editToolsBlock" class="d-none mt-3">
@@ -419,12 +455,25 @@
                                     </div>
                                     
                                     <div id="editServiceBlock" class="d-none mt-3">
-                                        <label class="form-label fs-7 fw-bold text-muted">حدد وقت طلب عمل الزرع:</label>
-                                        <select id="edit_l_serviceTiming" class="form-select">
-                                            <option value="خلال الدوام الرسمي">خلال الدوام الرسمي</option>
-                                            <option value="بعد الدوام الرسمي">بعد الدوام الرسمي</option>
-                                            <option value="عطلة">عطلة</option>
-                                        </select>
+                                        <div class="row g-2">
+                                            <div class="col-12 col-md-6">
+                                                <label class="form-label fs-7 fw-bold text-muted">الخدمة غير متوفرة خلال:</label>
+                                                <select id="edit_l_serviceTiming" class="form-select">
+                                                    <option value="خلال الدوام الرسمي">خلال الدوام الرسمي</option>
+                                                    <option value="بعد الدوام الرسمي">بعد الدوام الرسمي</option>
+                                                    <option value="عطلة">عطلة</option>
+                                                </select>
+                                            </div>
+                                            <div class="col-12 col-md-6">
+                                                <label class="form-label fs-7 fw-bold text-muted">الوقت (بالساعات):</label>
+                                                <input type="time" id="edit_l_serviceTime" class="form-control">
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div id="editOtherBlock" class="d-none mt-3">
+                                        <label class="form-label fs-7 fw-bold text-muted">السبب (يرجى التوضيح):</label>
+                                        <input type="text" id="edit_l_otherReason" class="form-control" placeholder="اكتب سبب عدم إرسال العينة هنا...">
                                     </div>
                                 </div>
                             </div>
@@ -445,9 +494,12 @@
         import { getFirestore, collection, addDoc, onSnapshot, doc, updateDoc, query, orderBy } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
         const firebaseConfig = { apiKey: "AIzaSyCqm16V1ESpEbZZ8SJA8GTzFdtbexrPwaE", authDomain: "meropenem-app.firebaseapp.com", projectId: "meropenem-app", storageBucket: "meropenem-app.firebasestorage.app", messagingSenderId: "387581088853", appId: "1:387581088853:web:2a4e1a37c8372bf20af0dc" };
         const app = initializeApp(firebaseConfig); const db = getFirestore(app); const ordersRef = collection(db, "meropenem_orders"); const settingsRef = doc(db, "settings", "lab_config");
-        let labPasscode = "1234"; let allOrders = []; let activeActionId = null; let isLabLoggedIn = false;
+        
+        let labPasscode = "1234"; 
+        let systemAdminPass = "admin123"; // كلمة مرور الإدارة لفتح الإحصائيات
+        let allOrders = []; let activeActionId = null; let isLabLoggedIn = false; let isAdminUnlocked = false;
         let promptModal, alertModal, legacyEditModal, labStatusModal;
-        let pieChartInstance = null; let wardsChartInstance = null; let doctorsChartInstance = null;
+        let pieChartInstance = null; let reasonsPieChartInstance = null; let wardsChartInstance = null; let doctorsChartInstance = null;
 
         document.addEventListener('DOMContentLoaded', () => {
             promptModal = new bootstrap.Modal(document.getElementById('customPromptModal')); alertModal = new bootstrap.Modal(document.getElementById('customAlertModal'));
@@ -469,6 +521,7 @@
             const val = document.getElementById('l_noSampleReason').value;
             document.getElementById('addToolsBlock').classList.toggle('d-none', val !== 'no_tools');
             document.getElementById('addServiceBlock').classList.toggle('d-none', val !== 'no_service');
+            document.getElementById('addOtherBlock').classList.toggle('d-none', val !== 'other');
         };
 
         window.toggleEditSampleStatus = () => {
@@ -480,33 +533,50 @@
             const val = document.getElementById('edit_l_noSampleReason').value;
             document.getElementById('editToolsBlock').classList.toggle('d-none', val !== 'no_tools');
             document.getElementById('editServiceBlock').classList.toggle('d-none', val !== 'no_service');
+            document.getElementById('editOtherBlock').classList.toggle('d-none', val !== 'other');
         };
 
         // Standard Helpers
         function askPrompt(title, text, type = 'password') { return new Promise(resolve => { document.getElementById('promptTitle').innerText = title; document.getElementById('promptText').innerText = text; const input = document.getElementById('promptInput'); input.type = type; input.value = ''; const btnConfirm = document.getElementById('promptConfirmBtn'); const btnCancel = document.getElementById('promptCancelBtn'); const cleanup = () => { btnConfirm.onclick = null; btnCancel.onclick = null; input.onkeyup = null; promptModal.hide(); }; btnConfirm.onclick = () => { resolve(input.value); cleanup(); }; btnCancel.onclick = () => { resolve(null); cleanup(); }; input.onkeyup = (e) => { if(e.key === 'Enter') { resolve(input.value); cleanup(); } }; promptModal.show(); setTimeout(() => input.focus(), 500); }); }
         function showAlert(title, text, isSuccess = true) { return new Promise(resolve => { document.getElementById('alertTitle').innerText = title; document.getElementById('alertText').innerText = text; const icon = document.getElementById('alertIcon'); const btn = document.getElementById('alertOkBtn'); if(isSuccess) { icon.innerHTML = '<i class="bi bi-check-circle-fill text-success"></i>'; btn.className = 'btn btn-success w-100 fw-bold'; } else { icon.innerHTML = '<i class="bi bi-x-circle-fill text-danger"></i>'; btn.className = 'btn btn-danger w-100 fw-bold'; } const cleanup = () => { btn.onclick = null; alertModal.hide(); }; btn.onclick = () => { resolve(); cleanup(); }; alertModal.show(); }); }
 
-        window.switchTab = (tabId, element) => { document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active')); document.querySelectorAll('.nav-item').forEach(nav => nav.classList.remove('active')); document.getElementById(tabId).classList.add('active'); element.classList.add('active'); };
+        window.switchTab = (tabId, element) => { document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active')); document.querySelectorAll('.nav-item').forEach(nav => nav.classList.remove('active')); document.getElementById(tabId).classList.add('active'); element.classList.add('active'); if (tabId === 'tab-stats' && isAdminUnlocked) window.loadAnalytics(); };
         window.toggleSection = (contentId, chevronId) => { const content = document.getElementById(contentId); const chevron = document.getElementById(chevronId); if (content.classList.contains('d-none')) { content.classList.remove('d-none'); chevron.classList.remove('rotated'); } else { content.classList.add('d-none'); chevron.classList.add('rotated'); } };
         window.toggleReportInputs = () => { const type = document.getElementById('reportType').value; if (type === 'monthly') { document.getElementById('monthlyInputContainer').classList.remove('d-none'); document.getElementById('yearlyInputContainer').classList.add('d-none'); } else { document.getElementById('monthlyInputContainer').classList.add('d-none'); document.getElementById('yearlyInputContainer').classList.remove('d-none'); } window.loadAnalytics(); };
 
-        onSnapshot(settingsRef, (docSnap) => { if (docSnap.exists()) labPasscode = docSnap.data().passcode || "1234"; });
+        onSnapshot(settingsRef, (docSnap) => { if (docSnap.exists()) { labPasscode = docSnap.data().passcode || "1234"; systemAdminPass = docSnap.data().adminPass || "admin123"; } });
 
         // Add Order Submit
         document.getElementById('legacyForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             try {
                 let status = 'pending';
+                let sampleTiming = null; // before / after
                 let notSentReason = null;
                 let notSentDetails = null;
 
-                if (document.getElementById('l_sampleStatus').value === 'not_sent') {
+                const sStatus = document.getElementById('l_sampleStatus').value;
+                if (!sStatus) { await showAlert('خطأ', 'يرجى اختيار حالة العينة.', false); return; }
+
+                if (sStatus === 'sent_before') { sampleTiming = 'before'; } 
+                else if (sStatus === 'sent_after') { sampleTiming = 'after'; } 
+                else if (sStatus === 'not_sent') {
                     status = 'not_sent';
                     notSentReason = document.getElementById('l_noSampleReason').value;
                     if (!notSentReason) { await showAlert('خطأ', 'يرجى اختيار سبب عدم إرسال العينة.', false); return; }
                     
-                    if (notSentReason === 'no_tools') notSentDetails = document.getElementById('l_sampleType').value;
-                    else if (notSentReason === 'no_service') notSentDetails = document.getElementById('l_serviceTiming').value;
+                    if (notSentReason === 'no_tools') {
+                        notSentDetails = document.getElementById('l_sampleType').value;
+                        if (!notSentDetails) { await showAlert('خطأ', 'يرجى كتابة نوع العينة المفقود.', false); return; }
+                    } else if (notSentReason === 'no_service') {
+                        let timing = document.getElementById('l_serviceTiming').value;
+                        let hours = document.getElementById('l_serviceTime').value;
+                        if (!hours) { await showAlert('خطأ', 'يرجى تحديد وقت طلب الزرع بالساعات.', false); return; }
+                        notSentDetails = timing + ' (الساعة: ' + hours + ')';
+                    } else if (notSentReason === 'other') {
+                        notSentDetails = document.getElementById('l_otherReason').value;
+                        if (!notSentDetails) { await showAlert('خطأ', 'يرجى كتابة السبب التوضيحي.', false); return; }
+                    }
                 }
 
                 await addDoc(ordersRef, { 
@@ -515,6 +585,7 @@
                     ward: document.getElementById('l_ward').value, 
                     orderDate: document.getElementById('l_orderDate').value, 
                     status: status, 
+                    sampleTiming: sampleTiming,
                     notSentReason: notSentReason,
                     notSentDetails: notSentDetails,
                     isDeleted: false, 
@@ -554,22 +625,24 @@
             if (filtered.length === 0) { cont.innerHTML = '<div class="card p-4 text-center text-muted fw-bold">لا توجد طلبات للعرض</div>'; return; }
 
             cont.innerHTML = filtered.map(o => {
-                // Determine Status strings based on new requirements
                 const isNotSent = (o.status === 'not_sent' || o.status === 'doctor_refused');
                 let badge = o.status === 'confirmed' ? '✅ إستُلمت العينة' : o.status === 'rejected' ? '❌ لم تُستلم العينة' : isNotSent ? '🚫 لم ترسل العينة' : '⏳ بانتظار وصول العينة';
                 let col = o.status === 'confirmed' ? 'text-success' : (o.status === 'rejected' || isNotSent) ? 'text-danger' : 'text-warning text-dark';
                 
+                let timingBadge = '';
+                if (o.sampleTiming === 'before') timingBadge = '<span class="badge bg-primary bg-opacity-10 text-primary border border-primary ms-1">عينة قبل المضاد</span>';
+                else if (o.sampleTiming === 'after') timingBadge = '<span class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary ms-1">عينة بعد المضاد</span>';
+
                 const orderTime = o.createdAt ? (o.createdAt.toDate ? o.createdAt.toDate() : new Date(o.createdAt)) : new Date(o.orderDate);
                 const hoursDiff = (new Date() - orderTime) / (1000 * 60 * 60);
                 const canEditPatient = (o.status !== 'confirmed') && (hoursDiff < 24);
 
-                // Build reason text if sample not sent
                 let reasonHtml = '';
                 if (isNotSent) {
-                    let reasonText = 'رفض الطبيب ارسال عينة زرع';
-                    let detailsText = '';
-                    if (o.notSentReason === 'no_tools') { reasonText = 'عدم توفر الأدوات لجمع أو زرع العينة'; detailsText = o.notSentDetails ? `(${o.notSentDetails})` : ''; }
-                    else if (o.notSentReason === 'no_service') { reasonText = 'عدم توفر خدمة زرع العينات'; detailsText = o.notSentDetails ? `(${o.notSentDetails})` : ''; }
+                    let reasonText = 'رفض الطبيب ارسال عينة زرع'; let detailsText = '';
+                    if (o.notSentReason === 'no_tools') { reasonText = 'عدم توفر الأدوات'; detailsText = o.notSentDetails ? `(${o.notSentDetails})` : ''; }
+                    else if (o.notSentReason === 'no_service') { reasonText = 'عدم توفر الخدمة'; detailsText = o.notSentDetails ? `(${o.notSentDetails})` : ''; }
+                    else if (o.notSentReason === 'other') { reasonText = 'أخرى'; detailsText = o.notSentDetails ? `(${o.notSentDetails})` : ''; }
                     reasonHtml = `<div class="fs-7 text-danger mt-2 fw-bold bg-danger bg-opacity-10 p-2 rounded border border-danger border-opacity-25"><i class="bi bi-info-circle-fill me-1"></i>السبب: ${reasonText} ${detailsText}</div>`;
                 }
 
@@ -578,7 +651,7 @@
                         <div class="d-flex justify-content-between align-items-start mb-2">
                             <div>
                                 <h6 class="fw-bold mb-1 text-primary">${o.patientName} ${canEditPatient ? `<i class="bi bi-pencil-square text-secondary ms-2 icon-btn" onclick="openLegacyEdit('${o.id}')"></i>` : ''}</h6>
-                                <span class="badge bg-light text-dark border">${o.ward}</span> <span class="badge bg-primary bg-opacity-10 text-primary border">د. ${o.doctorName}</span>
+                                <span class="badge bg-light text-dark border">${o.ward}</span> <span class="badge bg-primary bg-opacity-10 text-primary border">د. ${o.doctorName}</span> ${timingBadge}
                             </div>
                             <div class="text-end">
                                 <div class="fs-7 fw-bold ${col} bg-light p-1 px-2 border rounded-pill d-inline-flex align-items-center">${badge} <i class="bi bi-pencil-fill text-dark ms-2 icon-btn" onclick="openLabModal('${o.id}')"></i></div>
@@ -601,15 +674,28 @@
             document.getElementById('edit_l_date').value = o.orderDate; 
             
             const isNotSent = (o.status === 'not_sent' || o.status === 'doctor_refused');
-            document.getElementById('edit_l_sampleStatus').value = isNotSent ? 'not_sent' : 'sent';
+            if (isNotSent) document.getElementById('edit_l_sampleStatus').value = 'not_sent';
+            else if (o.sampleTiming === 'before') document.getElementById('edit_l_sampleStatus').value = 'sent_before';
+            else if (o.sampleTiming === 'after') document.getElementById('edit_l_sampleStatus').value = 'sent_after';
+            else document.getElementById('edit_l_sampleStatus').value = 'sent_before'; // default for legacy
+            
             toggleEditSampleStatus();
 
             if (isNotSent) {
-                const reason = o.notSentReason || 'doctor_refused'; // Fallback for old records
+                const reason = o.notSentReason || 'doctor_refused'; 
                 document.getElementById('edit_l_noSampleReason').value = reason;
                 toggleEditReasonDetails();
                 if (reason === 'no_tools') document.getElementById('edit_l_sampleType').value = o.notSentDetails || '';
-                if (reason === 'no_service') document.getElementById('edit_l_serviceTiming').value = o.notSentDetails || 'خلال الدوام الرسمي';
+                if (reason === 'no_service') {
+                    if(o.notSentDetails && o.notSentDetails.includes('(الساعة:')) {
+                        let parts = o.notSentDetails.split('(الساعة:');
+                        document.getElementById('edit_l_serviceTiming').value = parts[0].trim();
+                        document.getElementById('edit_l_serviceTime').value = parts[1].replace(')','').trim();
+                    } else {
+                        document.getElementById('edit_l_serviceTiming').value = o.notSentDetails || 'خلال الدوام الرسمي';
+                    }
+                }
+                if (reason === 'other') document.getElementById('edit_l_otherReason').value = o.notSentDetails || '';
             }
             legacyEditModal.show(); 
         };
@@ -617,12 +703,26 @@
         document.getElementById('legacyEditForm').addEventListener('submit', async (e) => { 
             e.preventDefault(); const id = document.getElementById('edit_l_id').value; 
             
-            let status = 'pending'; let notSentReason = null; let notSentDetails = null;
-            if (document.getElementById('edit_l_sampleStatus').value === 'not_sent') {
+            let status = 'pending'; let sampleTiming = null; let notSentReason = null; let notSentDetails = null;
+            const sStatus = document.getElementById('edit_l_sampleStatus').value;
+            if (!sStatus) { await showAlert('خطأ', 'يرجى اختيار حالة العينة.', false); return; }
+
+            if (sStatus === 'sent_before') { sampleTiming = 'before'; } 
+            else if (sStatus === 'sent_after') { sampleTiming = 'after'; }
+            else if (sStatus === 'not_sent') {
                 status = 'not_sent'; notSentReason = document.getElementById('edit_l_noSampleReason').value;
                 if (!notSentReason) { await showAlert('خطأ', 'يرجى اختيار سبب عدم إرسال العينة.', false); return; }
-                if (notSentReason === 'no_tools') notSentDetails = document.getElementById('edit_l_sampleType').value;
-                else if (notSentReason === 'no_service') notSentDetails = document.getElementById('edit_l_serviceTiming').value;
+                if (notSentReason === 'no_tools') {
+                    notSentDetails = document.getElementById('edit_l_sampleType').value;
+                    if (!notSentDetails) { await showAlert('خطأ', 'يرجى كتابة نوع العينة.', false); return; }
+                } else if (notSentReason === 'no_service') {
+                    let timing = document.getElementById('edit_l_serviceTiming').value; let hours = document.getElementById('edit_l_serviceTime').value;
+                    if (!hours) { await showAlert('خطأ', 'يرجى تحديد الوقت.', false); return; }
+                    notSentDetails = timing + ' (الساعة: ' + hours + ')';
+                } else if (notSentReason === 'other') {
+                    notSentDetails = document.getElementById('edit_l_otherReason').value;
+                    if (!notSentDetails) { await showAlert('خطأ', 'يرجى كتابة السبب التوضيحي.', false); return; }
+                }
             }
 
             await updateDoc(doc(db, "meropenem_orders", id), { 
@@ -630,7 +730,7 @@
                 doctorName: document.getElementById('edit_l_doctor').value.trim(), 
                 ward: document.getElementById('edit_l_ward').value, 
                 orderDate: document.getElementById('edit_l_date').value, 
-                status: status, notSentReason: notSentReason, notSentDetails: notSentDetails
+                status: status, sampleTiming: sampleTiming, notSentReason: notSentReason, notSentDetails: notSentDetails
             }); 
             legacyEditModal.hide(); await showAlert('نجاح', 'تم تحديث البيانات!'); 
         });
@@ -655,7 +755,15 @@
         };
         window.updateLabInbox = async (id, status) => { try { await updateDoc(doc(db, "meropenem_orders", id), { status: status, updatedAt: new Date() }); } catch (e) { await showAlert('خطأ', e.message, false); } };
 
-        // STATS TAB LOGIC
+        // STATS TAB LOGIC - Admin Unlock
+        window.unlockAdminStats = async () => {
+            const pass = await askPrompt('كلمة مرور الإدارة', 'يرجى إدخال كلمة المرور لعرض الإحصائيات السرية:');
+            if (pass === null) return;
+            if (pass === systemAdminPass) { isAdminUnlocked = true; document.getElementById('adminLockedView').classList.add('d-none'); document.getElementById('adminUnlockedView').classList.remove('d-none'); window.loadAnalytics(); } 
+            else { await showAlert('مرفوض', 'كلمة المرور خاطئة', false); }
+        };
+        window.lockAdminStats = () => { isAdminUnlocked = false; document.getElementById('adminLockedView').classList.remove('d-none'); document.getElementById('adminUnlockedView').classList.add('d-none'); };
+
         window.loadAnalytics = () => {
             const reportType = document.getElementById('reportType').value;
             let filteredOrders = [];
@@ -684,19 +792,34 @@
 
             const wardsCount = {}; const doctorsCount = {};
             const doctorsRefusedCount = {}; const doctorsRejectedCount = {};
+            const refusalReasonsCount = { doctor_refused: 0, no_tools: 0, no_service: 0, other: 0 };
 
             filteredOrders.forEach(o => {
                 const w = o.ward ? o.ward.trim() : 'أخرى';
                 wardsCount[w] = (wardsCount[w] || 0) + 1;
+                
                 const docName = o.doctorName ? o.doctorName.trim() : 'غير محدد';
                 doctorsCount[docName] = (doctorsCount[docName] || 0) + 1;
-                if (o.status === 'not_sent' || o.status === 'doctor_refused') doctorsRefusedCount[docName] = (doctorsRefusedCount[docName] || 0) + 1;
-                if (o.status === 'rejected') doctorsRejectedCount[docName] = (doctorsRejectedCount[docName] || 0) + 1;
+                
+                if (o.status === 'not_sent' || o.status === 'doctor_refused') {
+                    doctorsRefusedCount[docName] = (doctorsRefusedCount[docName] || 0) + 1;
+                    const reason = o.notSentReason || 'doctor_refused';
+                    if(refusalReasonsCount[reason] !== undefined) refusalReasonsCount[reason]++;
+                    else refusalReasonsCount['other']++; // fallback
+                }
+                
+                if (o.status === 'rejected') {
+                    doctorsRejectedCount[docName] = (doctorsRejectedCount[docName] || 0) + 1;
+                }
             });
 
-            updateCharts(confirmed, rejected, pending, docRefused, wardsCount, doctorsCount);
-            renderRefusalTable(doctorsCount, doctorsRefusedCount);
-            renderCombinedTable(doctorsCount, doctorsRejectedCount, doctorsRefusedCount);
+            updatePublicCharts(confirmed, rejected, pending, docRefused, wardsCount, refusalReasonsCount);
+            
+            if (isAdminUnlocked) {
+                updateAdminCharts(doctorsCount);
+                renderRefusalTable(doctorsCount, doctorsRefusedCount);
+                renderCombinedTable(doctorsCount, doctorsRejectedCount, doctorsRefusedCount);
+            }
         };
 
         function renderRefusalTable(doctorsTotal, doctorsRefused) {
@@ -727,7 +850,8 @@
             }).join('');
         }
 
-        function updateCharts(confirmed, rejected, pending, docRefused, wardsCount, doctorsCount) {
+        function updatePublicCharts(confirmed, rejected, pending, docRefused, wardsCount, reasonsCount) {
+            // Chart 1: Main Status
             const pieCtx = document.getElementById('statusPieChart').getContext('2d');
             if (pieChartInstance) pieChartInstance.destroy();
             pieChartInstance = new Chart(pieCtx, {
@@ -736,6 +860,19 @@
                 options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { font: { family: 'Cairo' } } } } }
             });
 
+            // Chart 2: Reasons for Not Sent
+            const reasonsCtx = document.getElementById('reasonsPieChart').getContext('2d');
+            if (reasonsPieChartInstance) reasonsPieChartInstance.destroy();
+            reasonsPieChartInstance = new Chart(reasonsCtx, {
+                type: 'pie',
+                data: { 
+                    labels: ['رفض الطبيب', 'نقص أدوات', 'عدم توفر خدمة', 'أخرى'], 
+                    datasets: [{ data: [reasonsCount.doctor_refused, reasonsCount.no_tools, reasonsCount.no_service, reasonsCount.other], backgroundColor: ['#ef4444', '#f97316', '#eab308', '#6b7280'], borderWidth: 1 }] 
+                },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { font: { family: 'Cairo' }, boxWidth: 12 } } } }
+            });
+
+            // Chart 3: Wards
             const wardsKeys = Object.keys(wardsCount).length ? Object.keys(wardsCount) : ['لا يوجد']; const wardsValues = Object.values(wardsCount).length ? Object.values(wardsCount) : [0]; const wardsTotal = wardsValues.reduce((a, b) => a + b, 0);
             document.getElementById('wardsChartWrapper').style.height = Math.max(250, wardsKeys.length * 40) + 'px';
             const wardsCtx = document.getElementById('wardsBarChart').getContext('2d');
@@ -745,9 +882,11 @@
                 data: { labels: wardsKeys, datasets: [{ label: 'الطلبات', data: wardsValues, backgroundColor: '#3b82f6', borderRadius: 4 }] },
                 options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: { callbacks: { label: function(context) { return ` ${context.raw} طلب (${wardsTotal > 0 ? Math.round((context.raw / wardsTotal) * 100) : 0}%)`; } }, titleFont: { family: 'Cairo' }, bodyFont: { family: 'Cairo' } } }, scales: { x: { beginAtZero: true, ticks: { stepSize: 1, font: { family: 'Cairo' } } }, y: { ticks: { font: { family: 'Cairo' }, autoSkip: false } } } }
             });
+        }
 
+        function updateAdminCharts(doctorsCount) {
             const docsKeys = Object.keys(doctorsCount).length ? Object.keys(doctorsCount) : ['لا يوجد']; const docsValues = Object.values(doctorsCount).length ? Object.values(doctorsCount) : [0]; const docsTotal = docsValues.reduce((a, b) => a + b, 0);
-            document.getElementById('docsChartWrapper').style.height = Math.max(250, docsKeys.length * 40) + 'px';
+            document.getElementById('docsChartWrapper').style.height = Math.max(300, docsKeys.length * 40) + 'px';
             const docsCtx = document.getElementById('doctorsBarChart').getContext('2d');
             if (doctorsChartInstance) doctorsChartInstance.destroy();
             doctorsChartInstance = new Chart(docsCtx, {
