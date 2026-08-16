@@ -533,7 +533,7 @@
         legacyEditModal = new bootstrap.Modal(document.getElementById('legacyEditModal')); 
         labStatusModal = new bootstrap.Modal(document.getElementById('labStatusModal'));
         
-        // (التعديل 2): استخدام التاريخ المحلي الصحيح لتجنب مشكلة منتصف الليل في العراق
+        // (التعديل 2): دالة التاريخ المحلي للعراق
         function getLocalDateString(date = new Date()) {
             const year = date.getFullYear();
             const month = String(date.getMonth() + 1).padStart(2, '0');
@@ -546,7 +546,7 @@
         const yearSelect = document.getElementById('reportYear'); const currentYear = new Date().getFullYear().toString();
         for (let y = 2024; y <= 2035; y++) { const opt = document.createElement('option'); opt.value = y; opt.innerText = y; if (y.toString() === currentYear) opt.selected = true; yearSelect.appendChild(opt); }
 
-        // (التعديل 1): دالة مساعدة آمنة لضمان وجود مستخدم مجهول دون شاشات Login
+        // (التعديل 1): دالة ensureAnonymousUser لضمان الجلسة الآمنة
         async function ensureAnonymousUser() {
             if (auth.currentUser) {
                 return auth.currentUser;
@@ -577,7 +577,7 @@
 
         ensureAnonymousUser().catch(err => console.error(err));
 
-        // (التعديل 3): حماية البيانات ضد ثغرات XSS
+        // (التعديل 3): دالة escapeHTML للحماية من XSS
         function escapeHTML(str) {
             if (!str) return '';
             return String(str)
@@ -601,17 +601,17 @@
         window.toggleSection = (contentId, chevronId) => { const content = document.getElementById(contentId); const chevron = document.getElementById(chevronId); if (content.classList.contains('d-none')) { content.classList.remove('d-none'); chevron.classList.remove('rotated'); } else { content.classList.add('d-none'); chevron.classList.add('rotated'); } };
         window.toggleReportInputs = () => { const type = document.getElementById('reportType').value; if (type === 'monthly') { document.getElementById('monthlyInputContainer').classList.remove('d-none'); document.getElementById('yearlyInputContainer').classList.add('d-none'); } else { document.getElementById('monthlyInputContainer').classList.add('d-none'); document.getElementById('yearlyInputContainer').classList.remove('d-none'); } window.loadAnalytics(); };
 
-        // (التعديل 8): إضافة Error Handlers لـ settings listener
+        // (التعديل 8): إضافة Error Handler لقراءة الإعدادات
         onSnapshot(settingsRef, (docSnap) => { 
             if (docSnap.exists()) { 
                 labPasscode = docSnap.data().passcode || "1234"; 
                 systemAdminPass = docSnap.data().adminPass || "admin123"; 
             } 
         }, (error) => {
-            console.error("Settings load error:", error);
+            console.error("Settings listener error:", error);
         });
 
-        // تقديم الطلب (مع استخدام ensureAnonymousUser و حماية null و createdAt)
+        // تقديم الطلب الآمن
         document.getElementById('legacyForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             
@@ -657,7 +657,7 @@
             } catch (err) { await showAlert('خطأ', err.message, false); }
         });
 
-        // (التعديل 11): تغيير نص الحذف ليكون أرشفة أو حذف من العرض
+        // (التعديل 11): تحديث نص الحذف إلى "حذف من العرض"
         window.deleteOrder = async (id) => {
             if(confirm('هل أنت متأكد من رغبتك في حذف هذا السجل من العرض؟')) {
                 try { await updateDoc(doc(db, "meropenem_orders", id), { isDeleted: true }); } 
@@ -665,7 +665,7 @@
             }
         };
 
-        // (التعديل 9): جلب البيانات وترتيبها بطريقة آمنة لا تفقد السجلات القديمة بدون createdAt
+        // (التعديل 8 و 9): إضافة Error Handler للسجل وترتيب يمنع ضياع السجلات القديمة بدون createdAt
         const q = query(ordersRef, orderBy("createdAt", "desc"));
         onSnapshot(q, (snapshot) => { 
             allOrders = []; 
@@ -673,7 +673,6 @@
                 allOrders.push({ id: docSnap.id, ...docSnap.data() }); 
             }); 
             
-            // ترتيب احتياطي يضمن عدم اختفاء السجلات القديمة التي قد لا تحتوي على createdAt
             allOrders.sort((a, b) => {
                 const timeA = a.createdAt?.toMillis ? a.createdAt.toMillis() : (new Date(a.orderDate || 0).getTime());
                 const timeB = b.createdAt?.toMillis ? b.createdAt.toMillis() : (new Date(b.orderDate || 0).getTime());
@@ -684,8 +683,8 @@
             if(isLabLoggedIn) window.renderLabInbox(); 
             window.loadAnalytics();
         }, (error) => {
-            console.error("Orders load error:", error);
-            document.getElementById('ordersContainer').innerHTML = '<div class="card p-4 text-center text-danger fw-bold">عذراً، حدث خطأ في تحميل السجل أو أن الاتصال مقطوع.</div>';
+            console.error("Orders listener error:", error);
+            document.getElementById('ordersContainer').innerHTML = '<div class="card p-4 text-center text-danger fw-bold">عذراً، حدث خطأ في تحميل السجل أو انقطع الاتصال بالشبكة.</div>';
         });
 
         onAuthStateChanged(auth, (user) => { if(user) window.renderMainOrders(); });
@@ -699,7 +698,7 @@
             let isSearching = searchVal || wardVal || sDate || eDate;
             const currentUid = auth.currentUser ? auth.currentUser.uid : null;
 
-            // (التعديل 4): معالجة آمنة لبيانات Firestore القديمة والن ناقصة
+            // (التعديل 4): حماية الكود من قيم null والبيانات الناقصة
             const filtered = allOrders.filter(o => {
                 if (!o || o.isDeleted || o.isSmartForm) return false; 
                 const pName = String(o.patientName || '').toLowerCase();
@@ -856,7 +855,7 @@
             }
         };
         
-        // (التعديل 7): استخدام setDoc مع { merge: true } لتجنب فشل التعديل إن لم يكن المستند موجوداً
+        // (التعديل 7): استخدام setDoc مع { merge: true }
         window.changeLabPasscode = () => {
             askPrompt('تغيير الرمز', 'أدخل رمز المختبر الحالي:').then(async old => {
                 if(old === null) return;
@@ -916,7 +915,7 @@
 
         window.lockAdminStats = () => { isAdminUnlocked = false; document.getElementById('adminLockedView').classList.remove('d-none'); document.getElementById('adminUnlockedView').classList.add('d-none'); };
 
-        // (التعديل 5 و 6): فصل إحصائيات رفض الطبيب عن إحصائيات عدم الإرسال الكلي
+        // (التعديل 5 و 6): فصل إحصائيات رفض الطبيب عن عدم الإرسال الكلي وصياغة المتغيرات
         window.loadAnalytics = () => {
             const reportType = document.getElementById('reportType').value;
             let filteredOrders = [];
@@ -936,7 +935,6 @@
             const rejected = filteredOrders.filter(o => o.status === 'rejected').length;
             const pending = filteredOrders.filter(o => o.status === 'pending').length;
             
-            // notSentCount يحسب كل حالات عدم الإرسال
             const notSentCount = filteredOrders.filter(o => o.status === 'not_sent' || o.status === 'doctor_refused').length;
 
             document.getElementById('totalOrders').innerText = total;
@@ -960,7 +958,6 @@
                 if (o.status === 'not_sent' || o.status === 'doctor_refused') {
                     doctorsNotSentCount[docName] = (doctorsNotSentCount[docName] || 0) + 1;
                     
-                    // حساب حصري لرفض الطبيب
                     if (o.status === 'doctor_refused' || o.notSentReason === 'doctor_refused') {
                         doctorsDoctorRefusedCount[docName] = (doctorsDoctorRefusedCount[docName] || 0) + 1;
                     }
@@ -983,8 +980,8 @@
             
             if (isAdminUnlocked) {
                 updateAdminCharts(doctorsCount);
-                renderRefusalTable(doctorsCount, doctorsDoctorRefusedCount); // جدول رفض الطبيب الصريح
-                renderCombinedTable(doctorsCount, doctorsRejectedCount, doctorsNotSentCount); // جدول الغياب الكلي
+                renderRefusalTable(doctorsCount, doctorsDoctorRefusedCount); 
+                renderCombinedTable(doctorsCount, doctorsRejectedCount, doctorsNotSentCount); 
             }
         };
 
