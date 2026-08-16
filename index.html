@@ -555,9 +555,26 @@
 
         onSnapshot(settingsRef, (docSnap) => { if (docSnap.exists()) { labPasscode = docSnap.data().passcode || "1234"; systemAdminPass = docSnap.data().adminPass || "admin123"; } });
 
+        // دالة الإرسال المعدلة لضمان انتظار اكتمال الاتصال المجهول مع serverTimestamp
         document.getElementById('legacyForm').addEventListener('submit', async (e) => {
             e.preventDefault();
-            if(!auth.currentUser) { await showAlert('خطأ', 'جاري تهيئة الاتصال الآمن (تأكد من تفعيل Anonymous Auth في Firebase)، يرجى المحاولة بعد قليل...', false); return; }
+            
+            let user = auth.currentUser;
+            if (!user) {
+                await new Promise((resolve) => {
+                    const unsubscribe = onAuthStateChanged(auth, (u) => {
+                        unsubscribe();
+                        resolve(u);
+                    });
+                    setTimeout(() => resolve(null), 2000);
+                });
+                user = auth.currentUser;
+            }
+
+            if (!user) {
+                await showAlert('خطأ في الاتصال', 'جاري تهيئة الاتصال الآمن (تأكد من تفعيل Anonymous Auth في Firebase)، يرجى المحاولة بعد قليل...', false);
+                return;
+            }
             
             try {
                 let status = 'pending'; let sampleTiming = null; let notSentReason = null; let notSentDetails = null;
@@ -582,7 +599,7 @@
                     orderDate: document.getElementById('l_orderDate').value, 
                     status: status, sampleTiming: sampleTiming, notSentReason: notSentReason, notSentDetails: notSentDetails,
                     isDeleted: false, isSmartForm: false, 
-                    submitterId: auth.currentUser.uid, 
+                    submitterId: user.uid, 
                     createdAt: serverTimestamp() 
                 });
                 
