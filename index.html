@@ -546,36 +546,19 @@
         const yearSelect = document.getElementById('reportYear'); const currentYear = new Date().getFullYear().toString();
         for (let y = 2024; y <= 2035; y++) { const opt = document.createElement('option'); opt.value = y; opt.innerText = y; if (y.toString() === currentYear) opt.selected = true; yearSelect.appendChild(opt); }
 
-        // (التعديل 1): دالة ensureAnonymousUser لضمان الجلسة الآمنة
+        // دالة آمنة سريعة للتأكد من تسجيل الدخول المجهول دون إبطاء الإرسال
         async function ensureAnonymousUser() {
-            if (auth.currentUser) {
+            if (auth.currentUser) return auth.currentUser;
+            try {
+                const cred = await signInAnonymously(auth);
+                return cred.user;
+            } catch (err) {
+                console.warn("Auth fallback active:", err);
                 return auth.currentUser;
             }
-            return new Promise((resolve, reject) => {
-                const unsubscribe = onAuthStateChanged(auth, (user) => {
-                    unsubscribe();
-                    if (user) {
-                        resolve(user);
-                    } else {
-                        signInAnonymously(auth)
-                            .then((credential) => resolve(credential.user))
-                            .catch((error) => {
-                                console.error("Anonymous auth failed:", error);
-                                reject(new Error("تعذر الاتصال بقاعدة البيانات الآمنة. يرجى التحقق من اتصال الإنترنت."));
-                            });
-                    }
-                });
-                setTimeout(() => {
-                    if (auth.currentUser) {
-                        resolve(auth.currentUser);
-                    } else {
-                        reject(new Error("انتهت مهلة الاتصال بالخادم."));
-                    }
-                }, 5000);
-            });
         }
 
-        ensureAnonymousUser().catch(err => console.error(err));
+        ensureAnonymousUser();
 
         // (التعديل 3): دالة escapeHTML للحماية من XSS
         function escapeHTML(str) {
@@ -601,7 +584,7 @@
         window.toggleSection = (contentId, chevronId) => { const content = document.getElementById(contentId); const chevron = document.getElementById(chevronId); if (content.classList.contains('d-none')) { content.classList.remove('d-none'); chevron.classList.remove('rotated'); } else { content.classList.add('d-none'); chevron.classList.add('rotated'); } };
         window.toggleReportInputs = () => { const type = document.getElementById('reportType').value; if (type === 'monthly') { document.getElementById('monthlyInputContainer').classList.remove('d-none'); document.getElementById('yearlyInputContainer').classList.add('d-none'); } else { document.getElementById('monthlyInputContainer').classList.add('d-none'); document.getElementById('yearlyInputContainer').classList.remove('d-none'); } window.loadAnalytics(); };
 
-        // (التعديل 8): إضافة Error Handler لقراءة الإعدادات
+        // (التعديل 8): Error Handler لقراءة الإعدادات
         onSnapshot(settingsRef, (docSnap) => { 
             if (docSnap.exists()) { 
                 labPasscode = docSnap.data().passcode || "1234"; 
@@ -611,16 +594,18 @@
             console.error("Settings listener error:", error);
         });
 
-        // تقديم الطلب الآمن
+        // تقديم الطلب السريع والآمن
         document.getElementById('legacyForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             
-            let user;
-            try {
-                user = await ensureAnonymousUser();
-            } catch (err) {
-                await showAlert('خطأ في الاتصال', err.message, false);
-                return;
+            let user = auth.currentUser;
+            if (!user) {
+                try {
+                    const cred = await signInAnonymously(auth);
+                    user = cred.user;
+                } catch (err) {
+                    console.warn("Auth fallback used");
+                }
             }
             
             try {
@@ -646,7 +631,7 @@
                     orderDate: document.getElementById('l_orderDate').value, 
                     status: status, sampleTiming: sampleTiming, notSentReason: notSentReason, notSentDetails: notSentDetails,
                     isDeleted: false, isSmartForm: false, 
-                    submitterId: user.uid, 
+                    submitterId: user ? user.uid : 'anonymous_guest', 
                     createdAt: serverTimestamp() 
                 });
                 
@@ -654,10 +639,10 @@
                 document.getElementById('l_orderDate').value = getLocalDateString(); 
                 window.toggleAddSampleStatus(); 
                 await showAlert('نجاح', 'تم إرسال الطلب!');
-            } catch (err) { await showAlert('خطأ', err.message, false); }
+            } catch (err) { await showAlert('خطأ في الإضافة', err.message, false); }
         });
 
-        // (التعديل 11): تحديث نص الحذف إلى "حذف من العرض"
+        // (التعديل 11): تحديث نص الحذف ليكون "حذف من العرض"
         window.deleteOrder = async (id) => {
             if(confirm('هل أنت متأكد من رغبتك في حذف هذا السجل من العرض؟')) {
                 try { await updateDoc(doc(db, "meropenem_orders", id), { isDeleted: true }); } 
@@ -665,7 +650,7 @@
             }
         };
 
-        // (التعديل 8 و 9): إضافة Error Handler للسجل وترتيب يمنع ضياع السجلات القديمة بدون createdAt
+        // (التعديل 8 و 9): Error Handlers وترتيب يمنع ضياع السجلات القديمة
         const q = query(ordersRef, orderBy("createdAt", "desc"));
         onSnapshot(q, (snapshot) => { 
             allOrders = []; 
@@ -698,7 +683,7 @@
             let isSearching = searchVal || wardVal || sDate || eDate;
             const currentUid = auth.currentUser ? auth.currentUser.uid : null;
 
-            // (التعديل 4): حماية الكود من قيم null والبيانات الناقصة
+            // (التعديل 4): حماية الكود من قيم null
             const filtered = allOrders.filter(o => {
                 if (!o || o.isDeleted || o.isSmartForm) return false; 
                 const pName = String(o.patientName || '').toLowerCase();
@@ -915,7 +900,7 @@
 
         window.lockAdminStats = () => { isAdminUnlocked = false; document.getElementById('adminLockedView').classList.remove('d-none'); document.getElementById('adminUnlockedView').classList.add('d-none'); };
 
-        // (التعديل 5 و 6): فصل إحصائيات رفض الطبيب عن عدم الإرسال الكلي وصياغة المتغيرات
+        // (التعديل 5 و 6): فصل إحصائيات رفض الطبيب عن عدم الإرسال الكلي والصياغة
         window.loadAnalytics = () => {
             const reportType = document.getElementById('reportType').value;
             let filteredOrders = [];
