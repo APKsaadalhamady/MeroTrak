@@ -30,7 +30,6 @@
         .tab-content.active { display: block; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* Compact Order Log Redesign */
         .order-card-compact { background: white; border-radius: 12px; padding: 12px; margin-bottom: 12px; border: 1px solid #e2e8f0; border-right: 5px solid #94a3b8; box-shadow: 0 2px 8px rgba(0,0,0,0.02); }
         .order-card-compact.border-success-custom { border-right-color: #10b981; }
         .order-card-compact.border-danger-custom { border-right-color: #f43f5e; }
@@ -40,7 +39,6 @@
         .icon-btn:hover { transform: scale(1.1); }
         .modal-content { border-radius: 24px; border: none; }
 
-        /* Statistics Styling */
         .collapsible-header { cursor: pointer; user-select: none; transition: background-color 0.2s; border-radius: 20px; }
         .collapsible-header:hover { background-color: #f8fafc !important; }
         .chevron-icon { transition: transform 0.3s ease; color: #94a3b8; font-size: 1.2rem; }
@@ -510,6 +508,7 @@
     
     <div class="modal fade" id="labStatusModal" tabindex="-1" aria-hidden="true"><div class="modal-dialog modal-dialog-centered modal-sm"><div class="modal-content"><div class="modal-header border-0 pb-0"><h6 class="modal-title fw-bold text-primary">حالة وصول العينة</h6><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body pb-4 pt-3"><button class="btn btn-success w-100 fw-bold mb-2 py-2" onclick="applyLabStatus('confirmed')">إستُلمت العينة ✅</button><button class="btn btn-danger w-100 fw-bold py-2 mb-2" onclick="applyLabStatus('rejected')">لم تُستلم العينة ❌</button><button class="btn btn-warning text-dark w-100 fw-bold py-2" onclick="applyLabStatus('pending')">بانتظار الوصول ⏳</button></div></div></div></div>
 
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getFirestore, collection, addDoc, onSnapshot, doc, updateDoc, query, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
@@ -528,22 +527,23 @@
         let promptModal, alertModal, legacyEditModal, labStatusModal;
         let pieChartInstance, reasonsPieChartInstance, timingPieChartInstance, wardsChartInstance, doctorsChartInstance;
 
-        // تسجيل الدخول المجهول لتوليد هوية موثوقة (صامت)
+        // تهيئة النوافذ المنبثقة
+        promptModal = new bootstrap.Modal(document.getElementById('customPromptModal')); 
+        alertModal = new bootstrap.Modal(document.getElementById('customAlertModal'));
+        legacyEditModal = new bootstrap.Modal(document.getElementById('legacyEditModal')); 
+        labStatusModal = new bootstrap.Modal(document.getElementById('labStatusModal'));
+        
+        const now = new Date(); document.getElementById('l_orderDate').value = now.toISOString().split('T')[0];
+        document.getElementById('reportMonth').value = now.toISOString().slice(0, 7);
+        const yearSelect = document.getElementById('reportYear'); const currentYear = now.getFullYear().toString();
+        for (let y = 2024; y <= 2035; y++) { const opt = document.createElement('option'); opt.value = y; opt.innerText = y; if (y.toString() === currentYear) opt.selected = true; yearSelect.appendChild(opt); }
+
         signInAnonymously(auth).catch((error) => { console.error("Auth Error:", error); });
 
-        document.addEventListener('DOMContentLoaded', () => {
-            promptModal = new bootstrap.Modal(document.getElementById('customPromptModal')); alertModal = new bootstrap.Modal(document.getElementById('customAlertModal'));
-            legacyEditModal = new bootstrap.Modal(document.getElementById('legacyEditModal')); labStatusModal = new bootstrap.Modal(document.getElementById('labStatusModal'));
-            
-            const now = new Date(); document.getElementById('l_orderDate').value = now.toISOString().split('T')[0];
-            document.getElementById('reportMonth').value = now.toISOString().slice(0, 7);
-            const yearSelect = document.getElementById('reportYear'); const currentYear = now.getFullYear().toString();
-            for (let y = 2024; y <= 2035; y++) { const opt = document.createElement('option'); opt.value = y; opt.innerText = y; if (y.toString() === currentYear) opt.selected = true; yearSelect.appendChild(opt); }
-        });
-
-        window.toggleAddSampleStatus = () => { const val = document.getElementById('l_sampleStatus').value; document.getElementById('addReasonsBlock').classList.toggle('d-none', val !== 'not_sent'); if (val !== 'not_sent') { document.getElementById('l_noSampleReason').value = ''; toggleAddReasonDetails(); } };
+        // حل مشكلة Hoisting وربط الدوال بـ window لتعمل عبر الأزرار
+        window.toggleAddSampleStatus = () => { const val = document.getElementById('l_sampleStatus').value; document.getElementById('addReasonsBlock').classList.toggle('d-none', val !== 'not_sent'); if (val !== 'not_sent') { document.getElementById('l_noSampleReason').value = ''; window.toggleAddReasonDetails(); } };
         window.toggleAddReasonDetails = () => { const val = document.getElementById('l_noSampleReason').value; document.getElementById('addToolsBlock').classList.toggle('d-none', val !== 'no_tools'); document.getElementById('addServiceBlock').classList.toggle('d-none', val !== 'no_service'); document.getElementById('addOtherBlock').classList.toggle('d-none', val !== 'other'); };
-        window.toggleEditSampleStatus = () => { const val = document.getElementById('edit_l_sampleStatus').value; document.getElementById('editReasonsBlock').classList.toggle('d-none', val !== 'not_sent'); if (val !== 'not_sent') { document.getElementById('edit_l_noSampleReason').value = ''; toggleEditReasonDetails(); } };
+        window.toggleEditSampleStatus = () => { const val = document.getElementById('edit_l_sampleStatus').value; document.getElementById('editReasonsBlock').classList.toggle('d-none', val !== 'not_sent'); if (val !== 'not_sent') { document.getElementById('edit_l_noSampleReason').value = ''; window.toggleEditReasonDetails(); } };
         window.toggleEditReasonDetails = () => { const val = document.getElementById('edit_l_noSampleReason').value; document.getElementById('editToolsBlock').classList.toggle('d-none', val !== 'no_tools'); document.getElementById('editServiceBlock').classList.toggle('d-none', val !== 'no_service'); document.getElementById('editOtherBlock').classList.toggle('d-none', val !== 'other'); };
 
         function askPrompt(title, text, type = 'password') { return new Promise(resolve => { document.getElementById('promptTitle').innerText = title; document.getElementById('promptText').innerText = text; const input = document.getElementById('promptInput'); input.type = type; input.value = ''; const btnConfirm = document.getElementById('promptConfirmBtn'); const btnCancel = document.getElementById('promptCancelBtn'); const cleanup = () => { btnConfirm.onclick = null; btnCancel.onclick = null; input.onkeyup = null; promptModal.hide(); }; btnConfirm.onclick = () => { resolve(input.value); cleanup(); }; btnCancel.onclick = () => { resolve(null); cleanup(); }; input.onkeyup = (e) => { if(e.key === 'Enter') { resolve(input.value); cleanup(); } }; promptModal.show(); setTimeout(() => input.focus(), 500); }); }
@@ -555,10 +555,9 @@
 
         onSnapshot(settingsRef, (docSnap) => { if (docSnap.exists()) { labPasscode = docSnap.data().passcode || "1234"; systemAdminPass = docSnap.data().adminPass || "admin123"; } });
 
-        // إنشاء الطلب (ربط الهوية بوقت السيرفر)
         document.getElementById('legacyForm').addEventListener('submit', async (e) => {
             e.preventDefault();
-            if(!auth.currentUser) { await showAlert('خطأ', 'جاري تهيئة الاتصال الآمن، يرجى المحاولة بعد قليل...', false); return; }
+            if(!auth.currentUser) { await showAlert('خطأ', 'جاري تهيئة الاتصال الآمن (تأكد من تفعيل Anonymous Auth في Firebase)، يرجى المحاولة بعد قليل...', false); return; }
             
             try {
                 let status = 'pending'; let sampleTiming = null; let notSentReason = null; let notSentDetails = null;
@@ -587,12 +586,11 @@
                     createdAt: serverTimestamp() 
                 });
                 
-                document.getElementById('legacyForm').reset(); document.getElementById('l_orderDate').value = new Date().toISOString().split('T')[0]; toggleAddSampleStatus(); 
+                document.getElementById('legacyForm').reset(); document.getElementById('l_orderDate').value = new Date().toISOString().split('T')[0]; window.toggleAddSampleStatus(); 
                 await showAlert('نجاح', 'تم إرسال الطلب!');
             } catch (err) { await showAlert('خطأ', err.message, false); }
         });
 
-        // Soft Delete (محمي من السيرفر)
         window.deleteOrder = async (id) => {
             if(confirm('هل أنت متأكد من رغبتك في حذف هذا السجل بشكل نهائي؟')) {
                 try { await updateDoc(doc(db, "meropenem_orders", id), { isDeleted: true }); } 
@@ -603,11 +601,10 @@
         const q = query(ordersRef, orderBy("createdAt", "desc"));
         onSnapshot(q, (snapshot) => { 
             allOrders = []; snapshot.forEach((doc) => { allOrders.push({ id: doc.id, ...doc.data() }); }); 
-            renderMainOrders(); if(isLabLoggedIn) renderLabInbox(); window.loadAnalytics();
+            window.renderMainOrders(); if(isLabLoggedIn) window.renderLabInbox(); window.loadAnalytics();
         });
 
-        // تحديث العرض فور تأكيد الهوية
-        onAuthStateChanged(auth, (user) => { if(user) renderMainOrders(); });
+        onAuthStateChanged(auth, (user) => { if(user) window.renderMainOrders(); });
 
         window.renderMainOrders = () => {
             const searchVal = document.getElementById('searchInput').value.toLowerCase(); const wardVal = document.getElementById('wardFilter').value;
@@ -630,7 +627,6 @@
             cont.innerHTML = filtered.map(o => {
                 const isNotSent = (o.status === 'not_sent' || o.status === 'doctor_refused');
                 let badge = o.status === 'confirmed' ? '✅ إستُلمت العينة' : o.status === 'rejected' ? '❌ لم تُستلم العينة' : isNotSent ? '🚫 لم ترسل العينة' : '⏳ بانتظار وصول العينة';
-                
                 let borderCol = o.status === 'confirmed' ? 'border-success-custom' : (o.status === 'rejected' || isNotSent) ? 'border-danger-custom' : 'border-warning-custom';
                 let textCol = o.status === 'confirmed' ? 'text-success' : (o.status === 'rejected' || isNotSent) ? 'text-danger' : 'text-warning text-dark';
                 
@@ -641,8 +637,6 @@
 
                 const orderTime = o.createdAt ? (o.createdAt.toDate ? o.createdAt.toDate() : new Date(o.createdAt)) : new Date(o.orderDate);
                 const hoursDiff = (new Date() - orderTime) / (1000 * 60 * 60);
-                
-                // تحقق الملكية للصلاحيات
                 const isMyOrder = (currentUid && o.submitterId === currentUid);
                 const canEditOrDelete = isMyOrder && (o.status === 'pending' || o.status === 'not_sent') && (hoursDiff < 24);
 
@@ -664,34 +658,23 @@
                                                      <i class="bi bi-trash-fill text-danger icon-btn bg-light rounded border" onclick="deleteOrder('${o.id}')" title="حذف"></i>` : ''}
                             </div>
                         </div>
-                        
-                        <div class="row g-2 fs-7 text-dark fw-bold mb-2">
-                            <div class="col-6"><i class="bi bi-capsule text-muted me-1"></i> د. ${o.doctorName}</div>
-                            <div class="col-6"><i class="bi bi-hospital text-muted me-1"></i> ${o.ward}</div>
-                            <div class="col-6"><i class="bi bi-calendar3 text-muted me-1"></i> ${o.orderDate}</div>
-                            <div class="col-6">${timingBadge}</div>
-                        </div>
-                        
-                        <div class="d-flex justify-content-between align-items-center bg-light p-2 rounded mt-1 border">
-                            <div class="fs-7 fw-bold ${textCol}">${badge}</div>
-                            <div class="fs-8 text-muted">${isMyOrder ? '<i class="bi bi-shield-check text-success"></i> طلبك الخاص' : ''}</div>
-                        </div>
+                        <div class="row g-2 fs-7 text-dark fw-bold mb-2"><div class="col-6"><i class="bi bi-capsule text-muted me-1"></i> د. ${o.doctorName}</div><div class="col-6"><i class="bi bi-hospital text-muted me-1"></i> ${o.ward}</div><div class="col-6"><i class="bi bi-calendar3 text-muted me-1"></i> ${o.orderDate}</div><div class="col-6">${timingBadge}</div></div>
+                        <div class="d-flex justify-content-between align-items-center bg-light p-2 rounded mt-1 border"><div class="fs-7 fw-bold ${textCol}">${badge}</div><div class="fs-8 text-muted">${isMyOrder ? '<i class="bi bi-shield-check text-success"></i> طلبك الخاص' : ''}</div></div>
                         ${reasonHtml}
                     </div>`;
             }).join('');
         };
-        window.resetFilters = () => { ['searchInput', 'wardFilter', 'startDateFilter', 'endDateFilter'].forEach(id => document.getElementById(id).value = ''); renderMainOrders(); };
+        window.resetFilters = () => { ['searchInput', 'wardFilter', 'startDateFilter', 'endDateFilter'].forEach(id => document.getElementById(id).value = ''); window.renderMainOrders(); };
 
-        // Editing Orders
         window.openLegacyEdit = (id) => { 
             const o = allOrders.find(x => x.id === id); 
             document.getElementById('edit_l_id').value = id; 
             document.getElementById('edit_l_patient').value = o.patientName; document.getElementById('edit_l_doctor').value = o.doctorName; document.getElementById('edit_l_ward').value = o.ward; document.getElementById('edit_l_date').value = o.orderDate; 
             const isNotSent = (o.status === 'not_sent' || o.status === 'doctor_refused');
             if (isNotSent) document.getElementById('edit_l_sampleStatus').value = 'not_sent'; else if (o.sampleTiming === 'before') document.getElementById('edit_l_sampleStatus').value = 'sent_before'; else if (o.sampleTiming === 'after') document.getElementById('edit_l_sampleStatus').value = 'sent_after'; else if (o.sampleTiming === 'unknown') document.getElementById('edit_l_sampleStatus').value = 'sent_unknown'; else document.getElementById('edit_l_sampleStatus').value = 'sent_before'; 
-            toggleEditSampleStatus();
+            window.toggleEditSampleStatus();
             if (isNotSent) {
-                const reason = o.notSentReason || 'doctor_refused'; document.getElementById('edit_l_noSampleReason').value = reason; toggleEditReasonDetails();
+                const reason = o.notSentReason || 'doctor_refused'; document.getElementById('edit_l_noSampleReason').value = reason; window.toggleEditReasonDetails();
                 if (reason === 'no_tools') document.getElementById('edit_l_sampleType').value = o.notSentDetails || '';
                 if (reason === 'no_service') { if(o.notSentDetails && o.notSentDetails.includes('(الساعة:')) { let parts = o.notSentDetails.split('(الساعة:'); document.getElementById('edit_l_serviceTiming').value = parts[0].trim(); document.getElementById('edit_l_serviceTime').value = parts[1].replace(')','').trim(); } else { document.getElementById('edit_l_serviceTiming').value = o.notSentDetails || 'خلال الدوام الرسمي'; } }
                 if (reason === 'other') document.getElementById('edit_l_otherReason').value = o.notSentDetails || '';
@@ -699,7 +682,6 @@
             legacyEditModal.show(); 
         };
 
-        // Submit Edits (Sending Allowed fields only)
         document.getElementById('legacyEditForm').addEventListener('submit', async (e) => { 
             e.preventDefault(); const id = document.getElementById('edit_l_id').value; 
             let status = 'pending'; let sampleTiming = null; let notSentReason = null; let notSentDetails = null;
@@ -718,17 +700,50 @@
             } catch (err) { await showAlert('مرفوض', 'تم رفض العملية من السيرفر! عذراً، لا تملك الصلاحية أو انتهت مدة التعديل.', false); }
         });
 
-        // Lab Action Updates
-        window.openLabModal = async (id) => { const pass = await askPrompt('المختبر', 'أدخل رمز المختبر لتعديل الحالة:'); if(pass !== labPasscode) { if(pass!==null) await showAlert('مرفوض', 'الرمز خاطئ', false); return; } activeActionId = id; labStatusModal.show(); };
-        window.applyLabStatus = async (status) => { await updateDoc(doc(db, "meropenem_orders", activeActionId), { status: status, updatedAt: serverTimestamp() }); labStatusModal.hide(); };
-        
-        // Passcode Changes
-        window.changeLabPasscode = async () => { const old = await askPrompt('تغيير الرمز', 'أدخل رمز المختبر الحالي:'); if(old === null) return; if(old !== labPasscode) { await showAlert('مرفوض', 'الرمز الحالي خاطئ', false); return; } const n = await askPrompt('رمز جديد', 'الرمز الجديد:', 'text'); if(n) { await updateDoc(settingsRef, { passcode: n.trim() }); showAlert('نجاح', 'تم تغيير رمز المختبر!'); } };
-        window.changeAdminPasscode = async () => { const old = await askPrompt('تغيير الرمز', 'أدخل رمز الإدارة الحالي:'); if(old === null) return; if(old !== systemAdminPass) { await showAlert('مرفوض', 'الرمز الحالي خاطئ', false); return; } const n = await askPrompt('رمز جديد', 'الرمز الجديد:', 'text'); if(n) { await updateDoc(settingsRef, { adminPass: n.trim() }); systemAdminPass = n.trim(); showAlert('نجاح', 'تم تغيير رمز الإدارة!'); } };
+        window.openLabModal = (id) => {
+            askPrompt('المختبر', 'أدخل رمز المختبر لتعديل الحالة:').then(pass => {
+                if(pass !== labPasscode) { if(pass!==null) showAlert('مرفوض', 'الرمز خاطئ', false); return; }
+                activeActionId = id; labStatusModal.show();
+            });
+        };
 
-        // Lab Inbox - Excludes 'not_sent' completely
-        window.loginLab = async () => { const pass = await askPrompt('دخول المختبر', 'أدخل رمز المختبر:'); if(pass !== labPasscode) { if(pass!==null) await showAlert('مرفوض', 'الرمز خاطئ', false); return; } isLabLoggedIn = true; document.getElementById('lab-login-section').classList.add('d-none'); document.getElementById('lab-dashboard-section').classList.remove('d-none'); renderLabInbox(); };
+        window.applyLabStatus = async (status) => { 
+            try {
+                await updateDoc(doc(db, "meropenem_orders", activeActionId), { status: status, updatedAt: serverTimestamp() }); 
+                labStatusModal.hide(); 
+                showAlert('نجاح', 'تم تحديث حالة العينة بنجاح');
+            } catch(e) {
+                showAlert('خطأ', 'فشل التحديث من السيرفر: ' + e.message, false);
+            }
+        };
+        
+        window.changeLabPasscode = () => {
+            askPrompt('تغيير الرمز', 'أدخل رمز المختبر الحالي:').then(async old => {
+                if(old === null) return;
+                if(old !== labPasscode) { await showAlert('مرفوض', 'الرمز الحالي خاطئ', false); return; }
+                const n = await askPrompt('رمز جديد', 'الرمز الجديد:', 'text');
+                if(n) { await updateDoc(settingsRef, { passcode: n.trim() }); showAlert('نجاح', 'تم تغيير رمز المختبر!'); }
+            });
+        };
+
+        window.changeAdminPasscode = () => {
+            askPrompt('تغيير الرمز', 'أدخل رمز الإدارة الحالي:').then(async old => {
+                if(old === null) return;
+                if(old !== systemAdminPass) { await showAlert('مرفوض', 'الرمز الحالي خاطئ', false); return; }
+                const n = await askPrompt('رمز جديد', 'الرمز الجديد:', 'text');
+                if(n) { await updateDoc(settingsRef, { adminPass: n.trim() }); systemAdminPass = n.trim(); showAlert('نجاح', 'تم تغيير رمز الإدارة!'); }
+            });
+        };
+
+        window.loginLab = () => {
+            askPrompt('دخول المختبر', 'أدخل رمز المختبر:').then(pass => {
+                if(pass !== labPasscode) { if(pass!==null) showAlert('مرفوض', 'الرمز خاطئ', false); return; }
+                isLabLoggedIn = true; document.getElementById('lab-login-section').classList.add('d-none'); document.getElementById('lab-dashboard-section').classList.remove('d-none'); window.renderLabInbox();
+            });
+        };
+
         window.logoutLab = () => { isLabLoggedIn = false; document.getElementById('lab-dashboard-section').classList.add('d-none'); document.getElementById('lab-login-section').classList.remove('d-none'); };
+        
         window.renderLabInbox = () => { 
             const cont = document.getElementById('labInboxContainer'); 
             let pendingOrders = allOrders.filter(o => !o.isDeleted && !o.isSmartForm && o.status === 'pending'); 
@@ -738,15 +753,20 @@
                 return `<div class="card p-3 shadow-sm border mb-2"><div class="d-flex justify-content-between align-items-center mb-2"><h6 class="fw-bold mb-0 text-primary">${o.patientName}</h6><span class="badge bg-light text-dark border">${o.ward}</span></div><div class="fs-7 text-muted mb-2">تاريخ: ${o.orderDate} | د. ${o.doctorName}</div><div class="d-flex gap-2 mt-3"><button class="btn btn-success btn-sm flex-fill fw-bold" onclick="updateLabInbox('${o.id}', 'confirmed')">إستُلمت العينة ✅</button><button class="btn btn-danger btn-sm flex-fill fw-bold" onclick="updateLabInbox('${o.id}', 'rejected')">لم تُستلم ❌</button></div></div>`; 
             }).join(''); 
         };
-        window.updateLabInbox = async (id, status) => { try { await updateDoc(doc(db, "meropenem_orders", id), { status: status, updatedAt: serverTimestamp() }); } catch (e) { await showAlert('خطأ', e.message, false); } };
 
-        // STATS TAB LOGIC - Admin Unlock
-        window.unlockAdminStats = async () => {
-            const pass = await askPrompt('كلمة مرور الإدارة', 'يرجى إدخال كلمة المرور للوصول إلى الإحصائيات السرية:');
-            if (pass === null) return;
-            if (pass === systemAdminPass) { isAdminUnlocked = true; document.getElementById('adminLockedView').classList.add('d-none'); document.getElementById('adminUnlockedView').classList.remove('d-none'); window.loadAnalytics(); } 
-            else { await showAlert('مرفوض', 'كلمة المرور خاطئة', false); }
+        window.updateLabInbox = async (id, status) => { 
+            try { await updateDoc(doc(db, "meropenem_orders", id), { status: status, updatedAt: serverTimestamp() }); } 
+            catch (e) { await showAlert('خطأ', e.message, false); } 
         };
+
+        window.unlockAdminStats = () => {
+            askPrompt('كلمة مرور الإدارة', 'يرجى إدخال كلمة المرور للوصول إلى الإحصائيات السرية:').then(pass => {
+                if (pass === null) return;
+                if (pass === systemAdminPass) { isAdminUnlocked = true; document.getElementById('adminLockedView').classList.add('d-none'); document.getElementById('adminUnlockedView').classList.remove('d-none'); window.loadAnalytics(); } 
+                else { showAlert('مرفوض', 'كلمة المرور خاطئة', false); }
+            });
+        };
+
         window.lockAdminStats = () => { isAdminUnlocked = false; document.getElementById('adminLockedView').classList.remove('d-none'); document.getElementById('adminUnlockedView').classList.add('d-none'); };
 
         window.loadAnalytics = () => {
@@ -890,11 +910,10 @@
             });
         }
         
-        // مستمعات فلاتر البحث
-        document.getElementById('searchInput').addEventListener('input', renderMainOrders); 
-        document.getElementById('wardFilter').addEventListener('change', renderMainOrders); 
-        document.getElementById('startDateFilter').addEventListener('change', renderMainOrders); 
-        document.getElementById('endDateFilter').addEventListener('change', renderMainOrders);
+        document.getElementById('searchInput').addEventListener('input', () => window.renderMainOrders()); 
+        document.getElementById('wardFilter').addEventListener('change', () => window.renderMainOrders()); 
+        document.getElementById('startDateFilter').addEventListener('change', () => window.renderMainOrders()); 
+        document.getElementById('endDateFilter').addEventListener('change', () => window.renderMainOrders());
     </script>
 </body>
 </html>
