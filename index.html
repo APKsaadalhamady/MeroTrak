@@ -519,6 +519,17 @@
         const db = getFirestore(app); 
         const auth = getAuth(app);
         
+        // نظام تثبيت هوية الجهاز محلياً (الحل الجذري)
+        function getOrCreateDeviceId() {
+            let deviceId = localStorage.getItem('merotrak_device_id');
+            if (!deviceId) {
+                deviceId = 'dev_' + Math.random().toString(36).substr(2, 9) + '_' + Date.now();
+                localStorage.setItem('merotrak_device_id', deviceId);
+            }
+            return deviceId;
+        }
+        const currentDeviceId = getOrCreateDeviceId();
+        
         const ordersRef = collection(db, "meropenem_orders"); 
         const settingsRef = doc(db, "settings", "lab_config");
         
@@ -610,7 +621,7 @@
                     orderDate: document.getElementById('l_orderDate').value, 
                     status: status, sampleTiming: sampleTiming, notSentReason: notSentReason, notSentDetails: notSentDetails,
                     isDeleted: false, isSmartForm: false, 
-                    submitterId: user.uid, 
+                    submitterId: currentDeviceId, // استخدام معرّف الجهاز الثابت هنا
                     createdAt: serverTimestamp() 
                 });
                 
@@ -661,7 +672,6 @@
             const eDate = document.getElementById('endDateFilter').value;
             const todayStr = getLocalDateString(); 
             let isSearching = searchVal || wardVal || sDate || eDate;
-            const currentUid = auth.currentUser ? auth.currentUser.uid : null;
 
             const filtered = allOrders.filter(o => {
                 if (!o || o.isDeleted || o.isSmartForm) return false; 
@@ -705,7 +715,8 @@
                 
                 const hoursDiff = (new Date() - orderTime) / (1000 * 60 * 60);
                 
-                const isMyOrder = (currentUid && o.submitterId === currentUid);
+                // هنا مفتاح السر: التطابق فقط إذا كان معرّف الجهاز المسجل هو نفسه معرّف الجهاز الحالي
+                const isMyOrder = (o.submitterId === currentDeviceId);
                 const canEditOrDelete = isMyOrder && (o.status === 'pending' || o.status === 'not_sent') && (hoursDiff < 24);
 
                 let reasonHtml = '';
