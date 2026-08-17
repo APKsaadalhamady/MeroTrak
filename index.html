@@ -85,6 +85,7 @@
                 <form id="legacyForm" class="row g-3">
                     <div class="col-12 col-md-4"><label class="form-label">اسم المريض الثلاثي</label><input type="text" id="l_patientName" class="form-control" required></div>
                     <div class="col-12 col-md-4"><label class="form-label">الطبيب المسؤول</label><input type="text" id="l_doctorName" class="form-control" required></div>
+                 
                     <div class="col-6 col-md-2">
                         <label class="form-label">الردهة / القسم</label>
                         <select id="l_ward" class="form-select" required>
@@ -131,12 +132,12 @@
                                     <option value="no_service">عدم توفر خدمة زرع العينات</option>
                                     <option value="other">أخرى...</option>
                                 </select>
-                                
+                                 
                                 <div id="addToolsBlock" class="d-none mt-3">
                                     <label class="form-label fs-7 fw-bold text-muted">نوع العينة (اكتب النوع المفقود):</label>
                                     <input type="text" id="l_sampleType" class="form-control" placeholder="مثل: مسحة جرح، إدرار، دم...">
                                 </div>
-                                
+                                 
                                 <div id="addServiceBlock" class="d-none mt-3">
                                     <div class="row g-2">
                                         <div class="col-12 col-md-6">
@@ -527,7 +528,7 @@
         const app = initializeApp(firebaseConfig); 
         const db = getFirestore(app); 
         const auth = getAuth(app);
-        
+
         // نظام تثبيت هوية الجهاز محلياً (الحل الجذري)
         function getOrCreateDeviceId() {
             let deviceId = localStorage.getItem('merotrak_device_id');
@@ -539,17 +540,18 @@
         }
         const currentDeviceId = getOrCreateDeviceId();
         
-        const ordersRef = collection(db, "meropenem_orders"); 
+        const ordersRef = collection(db, "meropenem_orders");
         const settingsRef = doc(db, "settings", "lab_config");
         
         let labPasscode = "1234"; let systemAdminPass = "admin123"; 
-        let allOrders = []; let activeActionId = null; let isLabLoggedIn = false; let isAdminUnlocked = false;
+        let allOrders = [];
+        let activeActionId = null; let isLabLoggedIn = false; let isAdminUnlocked = false;
         let promptModal, alertModal, legacyEditModal, labStatusModal;
         let pieChartInstance, reasonsPieChartInstance, timingPieChartInstance, wardsChartInstance, doctorsChartInstance;
 
         promptModal = new bootstrap.Modal(document.getElementById('customPromptModal')); 
         alertModal = new bootstrap.Modal(document.getElementById('customAlertModal'));
-        legacyEditModal = new bootstrap.Modal(document.getElementById('legacyEditModal')); 
+        legacyEditModal = new bootstrap.Modal(document.getElementById('legacyEditModal'));
         labStatusModal = new bootstrap.Modal(document.getElementById('labStatusModal'));
         
         function getLocalDateString(date = new Date()) {
@@ -561,8 +563,11 @@
 
         document.getElementById('l_orderDate').value = getLocalDateString();
         document.getElementById('reportMonth').value = new Date().toISOString().slice(0, 7);
-        const yearSelect = document.getElementById('reportYear'); const currentYear = new Date().getFullYear().toString();
-        for (let y = 2024; y <= 2035; y++) { const opt = document.createElement('option'); opt.value = y; opt.innerText = y; if (y.toString() === currentYear) opt.selected = true; yearSelect.appendChild(opt); }
+        const yearSelect = document.getElementById('reportYear');
+        const currentYear = new Date().getFullYear().toString();
+        for (let y = 2024; y <= 2035; y++) { const opt = document.createElement('option');
+            opt.value = y; opt.innerText = y; if (y.toString() === currentYear) opt.selected = true; yearSelect.appendChild(opt);
+        }
 
         // تسجيل الدخول المجهول الآمن بدون setPersistence لتجنب مشاكل الهواتف
         async function ensureAnonymousUser() {
@@ -585,15 +590,23 @@
 
         window.toggleAddSampleStatus = () => { const val = document.getElementById('l_sampleStatus').value; document.getElementById('addReasonsBlock').classList.toggle('d-none', val !== 'not_sent'); if (val !== 'not_sent') { document.getElementById('l_noSampleReason').value = ''; window.toggleAddReasonDetails(); } };
         window.toggleAddReasonDetails = () => { const val = document.getElementById('l_noSampleReason').value; document.getElementById('addToolsBlock').classList.toggle('d-none', val !== 'no_tools'); document.getElementById('addServiceBlock').classList.toggle('d-none', val !== 'no_service'); document.getElementById('addOtherBlock').classList.toggle('d-none', val !== 'other'); };
-        window.toggleEditSampleStatus = () => { const val = document.getElementById('edit_l_sampleStatus').value; document.getElementById('editReasonsBlock').classList.toggle('d-none', val !== 'not_sent'); if (val !== 'not_sent') { document.getElementById('edit_l_noSampleReason').value = ''; window.toggleEditReasonDetails(); } };
-        window.toggleEditReasonDetails = () => { const val = document.getElementById('edit_l_noSampleReason').value; document.getElementById('editToolsBlock').classList.toggle('d-none', val !== 'no_tools'); document.getElementById('editServiceBlock').classList.toggle('d-none', val !== 'no_service'); document.getElementById('editOtherBlock').classList.toggle('d-none', val !== 'other'); };
+        window.toggleEditSampleStatus = () => { const val = document.getElementById('edit_l_sampleStatus').value; document.getElementById('editReasonsBlock').classList.toggle('d-none', val !== 'not_sent');
+            if (val !== 'not_sent') { document.getElementById('edit_l_noSampleReason').value = ''; window.toggleEditReasonDetails(); } };
+        window.toggleEditReasonDetails = () => { const val = document.getElementById('edit_l_noSampleReason').value;
+            document.getElementById('editToolsBlock').classList.toggle('d-none', val !== 'no_tools'); document.getElementById('editServiceBlock').classList.toggle('d-none', val !== 'no_service'); document.getElementById('editOtherBlock').classList.toggle('d-none', val !== 'other'); };
 
-        function askPrompt(title, text, type = 'password') { return new Promise(resolve => { document.getElementById('promptTitle').innerText = title; document.getElementById('promptText').innerText = text; const input = document.getElementById('promptInput'); input.type = type; input.value = ''; const btnConfirm = document.getElementById('promptConfirmBtn'); const btnCancel = document.getElementById('promptCancelBtn'); const cleanup = () => { btnConfirm.onclick = null; btnCancel.onclick = null; input.onkeyup = null; promptModal.hide(); }; btnConfirm.onclick = () => { resolve(input.value); cleanup(); }; btnCancel.onclick = () => { resolve(null); cleanup(); }; input.onkeyup = (e) => { if(e.key === 'Enter') { resolve(input.value); cleanup(); } }; promptModal.show(); setTimeout(() => input.focus(), 500); }); }
-        function showAlert(title, text, isSuccess = true) { return new Promise(resolve => { document.getElementById('alertTitle').innerText = title; document.getElementById('alertText').innerText = text; const icon = document.getElementById('alertIcon'); const btn = document.getElementById('alertOkBtn'); if(isSuccess) { icon.innerHTML = '<i class="bi bi-check-circle-fill text-success"></i>'; btn.className = 'btn btn-success w-100 fw-bold'; } else { icon.innerHTML = '<i class="bi bi-x-circle-fill text-danger"></i>'; btn.className = 'btn btn-danger w-100 fw-bold'; } const cleanup = () => { btn.onclick = null; alertModal.hide(); }; btn.onclick = () => { resolve(); cleanup(); }; alertModal.show(); }); }
+        function askPrompt(title, text, type = 'password') { return new Promise(resolve => { document.getElementById('promptTitle').innerText = title; document.getElementById('promptText').innerText = text; const input = document.getElementById('promptInput'); input.type = type; input.value = ''; const btnConfirm = document.getElementById('promptConfirmBtn'); const btnCancel = document.getElementById('promptCancelBtn'); const cleanup = () => { btnConfirm.onclick = null; btnCancel.onclick = null; input.onkeyup = null; promptModal.hide(); }; btnConfirm.onclick = () => { resolve(input.value); cleanup(); }; btnCancel.onclick = () => { resolve(null); cleanup(); }; input.onkeyup = (e) => { if(e.key === 'Enter') { resolve(input.value); cleanup(); } }; promptModal.show(); setTimeout(() => input.focus(), 500); });
+        }
+        function showAlert(title, text, isSuccess = true) { return new Promise(resolve => { document.getElementById('alertTitle').innerText = title; document.getElementById('alertText').innerText = text; const icon = document.getElementById('alertIcon'); const btn = document.getElementById('alertOkBtn'); if(isSuccess) { icon.innerHTML = '<i class="bi bi-check-circle-fill text-success"></i>'; btn.className = 'btn btn-success w-100 fw-bold'; } else { icon.innerHTML = '<i class="bi bi-x-circle-fill text-danger"></i>'; btn.className = 'btn btn-danger w-100 fw-bold'; } const cleanup = () => { btn.onclick = null; alertModal.hide(); }; btn.onclick = () => { resolve(); cleanup(); }; alertModal.show(); });
+        }
 
-        window.switchTab = (tabId, element) => { document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active')); document.querySelectorAll('.nav-item').forEach(nav => nav.classList.remove('active')); document.getElementById(tabId).classList.add('active'); element.classList.add('active'); if (tabId === 'tab-stats' && isAdminUnlocked) window.loadAnalytics(); };
-        window.toggleSection = (contentId, chevronId) => { const content = document.getElementById(contentId); const chevron = document.getElementById(chevronId); if (content.classList.contains('d-none')) { content.classList.remove('d-none'); chevron.classList.remove('rotated'); } else { content.classList.add('d-none'); chevron.classList.add('rotated'); } };
-        window.toggleReportInputs = () => { const type = document.getElementById('reportType').value; if (type === 'monthly') { document.getElementById('monthlyInputContainer').classList.remove('d-none'); document.getElementById('yearlyInputContainer').classList.add('d-none'); } else { document.getElementById('monthlyInputContainer').classList.add('d-none'); document.getElementById('yearlyInputContainer').classList.remove('d-none'); } window.loadAnalytics(); };
+        window.switchTab = (tabId, element) => { document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active')); document.querySelectorAll('.nav-item').forEach(nav => nav.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active'); element.classList.add('active'); if (tabId === 'tab-stats' && isAdminUnlocked) window.loadAnalytics(); };
+        window.toggleSection = (contentId, chevronId) => { const content = document.getElementById(contentId);
+            const chevron = document.getElementById(chevronId); if (content.classList.contains('d-none')) { content.classList.remove('d-none'); chevron.classList.remove('rotated'); } else { content.classList.add('d-none'); chevron.classList.add('rotated'); } };
+
+        window.toggleReportInputs = () => { const type = document.getElementById('reportType').value; if (type === 'monthly') { document.getElementById('monthlyInputContainer').classList.remove('d-none'); document.getElementById('yearlyInputContainer').classList.add('d-none'); } else { document.getElementById('monthlyInputContainer').classList.add('d-none');
+            document.getElementById('yearlyInputContainer').classList.remove('d-none'); } window.loadAnalytics(); };
 
         onSnapshot(settingsRef, (docSnap) => { 
             if (docSnap.exists()) { 
@@ -622,11 +635,20 @@
                 else if (sStatus === 'sent_after') { sampleTiming = 'after'; } 
                 else if (sStatus === 'sent_unknown') { sampleTiming = 'unknown'; } 
                 else if (sStatus === 'not_sent') {
-                    status = 'not_sent'; notSentReason = document.getElementById('l_noSampleReason').value;
-                    if (!notSentReason) { await showAlert('خطأ', 'يرجى اختيار سبب عدم إرسال العينة.', false); return; }
-                    if (notSentReason === 'no_tools') { notSentDetails = document.getElementById('l_sampleType').value; if (!notSentDetails) { await showAlert('خطأ', 'يرجى إدخال نوع العينة.', false); return; } } 
-                    else if (notSentReason === 'no_service') { let timing = document.getElementById('l_serviceTiming').value; let hours = document.getElementById('l_serviceTime').value; if (!hours) { await showAlert('خطأ', 'يرجى تحديد وقت الطلب.', false); return; } notSentDetails = timing + ' (الساعة: ' + hours + ')'; } 
-                    else if (notSentReason === 'other') { notSentDetails = document.getElementById('l_otherReason').value; if (!notSentDetails) { await showAlert('خطأ', 'يرجى كتابة السبب التوضيحي.', false); return; } }
+                    status = 'not_sent';
+                    notSentReason = document.getElementById('l_noSampleReason').value;
+                    if (!notSentReason) { await showAlert('خطأ', 'يرجى اختيار سبب عدم إرسال العينة.', false); return;
+                    }
+                    if (notSentReason === 'no_tools') { notSentDetails = document.getElementById('l_sampleType').value;
+                        if (!notSentDetails) { await showAlert('خطأ', 'يرجى إدخال نوع العينة.', false); return;
+                        } } 
+                    else if (notSentReason === 'no_service') { let timing = document.getElementById('l_serviceTiming').value;
+                        let hours = document.getElementById('l_serviceTime').value; if (!hours) { await showAlert('خطأ', 'يرجى تحديد وقت الطلب.', false); return;
+                        } notSentDetails = timing + ' (الساعة: ' + hours + ')';
+                    } 
+                    else if (notSentReason === 'other') { notSentDetails = document.getElementById('l_otherReason').value;
+                        if (!notSentDetails) { await showAlert('خطأ', 'يرجى كتابة السبب التوضيحي.', false); return;
+                        } }
                 }
 
                 await addDoc(ordersRef, { 
@@ -639,7 +661,7 @@
                     submitterId: currentDeviceId, // استخدام معرّف الجهاز الثابت هنا
                     createdAt: serverTimestamp() 
                 });
-                
+
                 document.getElementById('legacyForm').reset(); 
                 document.getElementById('l_orderDate').value = getLocalDateString(); 
                 window.toggleAddSampleStatus(); 
@@ -649,8 +671,10 @@
 
         window.deleteOrder = async (id) => {
             if(confirm('هل أنت متأكد من رغبتك في حذف هذا السجل من العرض؟')) {
-                try { await updateDoc(doc(db, "meropenem_orders", id), { isDeleted: true }); } 
-                catch (e) { await showAlert('مرفوض', 'عذراً، انتهت مدة التعديل أو لا تملك الصلاحية.', false); }
+                try { await updateDoc(doc(db, "meropenem_orders", id), { isDeleted: true });
+                } 
+                catch (e) { await showAlert('مرفوض', 'عذراً، انتهت مدة التعديل أو لا تملك الصلاحية.', false);
+                }
             }
         };
 
@@ -676,16 +700,17 @@
             window.renderMainOrders(); 
             if(isLabLoggedIn) window.renderLabInbox(); 
             window.loadAnalytics();
-        }, (error) => { console.error("Orders listener error:", error); document.getElementById('ordersContainer').innerHTML = '<div class="card p-4 text-center text-danger fw-bold">حدث خطأ في تحميل السجل.</div>'; });
+        }, (error) => { console.error("Orders listener error:", error);
+            document.getElementById('ordersContainer').innerHTML = '<div class="card p-4 text-center text-danger fw-bold">حدث خطأ في تحميل السجل.</div>'; });
 
         onAuthStateChanged(auth, (user) => { if(user) window.renderMainOrders(); });
 
         window.renderMainOrders = () => {
-            const searchVal = String(document.getElementById('searchInput').value || '').toLowerCase(); 
+            const searchVal = String(document.getElementById('searchInput').value || '').toLowerCase();
             const wardVal = String(document.getElementById('wardFilter').value || '');
             const sDate = document.getElementById('startDateFilter').value; 
             const eDate = document.getElementById('endDateFilter').value;
-            const todayStr = getLocalDateString(); 
+            const todayStr = getLocalDateString();
             let isSearching = searchVal || wardVal || sDate || eDate;
 
             const filtered = allOrders.filter(o => {
@@ -706,7 +731,8 @@
             });
 
             const cont = document.getElementById('ordersContainer');
-            if (filtered.length === 0) { cont.innerHTML = '<div class="card p-4 text-center text-muted fw-bold">لا توجد طلبات للعرض</div>'; return; }
+            if (filtered.length === 0) { cont.innerHTML = '<div class="card p-4 text-center text-muted fw-bold">لا توجد طلبات للعرض</div>'; return;
+            }
 
             cont.innerHTML = filtered.map(o => {
                 const pName = escapeHTML(o.patientName || 'بدون اسم');
@@ -725,38 +751,43 @@
                 else if (o.sampleTiming === 'unknown') timingBadge = '<span class="badge bg-info bg-opacity-10 text-info border border-info fs-8">توقيت العينة مجهول</span>';
 
                 let orderTime = new Date();
-                if (o.createdAt && typeof o.createdAt.toDate === 'function') { orderTime = o.createdAt.toDate(); }
-                else if (o.createdAt) { orderTime = new Date(o.createdAt); }
+                if (o.createdAt && typeof o.createdAt.toDate === 'function') { orderTime = o.createdAt.toDate();
+                }
+                else if (o.createdAt) { orderTime = new Date(o.createdAt);
+                }
                 
                 const hoursDiff = (new Date() - orderTime) / (1000 * 60 * 60);
-                
-                // هنا مفتاح السر: التطابق فقط إذا كان معرّف الجهاز المسجل هو نفسه معرّف الجهاز الحالي
                 const isMyOrder = (o.submitterId === currentDeviceId);
                 const canEditOrDelete = isMyOrder && (o.status === 'pending' || o.status === 'not_sent') && (hoursDiff < 24);
 
                 let reasonHtml = '';
                 if (isNotSent) {
-                    let reasonText = 'رفض الطبيب ارسال عينة زرع'; let detailsText = '';
+                    let reasonText = 'رفض الطبيب ارسال عينة زرع';
+                    let detailsText = '';
                     if (o.notSentReason === 'no_tools') { reasonText = 'عدم توفر الأدوات'; detailsText = o.notSentDetails ? `(${escapeHTML(o.notSentDetails)})` : ''; }
                     else if (o.notSentReason === 'no_service') { reasonText = 'عدم توفر الخدمة'; detailsText = o.notSentDetails ? `(${escapeHTML(o.notSentDetails)})` : ''; }
                     else if (o.notSentReason === 'other') { reasonText = 'أخرى'; detailsText = o.notSentDetails ? `(${escapeHTML(o.notSentDetails)})` : ''; }
                     reasonHtml = `<div class="fs-8 text-danger mt-2 fw-bold bg-danger bg-opacity-10 p-2 rounded border border-danger border-opacity-25"><i class="bi bi-info-circle-fill me-1"></i>السبب: ${reasonText} ${detailsText}</div>`;
                 }
 
+                let labUpdateIcon = isNotSent ? '' : `<i class="bi bi-pencil-fill text-dark ms-2 icon-btn border bg-white rounded shadow-sm" onclick="window.openLabModal('${o.id}')" title="تحديث حالة المختبر"></i>`;
+
                 return `
                     <div class="order-card-compact ${borderCol}">
                         <div class="d-flex justify-content-between align-items-center border-bottom pb-2 mb-2">
                             <h6 class="fw-bold mb-0 text-primary fs-6"><i class="bi bi-person-fill text-muted me-1"></i>${pName}</h6>
                             <div class="d-flex gap-2">
-                                ${canEditOrDelete ? `<i class="bi bi-pencil-square text-primary icon-btn bg-light rounded border" onclick="window.openLegacyEdit('${o.id}')" title="تعديل"></i>
-                                                     <i class="bi bi-trash-fill text-danger icon-btn bg-light rounded border" onclick="window.deleteOrder('${o.id}')" title="حذف"></i>` : ''}
+                                ${canEditOrDelete ?
+                                `<i class="bi bi-pencil-square text-primary icon-btn bg-light rounded border" onclick="window.openLegacyEdit('${o.id}')" title="تعديل"></i>
+                                 <i class="bi bi-trash-fill text-danger icon-btn bg-light rounded border" onclick="window.deleteOrder('${o.id}')" title="حذف"></i>` : ''}
                             </div>
                         </div>
-                        <div class="row g-2 fs-7 text-dark fw-bold mb-2"><div class="col-6"><i class="bi bi-capsule text-muted me-1"></i> د. ${dName}</div><div class="col-6"><i class="bi bi-hospital text-muted me-1"></i> ${wName}</div><div class="col-6"><i class="bi bi-calendar3 text-muted me-1"></i> ${oDate}</div><div class="col-6">${timingBadge}</div></div>
+                        <div class="row g-2 fs-7 text-dark fw-bold mb-2"><div class="col-6"><i class="bi bi-capsule text-muted me-1"></i> د.
+                        ${dName}</div><div class="col-6"><i class="bi bi-hospital text-muted me-1"></i> ${wName}</div><div class="col-6"><i class="bi bi-calendar3 text-muted me-1"></i> ${oDate}</div><div class="col-6">${timingBadge}</div></div>
                         <div class="d-flex justify-content-between align-items-center bg-light p-2 rounded mt-1 border">
                             <div class="fs-7 fw-bold ${textCol}">
                                 ${badge} 
-                                <i class="bi bi-pencil-fill text-dark ms-2 icon-btn border bg-white rounded shadow-sm" onclick="window.openLabModal('${o.id}')" title="تحديث حالة المختبر"></i>
+                                ${labUpdateIcon}
                             </div>
                             <div class="fs-8 text-muted">${isMyOrder ? '<i class="bi bi-shield-check text-success"></i> طلبك الخاص' : ''}</div>
                         </div>
@@ -764,10 +795,11 @@
                     </div>`;
             }).join('');
         };
+
         window.resetFilters = () => { ['searchInput', 'wardFilter', 'startDateFilter', 'endDateFilter'].forEach(id => document.getElementById(id).value = ''); window.renderMainOrders(); };
 
         window.openLegacyEdit = (id) => { 
-            const o = allOrders.find(x => x.id === id); 
+            const o = allOrders.find(x => x.id === id);
             if (!o) return;
             document.getElementById('edit_l_id').value = id; 
             document.getElementById('edit_l_patient').value = o.patientName || ''; 
@@ -777,11 +809,11 @@
             
             const isNotSent = (o.status === 'not_sent' || o.status === 'doctor_refused');
             if (isNotSent) document.getElementById('edit_l_sampleStatus').value = 'not_sent'; 
-            else if (o.sampleTiming === 'before') document.getElementById('edit_l_sampleStatus').value = 'sent_before'; 
+            else if (o.sampleTiming === 'before') document.getElementById('edit_l_sampleStatus').value = 'sent_before';
             else if (o.sampleTiming === 'after') document.getElementById('edit_l_sampleStatus').value = 'sent_after'; 
             else if (o.sampleTiming === 'unknown') document.getElementById('edit_l_sampleStatus').value = 'sent_unknown'; 
-            else document.getElementById('edit_l_sampleStatus').value = 'sent_before'; 
-            
+            else document.getElementById('edit_l_sampleStatus').value = 'sent_before';
+
             window.toggleEditSampleStatus();
             if (isNotSent) {
                 const reason = o.notSentReason || 'doctor_refused'; 
@@ -804,24 +836,30 @@
 
         document.getElementById('legacyEditForm').addEventListener('submit', async (e) => { 
             e.preventDefault(); const id = document.getElementById('edit_l_id').value; 
+           
             let status = 'pending'; let sampleTiming = null; let notSentReason = null; let notSentDetails = null;
             const sStatus = document.getElementById('edit_l_sampleStatus').value;
-            if (!sStatus) { await showAlert('خطأ', 'يرجى اختيار حالة العينة.', false); return; }
-            if (sStatus === 'sent_before') { sampleTiming = 'before'; } else if (sStatus === 'sent_after') { sampleTiming = 'after'; } else if (sStatus === 'sent_unknown') { sampleTiming = 'unknown'; }
+            if (!sStatus) { await showAlert('خطأ', 'يرجى اختيار حالة العينة.', false); return;
+            }
+            if (sStatus === 'sent_before') { sampleTiming = 'before';
+            } else if (sStatus === 'sent_after') { sampleTiming = 'after'; } else if (sStatus === 'sent_unknown') { sampleTiming = 'unknown';
+            }
             else if (sStatus === 'not_sent') { 
-                status = 'not_sent'; 
+                status = 'not_sent';
                 notSentReason = document.getElementById('edit_l_noSampleReason').value; 
-                if (!notSentReason) { await showAlert('خطأ', 'يرجى اختيار السبب.', false); return; } 
+                if (!notSentReason) { await showAlert('خطأ', 'يرجى اختيار السبب.', false); return;
+                } 
                 if (notSentReason === 'no_tools') { 
-                    notSentDetails = document.getElementById('edit_l_sampleType').value; 
+                    notSentDetails = document.getElementById('edit_l_sampleType').value;
                     if (!notSentDetails) { await showAlert('خطأ', 'يرجى الكتابة.', false); return; } 
                 } else if (notSentReason === 'no_service') { 
-                    let timing = document.getElementById('edit_l_serviceTiming').value; 
+                    let timing = document.getElementById('edit_l_serviceTiming').value;
                     let hours = document.getElementById('edit_l_serviceTime').value; 
-                    if (!hours) { await showAlert('خطأ', 'حدد الوقت.', false); return; } 
-                    notSentDetails = timing + ' (الساعة: ' + hours + ')'; 
+                    if (!hours) { await showAlert('خطأ', 'حدد الوقت.', false); return;
+                    } 
+                    notSentDetails = timing + ' (الساعة: ' + hours + ')';
                 } else if (notSentReason === 'other') { 
-                    notSentDetails = document.getElementById('edit_l_otherReason').value; 
+                    notSentDetails = document.getElementById('edit_l_otherReason').value;
                     if (!notSentDetails) { await showAlert('خطأ', 'يرجى التوضيح.', false); return; } 
                 } 
             }
@@ -834,8 +872,9 @@
                     orderDate: document.getElementById('edit_l_date').value, 
                     status: status, sampleTiming: sampleTiming, notSentReason: notSentReason, notSentDetails: notSentDetails
                 }); 
-                legacyEditModal.hide(); await showAlert('نجاح', 'تم تحديث البيانات!'); 
-            } catch (err) { await showAlert('مرفوض', 'تم رفض العملية من السيرفر! عذراً، لا تملك الصلاحية أو انتهت مدة التعديل.', false); }
+                legacyEditModal.hide(); await showAlert('نجاح', 'تم تحديث البيانات!');
+            } catch (err) { await showAlert('مرفوض', 'تم رفض العملية من السيرفر! عذراً، لا تملك الصلاحية أو انتهت مدة التعديل.', false);
+            }
         });
 
         window.openLabModal = (id) => {
@@ -847,7 +886,7 @@
 
         window.applyLabStatus = async (status) => { 
             try {
-                await updateDoc(doc(db, "meropenem_orders", activeActionId), { status: status, updatedAt: serverTimestamp() }); 
+                await updateDoc(doc(db, "meropenem_orders", activeActionId), { status: status, updatedAt: serverTimestamp() });
                 labStatusModal.hide(); 
                 showAlert('نجاح', 'تم تحديث حالة العينة بنجاح');
             } catch(e) {
@@ -888,11 +927,12 @@
         };
 
         window.logoutLab = () => { isLabLoggedIn = false; document.getElementById('lab-dashboard-section').classList.add('d-none'); document.getElementById('lab-login-section').classList.remove('d-none'); };
-        
+
         window.renderLabInbox = () => { 
-            const cont = document.getElementById('labInboxContainer'); 
-            let pendingOrders = allOrders.filter(o => !o.isDeleted && !o.isSmartForm && o.status === 'pending'); 
-            if (pendingOrders.length === 0) { cont.innerHTML = '<div class="text-center text-muted py-4"><i class="bi bi-check-circle fs-1"></i><p>لا توجد مهام جديدة.</p></div>'; return; } 
+            const cont = document.getElementById('labInboxContainer');
+            let pendingOrders = allOrders.filter(o => !o.isDeleted && !o.isSmartForm && o.status === 'pending');
+            if (pendingOrders.length === 0) { cont.innerHTML = '<div class="text-center text-muted py-4"><i class="bi bi-check-circle fs-1"></i><p>لا توجد مهام جديدة.</p></div>'; return;
+            } 
             
             cont.innerHTML = pendingOrders.map(o => { 
                 return `<div class="card p-3 shadow-sm border mb-2"><div class="d-flex justify-content-between align-items-center mb-2"><h6 class="fw-bold mb-0 text-primary">${escapeHTML(o.patientName)}</h6><span class="badge bg-light text-dark border">${escapeHTML(o.ward)}</span></div><div class="fs-7 text-muted mb-2">تاريخ: ${escapeHTML(o.orderDate)} | د. ${escapeHTML(o.doctorName)}</div><div class="d-flex gap-2 mt-3"><button class="btn btn-success btn-sm flex-fill fw-bold" onclick="window.updateLabInbox('${o.id}', 'confirmed')">إستُلمت العينة ✅</button><button class="btn btn-danger btn-sm flex-fill fw-bold" onclick="window.updateLabInbox('${o.id}', 'rejected')">لم تُستلم ❌</button></div></div>`; 
@@ -900,8 +940,10 @@
         };
 
         window.updateLabInbox = async (id, status) => { 
-            try { await updateDoc(doc(db, "meropenem_orders", id), { status: status, updatedAt: serverTimestamp() }); } 
-            catch (e) { await showAlert('خطأ', e.message, false); } 
+            try { await updateDoc(doc(db, "meropenem_orders", id), { status: status, updatedAt: serverTimestamp() });
+            } 
+            catch (e) { await showAlert('خطأ', e.message, false);
+            } 
         };
 
         window.unlockAdminStats = () => {
@@ -974,7 +1016,7 @@
             });
 
             updatePublicCharts(confirmed, rejected, pending, notSentCount, wardsCount, refusalReasonsCount, timingCount);
-            
+
             if (isAdminUnlocked) {
                 updateAdminCharts(doctorsCount);
                 renderRefusalTable(doctorsCount, doctorsDoctorRefusedCount); 
@@ -985,9 +1027,9 @@
         function renderRefusalTable(doctorsTotal, doctorsDoctorRefused) {
             const tbody = document.getElementById('doctorsRefusalBody');
             const docList = Object.keys(doctorsTotal);
-            if (docList.length === 0) { tbody.innerHTML = '<tr><td colspan="4" class="text-center text-muted py-4">لا توجد بيانات متاحة في هذه الفترة</td></tr>'; return; }
+            if (docList.length === 0) { tbody.innerHTML = '<tr><td colspan="4" class="text-center text-muted py-4">لا توجد بيانات متاحة في هذه الفترة</td></tr>';
+            return; }
             docList.sort((a, b) => (doctorsDoctorRefused[b] || 0) - (doctorsDoctorRefused[a] || 0));
-
             tbody.innerHTML = docList.map(docName => {
                 const total = doctorsTotal[docName] || 0; 
                 const refused = doctorsDoctorRefused[docName] || 0;
@@ -1000,9 +1042,9 @@
         function renderCombinedTable(doctorsTotal, doctorsRejected, doctorsNotSent) {
             const tbody = document.getElementById('doctorsCombinedBody');
             const docList = Object.keys(doctorsTotal);
-            if (docList.length === 0) { tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted py-4">لا توجد بيانات متاحة في هذه الفترة</td></tr>'; return; }
+            if (docList.length === 0) { tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted py-4">لا توجد بيانات متاحة في هذه الفترة</td></tr>';
+            return; }
             docList.sort((a, b) => ((doctorsRejected[b] || 0) + (doctorsNotSent[b] || 0)) - ((doctorsRejected[a] || 0) + (doctorsNotSent[a] || 0)));
-
             tbody.innerHTML = docList.map(docName => {
                 const total = doctorsTotal[docName] || 0; 
                 const rejected = doctorsRejected[docName] || 0; 
@@ -1016,7 +1058,6 @@
 
         function updatePublicCharts(confirmed, rejected, pending, notSentCount, wardsCount, reasonsCount, timingCount) {
             Chart.defaults.font.family = 'Cairo';
-            
             const pieCtx = document.getElementById('statusPieChart').getContext('2d');
             if (pieChartInstance) pieChartInstance.destroy();
             pieChartInstance = new Chart(pieCtx, {
@@ -1041,7 +1082,8 @@
                 options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { boxWidth: 12 } } } }
             });
 
-            const wardsKeys = Object.keys(wardsCount).length ? Object.keys(wardsCount) : ['لا يوجد']; const wardsValues = Object.values(wardsCount).length ? Object.values(wardsCount) : [0]; const wardsTotal = wardsValues.reduce((a, b) => a + b, 0);
+            const wardsKeys = Object.keys(wardsCount).length ? Object.keys(wardsCount) : ['لا يوجد']; const wardsValues = Object.values(wardsCount).length ? Object.values(wardsCount) : [0];
+            const wardsTotal = wardsValues.reduce((a, b) => a + b, 0);
             document.getElementById('wardsChartWrapper').style.height = Math.max(250, wardsKeys.length * 40) + 'px';
             const wardsCtx = document.getElementById('wardsBarChart').getContext('2d');
             if (wardsChartInstance) wardsChartInstance.destroy();
@@ -1053,7 +1095,8 @@
         }
 
         function updateAdminCharts(doctorsCount) {
-            const docsKeys = Object.keys(doctorsCount).length ? Object.keys(doctorsCount) : ['لا يوجد']; const docsValues = Object.values(doctorsCount).length ? Object.values(doctorsCount) : [0]; const docsTotal = docsValues.reduce((a, b) => a + b, 0);
+            const docsKeys = Object.keys(doctorsCount).length ? Object.keys(doctorsCount) : ['لا يوجد']; const docsValues = Object.values(doctorsCount).length ? Object.values(doctorsCount) : [0];
+            const docsTotal = docsValues.reduce((a, b) => a + b, 0);
             document.getElementById('docsChartWrapper').style.height = Math.max(300, docsKeys.length * 40) + 'px';
             const docsCtx = document.getElementById('doctorsBarChart').getContext('2d');
             if (doctorsChartInstance) doctorsChartInstance.destroy();
