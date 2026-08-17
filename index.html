@@ -514,7 +514,16 @@
         import { getFirestore, collection, addDoc, onSnapshot, doc, updateDoc, query, orderBy, serverTimestamp, setDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
         import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
         
-        const firebaseConfig = { apiKey: "AIzaSyCqm16V1ESpEbZZ8SJA8GTzFdtbexrPwaE", authDomain: "meropenem-app.firebaseapp.com", projectId: "meropenem-app", storageBucket: "meropenem-app.firebasestorage.app", messagingSenderId: "387581088853", appId: "1:387581088853:web:2a4e1a37c8372bf20af0dc" };
+        // تم تحديث الإعدادات بمشروع MeroTrak الجديد الخاص بك!
+        const firebaseConfig = {
+            apiKey: "AIzaSyAgDh0aZ-mht93lBo_i5sN0j-rDgBcFj70",
+            authDomain: "merotrak.firebaseapp.com",
+            projectId: "merotrak",
+            storageBucket: "merotrak.firebasestorage.app",
+            messagingSenderId: "1073305094310",
+            appId: "1:1073305094310:web:c103679183ced7a1988c67",
+            measurementId: "G-DBLN15LFRX"
+        };
         const app = initializeApp(firebaseConfig); 
         const db = getFirestore(app); 
         const auth = getAuth(app);
@@ -555,7 +564,7 @@
         const yearSelect = document.getElementById('reportYear'); const currentYear = new Date().getFullYear().toString();
         for (let y = 2024; y <= 2035; y++) { const opt = document.createElement('option'); opt.value = y; opt.innerText = y; if (y.toString() === currentYear) opt.selected = true; yearSelect.appendChild(opt); }
 
-        // التعديل الجديد: إزالة setPersistence لكي لا يسبب أي تعارض
+        // تسجيل الدخول المجهول الآمن بدون setPersistence لتجنب مشاكل الهواتف
         async function ensureAnonymousUser() {
             try {
                 if (auth.currentUser) return auth.currentUser;
@@ -563,7 +572,7 @@
                 return cred.user;
             } catch (err) {
                 console.error("Auth Error:", err);
-                throw err; // رمي الخطأ لنتمكن من قراءته في رسالة التنبيه إذا استمر
+                throw err;
             }
         }
         
@@ -596,7 +605,6 @@
         document.getElementById('legacyForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             
-            // التعديل الجديد: التقاط الخطأ وعرضه للمستخدم لمعرفة الخلل بدقة
             let user;
             try {
                 user = await ensureAnonymousUser();
