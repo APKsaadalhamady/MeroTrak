@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MeroTrak - النظام المعتمد</title>
+    <title>MeroTrak</title>
     
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.rtl.min.css" rel="stylesheet">
@@ -69,7 +69,7 @@
     <header class="app-header">
         <div class="d-flex align-items-center gap-2">
             <i class="bi bi-shield-plus fs-3"></i>
-            <div><h5 class="mb-0">MeroTrak</h5><span class="fs-7 opacity-75">النظام المعتمد</span></div>
+            <div><h5 class="mb-0">MeroTrak</h5></div>
         </div>
         <div class="d-flex gap-2">
             <i class="bi bi-info-circle-fill fs-4 icon-btn text-white" onclick="window.showAppInfo()" title="عن النظام"></i>
@@ -80,7 +80,7 @@
     <div class="container mt-3">
         <nav class="top-nav no-print">
             <a href="javascript:void(0)" class="nav-item active" onclick="window.switchTab('tab-main', this)"><i class="bi bi-ui-checks"></i><span>الطلبات والسجل</span></a>
-            <a href="javascript:void(0)" class="nav-item" onclick="window.switchTab('tab-lab', this)"><i class="bi bi-virus"></i><span>صندوق المختبر</span></a>
+            <a href="javascript:void(0)" class="nav-item" onclick="window.switchTab('tab-lab', this)"><i class="bi bi-virus"></i><span>قائمة المختبر</span></a>
             <a href="javascript:void(0)" class="nav-item" onclick="window.switchTab('tab-stats', this)"><i class="bi bi-bar-chart-fill"></i><span>الإحصائيات</span></a>
         </nav>
         
@@ -88,7 +88,7 @@
             <div class="card p-4 border-top border-primary border-4">
                 <h6 class="text-primary mb-3 fw-bold"><i class="bi bi-plus-circle-fill me-1"></i> تقديم طلب ميروبينيم</h6>
                 <form id="legacyForm" class="row g-3">
-                    <div class="col-12 col-md-4"><label class="form-label">اسم المريض الثلاثي</label><input type="text" id="l_patientName" class="form-control" required></div>
+                    <div class="col-12 col-md-4"><label class="form-label">اسم المريض</label><input type="text" id="l_patientName" class="form-control" required></div>
                     <div class="col-12 col-md-4"><label class="form-label">الطبيب المسؤول</label><input type="text" id="l_doctorName" class="form-control" required></div>
                  
                     <div class="col-6 col-md-2">
@@ -154,20 +154,25 @@
             </div>
             
             <div class="card p-3 mb-4 bg-light border">
-                <h6 class="text-secondary mb-3 fw-bold fs-7"><i class="bi bi-search me-1"></i> أدوات البحث والتصفية</h6>
-                <div class="row g-2">
-                    <div class="col-12 col-md-6"><input type="text" id="searchInput" class="form-control form-control-sm" placeholder="ابحث بالاسم أو الطبيب..."></div>
-                    <div class="col-12 col-md-6">
-                        <select id="wardFilter" class="form-select form-select-sm">
-                            </select>
+                <div class="d-flex justify-content-between align-items-center collapsible-header m-0 p-0" onclick="window.toggleSection('filterCollapseContent', 'filterChevron')">
+                    <h6 class="text-secondary mb-0 fw-bold fs-7"><i class="bi bi-search me-1"></i> أدوات البحث والتصفية المتقدمة</h6>
+                    <i class="bi bi-chevron-down chevron-icon rotated" id="filterChevron"></i>
+                </div>
+                <div id="filterCollapseContent" class="collapse-content d-none mt-3 pt-3 border-top">
+                    <div class="row g-2">
+                        <div class="col-12 col-md-6"><input type="text" id="searchInput" class="form-control form-control-sm" placeholder="ابحث بالاسم أو الطبيب..."></div>
+                        <div class="col-12 col-md-6">
+                            <select id="wardFilter" class="form-select form-select-sm">
+                                </select>
+                        </div>
+                        <div class="col-6"><input type="date" id="startDateFilter" class="form-control form-control-sm"></div>
+                        <div class="col-6"><input type="date" id="endDateFilter" class="form-control form-control-sm"></div>
+                        <div class="col-12 text-end"><button class="btn btn-outline-secondary btn-sm fw-bold w-100 bg-white" onclick="window.resetFilters()">مسح الفلاتر</button></div>
                     </div>
-                    <div class="col-6"><input type="date" id="startDateFilter" class="form-control form-control-sm"></div>
-                    <div class="col-6"><input type="date" id="endDateFilter" class="form-control form-control-sm"></div>
-                    <div class="col-12 text-end"><button class="btn btn-outline-secondary btn-sm fw-bold w-100 bg-white" onclick="window.resetFilters()">مسح الفلاتر</button></div>
                 </div>
             </div>
             
-            <h6 class="fw-bold text-dark mb-3"><i class="bi bi-card-list me-1"></i> السجل الشامل (تظهر طلبات اليوم افتراضياً)</h6>
+            <h6 class="fw-bold text-dark mb-3"><i class="bi bi-card-list me-1"></i> السجل الشامل (تظهر طلبات اليوم الحالي)</h6>
             <div id="ordersContainer"><div class="text-center text-muted py-4">جاري التحميل...</div></div>
         </div>
         
@@ -179,14 +184,14 @@
             </div>
             <div id="lab-dashboard-section" class="d-none">
                 <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 card p-3 border shadow-sm gap-2">
-                    <h5 class="fw-bold text-dark mb-0"><i class="bi bi-virus text-primary me-1"></i> صندوق المهام (المختبر)</h5>
+                    <h5 class="fw-bold text-dark mb-0"><i class="bi bi-virus text-primary me-1"></i> قائمة المختبر</h5>
                     <div class="action-buttons">
                         <button class="btn btn-light border text-dark fw-bold rounded-pill shadow-sm" onclick="window.changeLabPasscode()"><i class="bi bi-key-fill text-warning"></i> الرمز السري</button>
                         <button class="btn btn-danger fw-bold rounded-pill shadow-sm" onclick="window.logoutLab()"><i class="bi bi-box-arrow-left"></i> خروج</button>
                     </div>
                 </div>
                 <div class="alert alert-info py-2 fs-7 fw-bold">
-                    <i class="bi bi-info-circle-fill me-1"></i> ملاحظة: الطلبات المُسجلة كـ (لم يتم إرسال عينة) تم تحويلها للسجل مباشرة ولن تظهر في هذا الصندوق لعدم الحاجة لإجراء مختبري عليها.
+                    <i class="bi bi-info-circle-fill me-1"></i> ملاحظة: الطلبات المُسجلة كـ (لم يتم إرسال عينة) تم تحويلها للسجل مباشرة ولن تظهر في هذه القائمة لعدم الحاجة لإجراء مختبري عليها.
                 </div>
                 <div id="labInboxContainer"></div>
             </div>
@@ -390,11 +395,12 @@
                 </div>
                 <div class="modal-body text-center p-4">
                     <div class="mb-3 fs-1 text-primary"><i class="bi bi-shield-plus"></i></div>
-                    <p class="text-muted fs-7 mb-3 lh-lg text-end">نظام إلكتروني صُمم بشكل أساسي لتتبع ومراقبة حالة <strong>إرسال عينات الزرع</strong> قبل صرف مضاد الميروبينيم (Meropenem)، لضمان تطبيق البروتوكولات الطبية الصحيحة والحد من الاستخدام العشوائي للمضادات الحيوية، بالإضافة إلى توفير قاعدة إحصائية دقيقة لتقييم الأداء ودعم القرار الطبي.</p>
+                    <p class="text-muted fs-7 mb-3 lh-lg text-end">نظام إلكتروني صُمم بشكل أساسي لتتبع ومراقبة حالة <strong>إرسال عينات الزرع المصاحب لصرف</strong> مضاد الميروبينيم (Meropenem)، لضمان تطبيق البروتوكولات الطبية الصحيحة والحد من الاستخدام العشوائي للمضادات الحيوية، بالإضافة إلى توفير قاعدة إحصائية دقيقة <strong>لمتابعة تطبيق</strong> البروتوكولات ودعم القرار الطبي.</p>
                     <div class="bg-light p-3 rounded-4 border text-center mt-3">
                         <span class="fs-8 text-muted d-block mb-1">إعداد وتصميم</span>
                         <h6 class="fw-bold text-dark fs-7 mb-0">الصيدلاني السريري / سعد الحمادي</h6>
                         <span class="fs-8 text-secondary d-block mt-1">عضو لجنة المضادات الحيوية</span>
+                        <span class="fs-8 text-primary fw-bold d-block mt-1">مستشفى الموانئ التعليمي</span>
                     </div>
                 </div>
             </div>
@@ -416,7 +422,6 @@
                         <ul class="list-unstyled mb-0 fs-7 text-muted lh-lg">
                             <li><span class="badge bg-secondary rounded-circle me-1">1</span> اضغط على زر المشاركة <i class="bi bi-box-arrow-up text-primary fs-5"></i> أسفل الشاشة.</li>
                             <li><span class="badge bg-secondary rounded-circle me-1">2</span> اسحب للأسفل واختر <strong>"إضافة للشاشة الرئيسية"</strong> <i class="bi bi-plus-square text-primary"></i>.</li>
-                            <li><span class="badge bg-secondary rounded-circle me-1">3</span> اضغط على <strong>إضافة (Add)</strong> في الأعلى.</li>
                         </ul>
                     </div>
 
@@ -602,7 +607,6 @@
         let allOrders = [];
         let activeActionId = null; let isLabLoggedIn = false; let isAdminUnlocked = false;
         
-        // تعريف النوافذ
         let promptModal, alertModal, legacyEditModal, labStatusModal, confirmModal, installModal, infoModal, settingsModal;
         let pieChartInstance, reasonsPieChartInstance, timingPieChartInstance, wardsChartInstance, doctorsChartInstance;
 
@@ -615,7 +619,6 @@
         infoModal = new bootstrap.Modal(document.getElementById('infoModal'));
         settingsModal = new bootstrap.Modal(document.getElementById('settingsModal'));
 
-        // إظهار نافذة التعليمات تلقائياً لأول مرة (وليس إذا كان التطبيق مثبتاً)
         document.addEventListener('DOMContentLoaded', () => {
             const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone || document.referrer.includes('android-app://');
             if (!isStandalone && !localStorage.getItem('merotrak_install_shown')) {
@@ -658,7 +661,6 @@
             return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
         }
 
-        // --- نظام إدارة الردهات الديناميكي ---
         function renderWardsSelect() {
             const createOptions = (withAll = false, disabledSelect = false) => {
                 let opts = disabledSelect ? `<option value="" selected disabled>اختر الردهة...</option>` : '';
@@ -695,7 +697,6 @@
             if(confirmed) { wardsList.splice(idx, 1); await setDoc(settingsRef, { wards: wardsList }, { merge: true }); }
         };
 
-        // --- نظام إعدادات التطبيق ---
         window.openSettings = () => {
             askPrompt('الإعدادات', 'أدخل كلمة مرور الإعدادات:').then(pass => {
                 if(pass !== settingsPasscode) { if(pass!==null) showAlert('مرفوض', 'كلمة المرور خاطئة', false); return; }
@@ -737,7 +738,6 @@
             const link = document.createElement("a"); link.href = url; link.setAttribute("download", `MeroTrak_Export_${getLocalDateString()}.csv`); document.body.appendChild(link); link.click(); document.body.removeChild(link);
         };
 
-
         window.toggleAddSampleStatus = () => { const val = document.getElementById('l_sampleStatus').value; document.getElementById('addReasonsBlock').classList.toggle('d-none', val !== 'not_sent'); if (val !== 'not_sent') { document.getElementById('l_noSampleReason').value = ''; window.toggleAddReasonDetails(); } };
         window.toggleAddReasonDetails = () => { const val = document.getElementById('l_noSampleReason').value; document.getElementById('addToolsBlock').classList.toggle('d-none', val !== 'no_tools'); document.getElementById('addServiceBlock').classList.toggle('d-none', val !== 'no_service'); document.getElementById('addOtherBlock').classList.toggle('d-none', val !== 'other'); };
         window.toggleEditSampleStatus = () => { const val = document.getElementById('edit_l_sampleStatus').value; document.getElementById('editReasonsBlock').classList.toggle('d-none', val !== 'not_sent');
@@ -745,7 +745,6 @@
         window.toggleEditReasonDetails = () => { const val = document.getElementById('edit_l_noSampleReason').value;
             document.getElementById('editToolsBlock').classList.toggle('d-none', val !== 'no_tools'); document.getElementById('editServiceBlock').classList.toggle('d-none', val !== 'no_service'); document.getElementById('editOtherBlock').classList.toggle('d-none', val !== 'other'); };
 
-        // دوال النوافذ الموحدة
         function askPrompt(title, text, type = 'password') { return new Promise(resolve => { document.getElementById('promptTitle').innerText = title; document.getElementById('promptText').innerText = text; const input = document.getElementById('promptInput'); input.type = type; input.value = ''; const btnConfirm = document.getElementById('promptConfirmBtn'); const btnCancel = document.getElementById('promptCancelBtn'); const cleanup = () => { btnConfirm.onclick = null; btnCancel.onclick = null; input.onkeyup = null; promptModal.hide(); }; btnConfirm.onclick = () => { resolve(input.value); cleanup(); }; btnCancel.onclick = () => { resolve(null); cleanup(); }; input.onkeyup = (e) => { if(e.key === 'Enter') { resolve(input.value); cleanup(); } }; promptModal.show(); setTimeout(() => input.focus(), 500); }); }
         function showAlert(title, text, isSuccess = true) { return new Promise(resolve => { document.getElementById('alertTitle').innerText = title; document.getElementById('alertText').innerText = text; const icon = document.getElementById('alertIcon'); const btn = document.getElementById('alertOkBtn'); if(isSuccess) { icon.innerHTML = '<i class="bi bi-check-circle-fill text-success"></i>'; btn.className = 'btn btn-success w-100 fw-bold'; } else { icon.innerHTML = '<i class="bi bi-x-circle-fill text-danger"></i>'; btn.className = 'btn btn-danger w-100 fw-bold'; } const cleanup = () => { btn.onclick = null; alertModal.hide(); }; btn.onclick = () => { resolve(); cleanup(); }; alertModal.show(); }); }
         function askConfirm(title, text) { return new Promise(resolve => { document.getElementById('confirmTitle').innerText = title; document.getElementById('confirmText').innerText = text; const btnOk = document.getElementById('confirmOkBtn'); const btnCancel = document.getElementById('confirmCancelBtn'); const cleanup = () => { btnOk.onclick = null; btnCancel.onclick = null; confirmModal.hide(); }; btnOk.onclick = () => { resolve(true); cleanup(); }; btnCancel.onclick = () => { resolve(false); cleanup(); }; confirmModal.show(); }); }
@@ -758,7 +757,6 @@
         window.toggleReportInputs = () => { const type = document.getElementById('reportType').value; if (type === 'monthly') { document.getElementById('monthlyInputContainer').classList.remove('d-none'); document.getElementById('yearlyInputContainer').classList.add('d-none'); } else { document.getElementById('monthlyInputContainer').classList.add('d-none');
             document.getElementById('yearlyInputContainer').classList.remove('d-none'); } window.loadAnalytics(); };
 
-        // الاستماع لإعدادات التطبيق وتحديث المتغيرات
         onSnapshot(settingsRef, (docSnap) => { 
             if (docSnap.exists()) { 
                 let data = docSnap.data();
@@ -1022,11 +1020,11 @@
             let filteredOrders = [];
 
             if (reportType === 'monthly') {
-                const selectedMonth = document.getElementById('reportMonth').value;
+                const selectedMonth = document.getElementById('reportMonth').value; // YYYY-MM
                 if (!selectedMonth) return;
                 filteredOrders = allOrders.filter(o => !o.isDeleted && !o.isSmartForm && o.orderDate && String(o.orderDate).startsWith(selectedMonth));
             } else {
-                const selectedYear = document.getElementById('reportYear').value;
+                const selectedYear = document.getElementById('reportYear').value; // YYYY
                 if (!selectedYear) return;
                 filteredOrders = allOrders.filter(o => !o.isDeleted && !o.isSmartForm && o.orderDate && String(o.orderDate).startsWith(selectedYear));
             }
@@ -1118,7 +1116,8 @@
             if (timingPieChartInstance) timingPieChartInstance.destroy();
             timingPieChartInstance = new Chart(timingCtx, {
                 type: 'pie',
-                data: { labels: ['قبل المضاد', 'بعد المضاد', 'غير معلوم'], datasets: [{ data: [timingCount.before, timingCount.after, timingCount.unknown], backgroundColor: ['#3b82f6', '#8b5cf6', '#0ea5e9'], borderWidth: 1 }] },
+                // تم تغيير لون "قبل المضاد" هنا إلى #84cc16 (أخضر ليموني واضح ومميز عن غير المعلوم)
+                data: { labels: ['قبل المضاد', 'بعد المضاد', 'غير معلوم'], datasets: [{ data: [timingCount.before, timingCount.after, timingCount.unknown], backgroundColor: ['#84cc16', '#8b5cf6', '#0ea5e9'], borderWidth: 1 }] },
                 options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { boxWidth: 12 } } } }
             });
 
