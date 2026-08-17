@@ -512,7 +512,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getFirestore, collection, addDoc, onSnapshot, doc, updateDoc, query, orderBy, serverTimestamp, setDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-        import { getAuth, signInAnonymously, onAuthStateChanged, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
         
         const firebaseConfig = { apiKey: "AIzaSyCqm16V1ESpEbZZ8SJA8GTzFdtbexrPwaE", authDomain: "meropenem-app.firebaseapp.com", projectId: "meropenem-app", storageBucket: "meropenem-app.firebasestorage.app", messagingSenderId: "387581088853", appId: "1:387581088853:web:2a4e1a37c8372bf20af0dc" };
         const app = initializeApp(firebaseConfig); 
@@ -555,18 +555,19 @@
         const yearSelect = document.getElementById('reportYear'); const currentYear = new Date().getFullYear().toString();
         for (let y = 2024; y <= 2035; y++) { const opt = document.createElement('option'); opt.value = y; opt.innerText = y; if (y.toString() === currentYear) opt.selected = true; yearSelect.appendChild(opt); }
 
+        // التعديل الجديد: إزالة setPersistence لكي لا يسبب أي تعارض
         async function ensureAnonymousUser() {
             try {
-                await setPersistence(auth, browserLocalPersistence);
                 if (auth.currentUser) return auth.currentUser;
                 const cred = await signInAnonymously(auth);
                 return cred.user;
             } catch (err) {
                 console.error("Auth Error:", err);
-                return auth.currentUser;
+                throw err; // رمي الخطأ لنتمكن من قراءته في رسالة التنبيه إذا استمر
             }
         }
-        ensureAnonymousUser();
+        
+        ensureAnonymousUser().catch(e => console.log("Init auth info:", e.message));
 
         function escapeHTML(str) {
             if (!str) return '';
@@ -595,8 +596,14 @@
         document.getElementById('legacyForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             
-            let user = await ensureAnonymousUser();
-            if (!user) { await showAlert('خطأ', 'تعذر تأكيد الجلسة الآمنة. تأكد من اتصال الإنترنت.', false); return; }
+            // التعديل الجديد: التقاط الخطأ وعرضه للمستخدم لمعرفة الخلل بدقة
+            let user;
+            try {
+                user = await ensureAnonymousUser();
+            } catch (authError) {
+                await showAlert('خطأ في المصادقة', 'عذراً، فشل الاتصال بخادم الجلسة. التفاصيل: ' + authError.message, false);
+                return;
+            }
             
             try {
                 let status = 'pending'; let sampleTiming = null; let notSentReason = null; let notSentDetails = null;
