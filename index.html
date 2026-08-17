@@ -12,6 +12,7 @@
 
     <style>
         :root { --primary: #2563eb; --bg: #f8fafc; --text: #1e293b; }
+        html, body { overflow-x: hidden !important; max-width: 100vw !important; }
         body { font-family: 'Cairo', sans-serif; background-color: var(--bg); color: var(--text); padding-bottom: 20px; }
         
         .app-header { background: linear-gradient(135deg, #1e40af, #3b82f6); color: white; padding: 15px 20px; border-radius: 0 0 25px 25px; box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3); display: flex; justify-content: space-between; align-items: center; }
@@ -21,7 +22,7 @@
         .nav-item { flex: 1; text-align: center; padding: 10px 5px; color: #64748b; font-weight: 700; font-size: 0.85rem; border-radius: 12px; text-decoration: none; transition: 0.3s; display: flex; flex-direction: column; align-items: center; gap: 4px; }
         .nav-item.active { background: #eff6ff; color: var(--primary); }
 
-        .card { border-radius: 20px; border: none; box-shadow: 0 4px 15px rgba(0,0,0,0.03); background: #ffffff; margin-bottom: 20px; }
+        .card { border-radius: 20px; border: none; box-shadow: 0 4px 15px rgba(0,0,0,0.03); background: #ffffff; margin-bottom: 20px; max-width: 100%; }
         .form-control, .form-select { border-radius: 12px; border: 1px solid #cbd5e1; padding: 10px 15px; font-size: 0.9rem; font-weight: 600; background-color: #f8fafc; }
         .form-control:focus, .form-select:focus { border-color: var(--primary); box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1); background-color: #fff; }
         .form-label { font-size: 0.8rem; font-weight: 700; color: #475569; margin-bottom: 6px; }
@@ -331,6 +332,25 @@
                             </div>
                         </div>
 
+                        <div class="row g-3 mb-4">
+                            <div class="col-12 col-md-6">
+                                <div class="card p-3 text-center h-100 border shadow-sm">
+                                    <h6 class="text-danger fw-bold mb-3 fs-7">تحليل أوقات انقطاع/عدم توفر خدمة الزرع ⏱️</h6>
+                                    <div style="height: 250px; display: flex; justify-content: center;">
+                                        <canvas id="serviceTimingChart"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-12 col-md-6">
+                                <div class="card p-3 text-center h-100 border shadow-sm">
+                                    <h6 class="text-danger fw-bold mb-3 fs-7">تحليل أنواع الأدوات والعيّنات المفقودة 🧪</h6>
+                                    <div style="height: 250px; display: flex; justify-content: center;">
+                                        <canvas id="missingToolsChart"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
                         <div class="card border shadow-sm mb-4">
                             <div class="card-header bg-white p-3">
                                 <h6 class="mb-0 text-danger fw-bold fs-6"><i class="bi bi-slash-circle-fill me-2"></i> نسبة رفض ارسال العينات من قبل الاطباء 🚫</h6>
@@ -609,6 +629,7 @@
         
         let promptModal, alertModal, legacyEditModal, labStatusModal, confirmModal, installModal, infoModal, settingsModal;
         let pieChartInstance, reasonsPieChartInstance, timingPieChartInstance, wardsChartInstance, doctorsChartInstance;
+        let serviceTimingChartInstance, missingToolsChartInstance;
 
         promptModal = new bootstrap.Modal(document.getElementById('customPromptModal')); 
         alertModal = new bootstrap.Modal(document.getElementById('customAlertModal'));
@@ -1045,6 +1066,10 @@
             const doctorsDoctorRefusedCount = {}; const doctorsNotSentCount = {}; const doctorsRejectedCount = {};
             const refusalReasonsCount = { doctor_refused: 0, no_tools: 0, no_service: 0, other: 0 };
             const timingCount = { before: 0, after: 0, unknown: 0 };
+            
+            // متغيرات إحصائيات الإدارة المتقدمة الجديدة
+            const serviceTimingCounts = { 'خلال الدوام الرسمي': 0, 'بعد الدوام الرسمي': 0, 'عطلة': 0 };
+            const missingToolsCounts = {};
 
             filteredOrders.forEach(o => {
                 const w = String(o.ward || 'أخرى').trim(); wardsCount[w] = (wardsCount[w] || 0) + 1;
@@ -1054,6 +1079,17 @@
                     doctorsNotSentCount[docName] = (doctorsNotSentCount[docName] || 0) + 1;
                     if (o.status === 'doctor_refused' || o.notSentReason === 'doctor_refused') { doctorsDoctorRefusedCount[docName] = (doctorsDoctorRefusedCount[docName] || 0) + 1; }
                     const reason = o.notSentReason || 'doctor_refused'; if(refusalReasonsCount[reason] !== undefined) refusalReasonsCount[reason]++; else refusalReasonsCount['other']++; 
+
+                    // جمع إحصائيات الإدارة المتقدمة الجديدة
+                    if (o.notSentReason === 'no_service' && o.notSentDetails) {
+                        if (o.notSentDetails.includes('خلال الدوام الرسمي')) serviceTimingCounts['خلال الدوام الرسمي']++;
+                        else if (o.notSentDetails.includes('بعد الدوام الرسمي')) serviceTimingCounts['بعد الدوام الرسمي']++;
+                        else if (o.notSentDetails.includes('عطلة')) serviceTimingCounts['عطلة']++;
+                    }
+                    if (o.notSentReason === 'no_tools' && o.notSentDetails) {
+                        let toolName = o.notSentDetails.trim();
+                        missingToolsCounts[toolName] = (missingToolsCounts[toolName] || 0) + 1;
+                    }
                 } else {
                     if (o.sampleTiming === 'before') timingCount.before++; else if (o.sampleTiming === 'after') timingCount.after++; else if (o.sampleTiming === 'unknown') timingCount.unknown++;
                 }
@@ -1066,6 +1102,7 @@
                 updateAdminCharts(doctorsCount);
                 renderRefusalTable(doctorsCount, doctorsDoctorRefusedCount); 
                 renderCombinedTable(doctorsCount, doctorsRejectedCount, doctorsNotSentCount); 
+                updateAdvancedAdminCharts(serviceTimingCounts, missingToolsCounts);
             }
         };
 
@@ -1116,7 +1153,7 @@
             if (timingPieChartInstance) timingPieChartInstance.destroy();
             timingPieChartInstance = new Chart(timingCtx, {
                 type: 'pie',
-                // تم تغيير لون "قبل المضاد" هنا إلى #84cc16 (أخضر ليموني واضح ومميز عن غير المعلوم)
+                // تم تحديث لون "قبل المضاد" إلى لون أخضر ليموني واضح تميزاً عن غير المعلوم
                 data: { labels: ['قبل المضاد', 'بعد المضاد', 'غير معلوم'], datasets: [{ data: [timingCount.before, timingCount.after, timingCount.unknown], backgroundColor: ['#84cc16', '#8b5cf6', '#0ea5e9'], borderWidth: 1 }] },
                 options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { boxWidth: 12 } } } }
             });
@@ -1143,6 +1180,30 @@
                 type: 'bar',
                 data: { labels: docsKeys, datasets: [{ label: 'الطلبات', data: docsValues, backgroundColor: '#14b8a6', borderRadius: 4 }] },
                 options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: { callbacks: { label: function(context) { return ` ${context.raw} طلب (${docsTotal > 0 ? Math.round((context.raw / docsTotal) * 100) : 0}%)`; } } } }, scales: { x: { beginAtZero: true, ticks: { stepSize: 1 } }, y: { ticks: { autoSkip: false } } } }
+            });
+        }
+
+        // الرسوم البيانية الإضافية الخاصة بالإدارة فقط
+        function updateAdvancedAdminCharts(serviceTimingCounts, missingToolsCounts) {
+            const serviceCtx = document.getElementById('serviceTimingChart').getContext('2d');
+            if (serviceTimingChartInstance) serviceTimingChartInstance.destroy();
+            serviceTimingChartInstance = new Chart(serviceCtx, {
+                type: 'doughnut',
+                data: { 
+                    labels: ['خلال الدوام', 'بعد الدوام', 'عطلة'], 
+                    datasets: [{ data: [serviceTimingCounts['خلال الدوام الرسمي'], serviceTimingCounts['بعد الدوام الرسمي'], serviceTimingCounts['عطلة']], backgroundColor: ['#3b82f6', '#f59e0b', '#ef4444'], borderWidth: 0 }] 
+                },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { boxWidth: 12 } } } }
+            });
+
+            const toolsKeys = Object.keys(missingToolsCounts).length ? Object.keys(missingToolsCounts) : ['لا توجد بيانات'];
+            const toolsValues = Object.values(missingToolsCounts).length ? Object.values(missingToolsCounts) : [0];
+            const toolsCtx = document.getElementById('missingToolsChart').getContext('2d');
+            if (missingToolsChartInstance) missingToolsChartInstance.destroy();
+            missingToolsChartInstance = new Chart(toolsCtx, {
+                type: 'bar',
+                data: { labels: toolsKeys, datasets: [{ label: 'مرات النقص', data: toolsValues, backgroundColor: '#8b5cf6', borderRadius: 4 }] },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { ticks: { stepSize: 1 } }, y: { beginAtZero: true, ticks: { stepSize: 1 } } } }
             });
         }
         
