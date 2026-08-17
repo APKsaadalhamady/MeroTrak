@@ -71,7 +71,11 @@
             <i class="bi bi-shield-plus fs-3"></i>
             <div><h5 class="mb-0">MeroTrak</h5><span class="fs-7 opacity-75">النظام المعتمد</span></div>
         </div>
-        <i class="bi bi-cloud-arrow-down-fill fs-4 icon-btn text-white" onclick="window.showInstallInstructions()" title="تثبيت التطبيق"></i>
+        <div class="d-flex gap-2">
+            <i class="bi bi-info-circle-fill fs-4 icon-btn text-white" onclick="window.showAppInfo()" title="عن النظام"></i>
+            <i class="bi bi-gear-fill fs-4 icon-btn text-white" onclick="window.openSettings()" title="الإعدادات"></i>
+            <i class="bi bi-cloud-arrow-down-fill fs-4 icon-btn text-white" onclick="window.showInstallInstructions()" title="تثبيت التطبيق"></i>
+        </div>
     </header>
     <div class="container mt-3">
         <nav class="top-nav no-print">
@@ -90,26 +94,7 @@
                     <div class="col-6 col-md-2">
                         <label class="form-label">الردهة / القسم</label>
                         <select id="l_ward" class="form-select" required>
-                            <option value="" selected disabled>اختر الردهة...</option>
-                            <option value="الأطفال">الأطفال</option>
-                            <option value="الإنعاش">الإنعاش</option>
-                            <option value="الباطنية - رجال">الباطنية - رجال</option>
-                            <option value="الباطنية - نساء">الباطنية - نساء</option>
-                            <option value="الجراحة العامة - رجال">الجراحة العامة - رجال</option>
-                            <option value="الجراحة العامة - نساء">الجراحة العامة - نساء</option>
-                            <option value="الجناح الخاص - رجال">الجناح الخاص - رجال</option>
-                            <option value="الجناح الخاص - نساء">الجناح الخاص - نساء</option>
-                            <option value="الخدج الأولى">الخدج الأولى</option>
-                            <option value="الخدج الثانية">الخدج الثانية</option>
-                            <option value="العناية المركزة">العناية المركزة</option>
-                            <option value="النسائية - خاص">النسائية - خاص</option>
-                            <option value="النسائية - عام">النسائية - عام</option>
-                            <option value="جملة عصبية - رجال">جملة عصبية - رجال</option>
-                            <option value="جملة عصبية - نساء">جملة عصبية - نساء</option>
-                            <option value="صالة الولادة">صالة الولادة</option>
-                            <option value="كسور - رجال">كسور - رجال</option>
-                            <option value="كسور - نساء">كسور - نساء</option>
-                        </select>
+                            </select>
                     </div>
                     <div class="col-6 col-md-2"><label class="form-label">تاريخ الطلب</label><input type="date" id="l_orderDate" class="form-control" required></div>
                     
@@ -174,26 +159,7 @@
                     <div class="col-12 col-md-6"><input type="text" id="searchInput" class="form-control form-control-sm" placeholder="ابحث بالاسم أو الطبيب..."></div>
                     <div class="col-12 col-md-6">
                         <select id="wardFilter" class="form-select form-select-sm">
-                            <option value="">جميع الردهات</option>
-                            <option value="الأطفال">الأطفال</option>
-                            <option value="الإنعاش">الإنعاش</option>
-                            <option value="الباطنية - رجال">الباطنية - رجال</option>
-                            <option value="الباطنية - نساء">الباطنية - نساء</option>
-                            <option value="الجراحة العامة - رجال">الجراحة العامة - رجال</option>
-                            <option value="الجراحة العامة - نساء">الجراحة العامة - نساء</option>
-                            <option value="الجناح الخاص - رجال">الجناح الخاص - رجال</option>
-                            <option value="الجناح الخاص - نساء">الجناح الخاص - نساء</option>
-                            <option value="الخدج الأولى">الخدج الأولى</option>
-                            <option value="الخدج الثانية">الخدج الثانية</option>
-                            <option value="العناية المركزة">العناية المركزة</option>
-                            <option value="النسائية - خاص">النسائية - خاص</option>
-                            <option value="النسائية - عام">النسائية - عام</option>
-                            <option value="جملة عصبية - رجال">جملة عصبية - رجال</option>
-                            <option value="جملة عصبية - نساء">جملة عصبية - نساء</option>
-                            <option value="صالة الولادة">صالة الولادة</option>
-                            <option value="كسور - رجال">كسور - رجال</option>
-                            <option value="كسور - نساء">كسور - نساء</option>
-                        </select>
+                            </select>
                     </div>
                     <div class="col-6"><input type="date" id="startDateFilter" class="form-control form-control-sm"></div>
                     <div class="col-6"><input type="date" id="endDateFilter" class="form-control form-control-sm"></div>
@@ -413,7 +379,27 @@
     
     <div class="modal fade" id="customAlertModal" tabindex="-1" aria-hidden="true"><div class="modal-dialog modal-dialog-centered modal-sm"><div class="modal-content border-0 shadow-lg"><div class="modal-body text-center p-4"><div id="alertIcon" class="mb-3 fs-1"></div><h6 id="alertTitle" class="fw-bold mb-2"></h6><p id="alertText" class="text-muted fs-7 mb-4"></p><button class="btn w-100 fw-bold" id="alertOkBtn" data-bs-dismiss="modal">موافق</button></div></div></div></div>
     
-    <div class="modal fade" id="customConfirmModal" tabindex="-1" aria-hidden="true"><div class="modal-dialog modal-dialog-centered modal-sm"><div class="modal-content border-0 shadow-lg"><div class="modal-body text-center p-4"><div class="mb-3 fs-1 text-danger"><i class="bi bi-exclamation-triangle-fill"></i></div><h6 id="confirmTitle" class="fw-bold mb-2"></h6><p id="confirmText" class="text-muted fs-7 mb-4"></p><div class="d-flex gap-2"><button class="btn btn-light w-50 fw-bold border" id="confirmCancelBtn" data-bs-dismiss="modal">إلغاء</button><button class="btn btn-danger w-50 fw-bold" id="confirmOkBtn">نعم، احذف</button></div></div></div></div></div>
+    <div class="modal fade" id="customConfirmModal" tabindex="-1" aria-hidden="true"><div class="modal-dialog modal-dialog-centered modal-sm"><div class="modal-content border-0 shadow-lg"><div class="modal-body text-center p-4"><div class="mb-3 fs-1 text-danger"><i class="bi bi-exclamation-triangle-fill"></i></div><h6 id="confirmTitle" class="fw-bold mb-2"></h6><p id="confirmText" class="text-muted fs-7 mb-4"></p><div class="d-flex gap-2"><button class="btn btn-light w-50 fw-bold border" id="confirmCancelBtn" data-bs-dismiss="modal">إلغاء</button><button class="btn btn-danger w-50 fw-bold" id="confirmOkBtn">نعم</button></div></div></div></div></div>
+
+    <div class="modal fade" id="infoModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-sm">
+            <div class="modal-content border-0 shadow-lg">
+                <div class="modal-header border-0 pb-0 bg-light rounded-top-4 pt-3">
+                    <h6 class="modal-title fw-bold text-primary"><i class="bi bi-info-circle-fill me-1"></i> عن النظام (MeroTrak)</h6>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body text-center p-4">
+                    <div class="mb-3 fs-1 text-primary"><i class="bi bi-shield-plus"></i></div>
+                    <p class="text-muted fs-7 mb-3 lh-lg text-end">نظام إلكتروني صُمم بشكل أساسي لتتبع ومراقبة حالة <strong>إرسال عينات الزرع</strong> قبل صرف مضاد الميروبينيم (Meropenem)، لضمان تطبيق البروتوكولات الطبية الصحيحة والحد من الاستخدام العشوائي للمضادات الحيوية، بالإضافة إلى توفير قاعدة إحصائية دقيقة لتقييم الأداء ودعم القرار الطبي.</p>
+                    <div class="bg-light p-3 rounded-4 border text-center mt-3">
+                        <span class="fs-8 text-muted d-block mb-1">إعداد وتصميم</span>
+                        <h6 class="fw-bold text-dark fs-7 mb-0">الصيدلاني السريري / سعد الحمادي</h6>
+                        <span class="fs-8 text-secondary d-block mt-1">عضو لجنة المضادات الحيوية</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <div class="modal fade" id="installModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
@@ -448,6 +434,57 @@
         </div>
     </div>
 
+    <div class="modal fade" id="settingsModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg">
+                <div class="modal-header border-0 pb-0 bg-light rounded-top-4 pt-3">
+                    <h6 class="modal-title fw-bold text-dark"><i class="bi bi-gear-fill text-primary me-1"></i> إعدادات النظام</h6>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <div class="mb-4">
+                        <h6 class="fw-bold fs-7 text-secondary mb-2"><i class="bi bi-file-earmark-excel-fill text-success me-1"></i> تصدير البيانات (Excel/CSV)</h6>
+                        <button class="btn btn-outline-success w-100 fw-bold btn-sm py-2" onclick="window.exportToExcel()">
+                            <i class="bi bi-download me-1"></i> تصدير جميع السجلات النشطة
+                        </button>
+                    </div>
+                    
+                    <hr class="text-muted opacity-25">
+
+                    <div class="mb-4">
+                        <h6 class="fw-bold fs-7 text-secondary mb-2"><i class="bi bi-hospital-fill text-info me-1"></i> إدارة قائمة الردهات</h6>
+                        <div class="d-flex gap-2 mb-2">
+                            <input type="text" id="newWardInput" class="form-control form-control-sm" placeholder="اسم الردهة الجديدة...">
+                            <button class="btn btn-primary btn-sm fw-bold px-3" onclick="window.addNewWard()">إضافة</button>
+                        </div>
+                        <ul class="list-group list-group-flush border rounded-3 fs-7" id="settingsWardsList" style="max-height: 150px; overflow-y: auto;">
+                            </ul>
+                    </div>
+
+                    <hr class="text-muted opacity-25">
+
+                    <div class="mb-4">
+                        <h6 class="fw-bold fs-7 text-secondary mb-2"><i class="bi bi-key-fill text-warning me-1"></i> الحماية والأمان</h6>
+                        <button class="btn btn-light border w-100 fw-bold btn-sm py-2 text-dark" onclick="window.changeSettingsPasscode()">
+                            تغيير كلمة مرور الإعدادات
+                        </button>
+                    </div>
+
+                    <hr class="text-muted opacity-25">
+
+                    <div class="mb-2">
+                        <h6 class="fw-bold fs-7 text-danger mb-2"><i class="bi bi-trash3-fill me-1"></i> إدارة السجلات (خطر)</h6>
+                        <button class="btn btn-danger w-100 fw-bold btn-sm py-2" onclick="window.archiveAllRecords()">
+                            أرشفة / تصفير جميع السجلات المعروضة
+                        </button>
+                        <span class="fs-8 text-muted d-block text-center mt-1">(لن تحذف نهائياً، بل ستختفي من الشاشات فقط)</span>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div class="modal fade" id="legacyEditModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
@@ -463,26 +500,7 @@
                         <div class="col-6">
                             <label class="form-label">الردهة</label>
                             <select id="edit_l_ward" class="form-select" required>
-                                <option value="" disabled>اختر الردهة...</option>
-                                <option value="الأطفال">الأطفال</option>
-                                <option value="الإنعاش">الإنعاش</option>
-                                <option value="الباطنية - رجال">الباطنية - رجال</option>
-                                <option value="الباطنية - نساء">الباطنية - نساء</option>
-                                <option value="الجراحة العامة - رجال">الجراحة العامة - رجال</option>
-                                <option value="الجراحة العامة - نساء">الجراحة العامة - نساء</option>
-                                <option value="الجناح الخاص - رجال">الجناح الخاص - رجال</option>
-                                <option value="الجناح الخاص - نساء">الجناح الخاص - نساء</option>
-                                <option value="الخدج الأولى">الخدج الأولى</option>
-                                <option value="الخدج الثانية">الخدج الثانية</option>
-                                <option value="العناية المركزة">العناية المركزة</option>
-                                <option value="النسائية - خاص">النسائية - خاص</option>
-                                <option value="النسائية - عام">النسائية - عام</option>
-                                <option value="جملة عصبية - رجال">جملة عصبية - رجال</option>
-                                <option value="جملة عصبية - نساء">جملة عصبية - نساء</option>
-                                <option value="صالة الولادة">صالة الولادة</option>
-                                <option value="كسور - رجال">كسور - رجال</option>
-                                <option value="كسور - نساء">كسور - نساء</option>
-                            </select>
+                                </select>
                         </div>
                         <div class="col-6"><label class="form-label">التاريخ</label><input type="date" id="edit_l_date" class="form-control" required></div>
                         
@@ -549,7 +567,7 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, collection, addDoc, onSnapshot, doc, updateDoc, query, orderBy, serverTimestamp, setDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, onSnapshot, doc, updateDoc, query, orderBy, serverTimestamp, setDoc, writeBatch } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
         import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
         
         const firebaseConfig = {
@@ -578,12 +596,14 @@
         const ordersRef = collection(db, "meropenem_orders");
         const settingsRef = doc(db, "settings", "lab_config");
         
-        let labPasscode = "1234"; let systemAdminPass = "admin123"; 
+        let labPasscode = "1234"; let systemAdminPass = "admin123"; let settingsPasscode = "414423";
+        let defaultWards = ['الأطفال', 'الإنعاش', 'الباطنية - رجال', 'الباطنية - نساء', 'الجراحة العامة - رجال', 'الجراحة العامة - نساء', 'الجناح الخاص - رجال', 'الجناح الخاص - نساء', 'الخدج الأولى', 'الخدج الثانية', 'العناية المركزة', 'النسائية - خاص', 'النسائية - عام', 'جملة عصبية - رجال', 'جملة عصبية - نساء', 'صالة الولادة', 'كسور - رجال', 'كسور - نساء'];
+        let wardsList = [];
         let allOrders = [];
         let activeActionId = null; let isLabLoggedIn = false; let isAdminUnlocked = false;
         
         // تعريف النوافذ
-        let promptModal, alertModal, legacyEditModal, labStatusModal, confirmModal, installModal;
+        let promptModal, alertModal, legacyEditModal, labStatusModal, confirmModal, installModal, infoModal, settingsModal;
         let pieChartInstance, reasonsPieChartInstance, timingPieChartInstance, wardsChartInstance, doctorsChartInstance;
 
         promptModal = new bootstrap.Modal(document.getElementById('customPromptModal')); 
@@ -592,13 +612,12 @@
         labStatusModal = new bootstrap.Modal(document.getElementById('labStatusModal'));
         confirmModal = new bootstrap.Modal(document.getElementById('customConfirmModal'));
         installModal = new bootstrap.Modal(document.getElementById('installModal'));
+        infoModal = new bootstrap.Modal(document.getElementById('infoModal'));
+        settingsModal = new bootstrap.Modal(document.getElementById('settingsModal'));
 
         // إظهار نافذة التعليمات تلقائياً لأول مرة (وليس إذا كان التطبيق مثبتاً)
         document.addEventListener('DOMContentLoaded', () => {
-            // التحقق مما إذا كان التطبيق يعمل كبرنامج مثبت على الشاشة
             const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone || document.referrer.includes('android-app://');
-            
-            // تظهر النافذة فقط إذا كان فاتحها من المتصفح ولم يسبق أن ظهرت له
             if (!isStandalone && !localStorage.getItem('merotrak_install_shown')) {
                 setTimeout(() => { 
                     installModal.show(); 
@@ -608,6 +627,7 @@
         });
 
         window.showInstallInstructions = () => { installModal.show(); };
+        window.showAppInfo = () => { infoModal.show(); };
         
         function getLocalDateString(date = new Date()) {
             const year = date.getFullYear();
@@ -629,18 +649,94 @@
                 if (auth.currentUser) return auth.currentUser;
                 const cred = await signInAnonymously(auth);
                 return cred.user;
-            } catch (err) {
-                console.error("Auth Error:", err);
-                throw err;
-            }
+            } catch (err) { console.error("Auth Error:", err); throw err; }
         }
-        
         ensureAnonymousUser().catch(e => console.log("Init auth info:", e.message));
 
         function escapeHTML(str) {
             if (!str) return '';
             return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
         }
+
+        // --- نظام إدارة الردهات الديناميكي ---
+        function renderWardsSelect() {
+            const createOptions = (withAll = false, disabledSelect = false) => {
+                let opts = disabledSelect ? `<option value="" selected disabled>اختر الردهة...</option>` : '';
+                if(withAll) opts += `<option value="">جميع الردهات</option>`;
+                wardsList.forEach(w => opts += `<option value="${w}">${w}</option>`);
+                return opts;
+            };
+            
+            let val1 = document.getElementById('l_ward').value; let val2 = document.getElementById('edit_l_ward').value; let val3 = document.getElementById('wardFilter').value;
+            document.getElementById('l_ward').innerHTML = createOptions(false, true); document.getElementById('edit_l_ward').innerHTML = createOptions(false, true); document.getElementById('wardFilter').innerHTML = createOptions(true, false);
+            if(wardsList.includes(val1)) document.getElementById('l_ward').value = val1; if(wardsList.includes(val2)) document.getElementById('edit_l_ward').value = val2; if(wardsList.includes(val3) || val3 === '') document.getElementById('wardFilter').value = val3;
+            
+            const settingsCont = document.getElementById('settingsWardsList');
+            if(settingsCont) {
+                settingsCont.innerHTML = wardsList.map((w, index) => 
+                    `<li class="list-group-item d-flex justify-content-between align-items-center py-2 px-3 border-bottom bg-transparent">
+                        <span class="text-dark fw-bold">${escapeHTML(w)}</span>
+                        <i class="bi bi-x-lg text-danger icon-btn" onclick="window.deleteWard(${index})" title="حذف الردهة"></i>
+                    </li>`
+                ).join('');
+            }
+        }
+
+        window.addNewWard = async () => {
+            const input = document.getElementById('newWardInput'); const val = input.value.trim();
+            if(!val) return; if(wardsList.includes(val)) { showAlert('تنبيه', 'الردهة موجودة مسبقاً', false); return; }
+            wardsList.push(val); input.value = '';
+            await setDoc(settingsRef, { wards: wardsList }, { merge: true });
+            showAlert('نجاح', 'تم إضافة الردهة بنجاح!');
+        };
+
+        window.deleteWard = async (idx) => {
+            const confirmed = await askConfirm('حذف ردهة', `هل أنت متأكد من إزالة ردهة (${wardsList[idx]}) من القائمة؟`);
+            if(confirmed) { wardsList.splice(idx, 1); await setDoc(settingsRef, { wards: wardsList }, { merge: true }); }
+        };
+
+        // --- نظام إعدادات التطبيق ---
+        window.openSettings = () => {
+            askPrompt('الإعدادات', 'أدخل كلمة مرور الإعدادات:').then(pass => {
+                if(pass !== settingsPasscode) { if(pass!==null) showAlert('مرفوض', 'كلمة المرور خاطئة', false); return; }
+                settingsModal.show();
+            });
+        };
+
+        window.changeSettingsPasscode = () => {
+            askPrompt('تغيير الرمز', 'أدخل الرمز الجديد للإعدادات:', 'text').then(async n => {
+                if(n) { await setDoc(settingsRef, { settingsPass: n.trim() }, { merge: true }); showAlert('نجاح', 'تم تغيير كلمة مرور الإعدادات!'); }
+            });
+        };
+
+        window.archiveAllRecords = async () => {
+            const confirmed = await askConfirm('أرشفة السجلات', 'هل أنت متأكد من تصفير وأرشفة جميع السجلات الحالية؟ (ستختفي من الشاشة ولكنها محفوظة بالخلفية)');
+            if(confirmed) {
+                const batch = writeBatch(db);
+                const activeOrders = allOrders.filter(o => !o.isDeleted && !o.isSmartForm);
+                if(activeOrders.length === 0) { showAlert('تنبيه', 'لا توجد سجلات معروضة لتصفيرها.', false); return; }
+                activeOrders.forEach(o => { batch.update(doc(db, "meropenem_orders", o.id), { isDeleted: true }); });
+                try { await batch.commit(); showAlert('نجاح', 'تم تصفير وأرشفة السجلات بنجاح!'); settingsModal.hide(); } 
+                catch(e) { showAlert('خطأ', 'حدث خطأ أثناء الأرشفة.', false); }
+            }
+        };
+
+        window.exportToExcel = () => {
+            let csv = '\uFEFFاسم المريض,الطبيب المسؤول,الردهة,التاريخ,حالة المختبر,توقيت العينة,سبب عدم الإرسال\n';
+            const activeOrders = allOrders.filter(o => !o.isDeleted && !o.isSmartForm);
+            activeOrders.forEach(o => {
+                const pName = (o.patientName||'').replace(/,/g, ' '); const dName = (o.doctorName||'').replace(/,/g, ' '); const wName = (o.ward||'').replace(/,/g, ' '); const oDate = o.orderDate || '';
+                let labStatus = ''; if(o.status === 'confirmed') labStatus = 'تم الاستلام'; else if(o.status === 'rejected') labStatus = 'لم تستلم'; else if(o.status === 'not_sent' || o.status === 'doctor_refused') labStatus = 'لم ترسل'; else labStatus = 'بانتظار الوصول';
+                let timing = ''; if(o.sampleTiming === 'before') timing = 'قبل المضاد'; else if(o.sampleTiming === 'after') timing = 'بعد المضاد'; else if(o.sampleTiming === 'unknown') timing = 'غير معلوم';
+                let reason = ''; if(o.status === 'not_sent' || o.status === 'doctor_refused') {
+                    if(o.notSentReason === 'doctor_refused') reason = 'رفض الطبيب'; else if(o.notSentReason === 'no_tools') reason = 'عدم توفر أدوات ' + (o.notSentDetails||''); else if(o.notSentReason === 'no_service') reason = 'عدم توفر خدمة ' + (o.notSentDetails||''); else if(o.notSentReason === 'other') reason = 'أخرى ' + (o.notSentDetails||'');
+                }
+                csv += `${pName},${dName},${wName},${oDate},${labStatus},${timing},${reason}\n`;
+            });
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' }); const url = URL.createObjectURL(blob);
+            const link = document.createElement("a"); link.href = url; link.setAttribute("download", `MeroTrak_Export_${getLocalDateString()}.csv`); document.body.appendChild(link); link.click(); document.body.removeChild(link);
+        };
+
 
         window.toggleAddSampleStatus = () => { const val = document.getElementById('l_sampleStatus').value; document.getElementById('addReasonsBlock').classList.toggle('d-none', val !== 'not_sent'); if (val !== 'not_sent') { document.getElementById('l_noSampleReason').value = ''; window.toggleAddReasonDetails(); } };
         window.toggleAddReasonDetails = () => { const val = document.getElementById('l_noSampleReason').value; document.getElementById('addToolsBlock').classList.toggle('d-none', val !== 'no_tools'); document.getElementById('addServiceBlock').classList.toggle('d-none', val !== 'no_service'); document.getElementById('addOtherBlock').classList.toggle('d-none', val !== 'other'); };
@@ -662,23 +758,22 @@
         window.toggleReportInputs = () => { const type = document.getElementById('reportType').value; if (type === 'monthly') { document.getElementById('monthlyInputContainer').classList.remove('d-none'); document.getElementById('yearlyInputContainer').classList.add('d-none'); } else { document.getElementById('monthlyInputContainer').classList.add('d-none');
             document.getElementById('yearlyInputContainer').classList.remove('d-none'); } window.loadAnalytics(); };
 
+        // الاستماع لإعدادات التطبيق وتحديث المتغيرات
         onSnapshot(settingsRef, (docSnap) => { 
             if (docSnap.exists()) { 
-                labPasscode = docSnap.data().passcode || "1234"; 
-                systemAdminPass = docSnap.data().adminPass || "admin123"; 
-            } 
+                let data = docSnap.data();
+                labPasscode = data.passcode || "1234"; 
+                systemAdminPass = data.adminPass || "admin123"; 
+                settingsPasscode = data.settingsPass || "414423";
+                if(data.wards && Array.isArray(data.wards)) { wardsList = data.wards; } else { wardsList = defaultWards; }
+            } else { wardsList = defaultWards; }
+            renderWardsSelect();
         }, (error) => { console.error("Settings error:", error); });
 
         document.getElementById('legacyForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             let user;
-            try {
-                user = await ensureAnonymousUser();
-            } catch (authError) {
-                await showAlert('خطأ في المصادقة', 'عذراً، فشل الاتصال بخادم الجلسة. التفاصيل: ' + authError.message, false);
-                return;
-            }
-            
+            try { user = await ensureAnonymousUser(); } catch (authError) { await showAlert('خطأ في المصادقة', 'عذراً، فشل الاتصال بخادم الجلسة. التفاصيل: ' + authError.message, false); return; }
             try {
                 let status = 'pending'; let sampleTiming = null; let notSentReason = null; let notSentDetails = null;
                 const sStatus = document.getElementById('l_sampleStatus').value;
@@ -688,15 +783,11 @@
                 else if (sStatus === 'sent_after') { sampleTiming = 'after'; } 
                 else if (sStatus === 'sent_unknown') { sampleTiming = 'unknown'; } 
                 else if (sStatus === 'not_sent') {
-                    status = 'not_sent';
-                    notSentReason = document.getElementById('l_noSampleReason').value;
+                    status = 'not_sent'; notSentReason = document.getElementById('l_noSampleReason').value;
                     if (!notSentReason) { await showAlert('خطأ', 'يرجى اختيار سبب عدم إرسال العينة.', false); return; }
-                    if (notSentReason === 'no_tools') { notSentDetails = document.getElementById('l_sampleType').value;
-                        if (!notSentDetails) { await showAlert('خطأ', 'يرجى إدخال نوع العينة.', false); return; } } 
-                    else if (notSentReason === 'no_service') { let timing = document.getElementById('l_serviceTiming').value;
-                        let hours = document.getElementById('l_serviceTime').value; if (!hours) { await showAlert('خطأ', 'يرجى تحديد وقت الطلب.', false); return; } notSentDetails = timing + ' (الساعة: ' + hours + ')'; } 
-                    else if (notSentReason === 'other') { notSentDetails = document.getElementById('l_otherReason').value;
-                        if (!notSentDetails) { await showAlert('خطأ', 'يرجى كتابة السبب التوضيحي.', false); return; } }
+                    if (notSentReason === 'no_tools') { notSentDetails = document.getElementById('l_sampleType').value; if (!notSentDetails) { await showAlert('خطأ', 'يرجى إدخال نوع العينة.', false); return; } } 
+                    else if (notSentReason === 'no_service') { let timing = document.getElementById('l_serviceTiming').value; let hours = document.getElementById('l_serviceTime').value; if (!hours) { await showAlert('خطأ', 'يرجى تحديد وقت الطلب.', false); return; } notSentDetails = timing + ' (الساعة: ' + hours + ')'; } 
+                    else if (notSentReason === 'other') { notSentDetails = document.getElementById('l_otherReason').value; if (!notSentDetails) { await showAlert('خطأ', 'يرجى كتابة السبب التوضيحي.', false); return; } }
                 }
 
                 await addDoc(ordersRef, { 
@@ -705,94 +796,57 @@
                     ward: document.getElementById('l_ward').value, 
                     orderDate: document.getElementById('l_orderDate').value, 
                     status: status, sampleTiming: sampleTiming, notSentReason: notSentReason, notSentDetails: notSentDetails,
-                    isDeleted: false, isSmartForm: false, 
-                    submitterId: currentDeviceId,
-                    createdAt: serverTimestamp() 
+                    isDeleted: false, isSmartForm: false, submitterId: currentDeviceId, createdAt: serverTimestamp() 
                 });
 
-                document.getElementById('legacyForm').reset(); 
-                document.getElementById('l_orderDate').value = getLocalDateString(); 
-                window.toggleAddSampleStatus(); 
+                document.getElementById('legacyForm').reset(); document.getElementById('l_orderDate').value = getLocalDateString(); window.toggleAddSampleStatus(); 
                 await showAlert('نجاح', 'تم إرسال الطلب بنجاح!');
             } catch (err) { await showAlert('خطأ في الإضافة', err.message, false); }
         });
 
-        // دالة الحذف تم تحديثها لاستخدام النافذة الحديثة
         window.deleteOrder = async (id) => {
             const confirmed = await askConfirm('تأكيد الحذف', 'هل أنت متأكد من رغبتك في إخفاء هذا الطلب نهائياً من السجل؟');
             if (confirmed) {
-                try { 
-                    await updateDoc(doc(db, "meropenem_orders", id), { isDeleted: true }); 
-                    await showAlert('تم الحذف', 'تم حذف الطلب بنجاح.', true);
-                } 
-                catch (e) { 
-                    await showAlert('مرفوض', 'عذراً، انتهت مدة التعديل أو لا تملك الصلاحية.', false); 
-                }
+                try { await updateDoc(doc(db, "meropenem_orders", id), { isDeleted: true }); await showAlert('تم الحذف', 'تم حذف الطلب بنجاح.', true); } 
+                catch (e) { await showAlert('مرفوض', 'عذراً، انتهت مدة التعديل أو لا تملك الصلاحية.', false); }
             }
         };
 
         const q = query(ordersRef, orderBy("createdAt", "desc"));
         
         onSnapshot(q, (snapshot) => { 
-            allOrders = []; 
-            snapshot.forEach((docSnap) => { allOrders.push({ id: docSnap.id, ...docSnap.data() }); }); 
-            
+            allOrders = []; snapshot.forEach((docSnap) => { allOrders.push({ id: docSnap.id, ...docSnap.data() }); }); 
             allOrders.sort((a, b) => {
                 let timeA = new Date(); let timeB = new Date();
-                if (a.createdAt && typeof a.createdAt.toDate === 'function') timeA = a.createdAt.toDate();
-                else if (a.createdAt) timeA = new Date(a.createdAt);
-                else if (a.orderDate) timeA = new Date(a.orderDate);
-                
-                if (b.createdAt && typeof b.createdAt.toDate === 'function') timeB = b.createdAt.toDate();
-                else if (b.createdAt) timeB = new Date(b.createdAt);
-                else if (b.orderDate) timeB = new Date(b.orderDate);
-
+                if (a.createdAt && typeof a.createdAt.toDate === 'function') timeA = a.createdAt.toDate(); else if (a.createdAt) timeA = new Date(a.createdAt); else if (a.orderDate) timeA = new Date(a.orderDate);
+                if (b.createdAt && typeof b.createdAt.toDate === 'function') timeB = b.createdAt.toDate(); else if (b.createdAt) timeB = new Date(b.createdAt); else if (b.orderDate) timeB = new Date(b.orderDate);
                 return timeB - timeA;
             });
-
-            window.renderMainOrders(); 
-            if(isLabLoggedIn) window.renderLabInbox(); 
-            window.loadAnalytics();
-        }, (error) => { console.error("Orders listener error:", error);
-            document.getElementById('ordersContainer').innerHTML = '<div class="card p-4 text-center text-danger fw-bold">حدث خطأ في تحميل السجل.</div>'; });
+            window.renderMainOrders(); if(isLabLoggedIn) window.renderLabInbox(); window.loadAnalytics();
+        }, (error) => { document.getElementById('ordersContainer').innerHTML = '<div class="card p-4 text-center text-danger fw-bold">حدث خطأ في تحميل السجل.</div>'; });
 
         onAuthStateChanged(auth, (user) => { if(user) window.renderMainOrders(); });
 
         window.renderMainOrders = () => {
             const searchVal = String(document.getElementById('searchInput').value || '').toLowerCase();
             const wardVal = String(document.getElementById('wardFilter').value || '');
-            const sDate = document.getElementById('startDateFilter').value; 
-            const eDate = document.getElementById('endDateFilter').value;
-            const todayStr = getLocalDateString();
+            const sDate = document.getElementById('startDateFilter').value; const eDate = document.getElementById('endDateFilter').value; const todayStr = getLocalDateString();
             let isSearching = searchVal || wardVal || sDate || eDate;
 
             const filtered = allOrders.filter(o => {
                 if (!o || o.isDeleted || o.isSmartForm) return false; 
-                const pName = String(o.patientName || '').toLowerCase();
-                const dName = String(o.doctorName || '').toLowerCase();
-                const wName = String(o.ward || '');
-                const oDate = String(o.orderDate || '');
-
-                const matchName = pName.includes(searchVal) || dName.includes(searchVal);
-                const matchWard = wardVal ? wName === wardVal : true;
+                const pName = String(o.patientName || '').toLowerCase(); const dName = String(o.doctorName || '').toLowerCase(); const wName = String(o.ward || ''); const oDate = String(o.orderDate || '');
+                const matchName = pName.includes(searchVal) || dName.includes(searchVal); const matchWard = wardVal ? wName === wardVal : true;
                 let matchDate = true;
-                if (sDate && eDate) matchDate = oDate >= sDate && oDate <= eDate; 
-                else if (sDate) matchDate = oDate >= sDate; 
-                else if (eDate) matchDate = oDate <= eDate; 
-                else if (!isSearching) matchDate = (oDate === todayStr); 
+                if (sDate && eDate) matchDate = oDate >= sDate && oDate <= eDate; else if (sDate) matchDate = oDate >= sDate; else if (eDate) matchDate = oDate <= eDate; else if (!isSearching) matchDate = (oDate === todayStr); 
                 return matchName && matchWard && matchDate;
             });
 
             const cont = document.getElementById('ordersContainer');
-            if (filtered.length === 0) { cont.innerHTML = '<div class="card p-4 text-center text-muted fw-bold">لا توجد طلبات للعرض</div>'; return;
-            }
+            if (filtered.length === 0) { cont.innerHTML = '<div class="card p-4 text-center text-muted fw-bold">لا توجد طلبات للعرض</div>'; return; }
 
             cont.innerHTML = filtered.map(o => {
-                const pName = escapeHTML(o.patientName || 'بدون اسم');
-                const dName = escapeHTML(o.doctorName || 'غير محدد');
-                const wName = escapeHTML(o.ward || 'غير محدد');
-                const oDate = escapeHTML(o.orderDate || '');
-
+                const pName = escapeHTML(o.patientName || 'بدون اسم'); const dName = escapeHTML(o.doctorName || 'غير محدد'); const wName = escapeHTML(o.ward || 'غير محدد'); const oDate = escapeHTML(o.orderDate || '');
                 const isNotSent = (o.status === 'not_sent' || o.status === 'doctor_refused');
                 let badge = o.status === 'confirmed' ? '✅ إستُلمت العينة' : o.status === 'rejected' ? '❌ لم تُستلم العينة' : isNotSent ? '🚫 لم ترسل العينة' : '⏳ بانتظار وصول العينة';
                 let borderCol = o.status === 'confirmed' ? 'border-success-custom' : (o.status === 'rejected' || isNotSent) ? 'border-danger-custom' : 'border-warning-custom';
@@ -804,19 +858,14 @@
                 else if (o.sampleTiming === 'unknown') timingBadge = '<span class="badge bg-info bg-opacity-10 text-info border border-info fs-8">توقيت العينة مجهول</span>';
 
                 let orderTime = new Date();
-                if (o.createdAt && typeof o.createdAt.toDate === 'function') { orderTime = o.createdAt.toDate();
-                }
-                else if (o.createdAt) { orderTime = new Date(o.createdAt);
-                }
-                
+                if (o.createdAt && typeof o.createdAt.toDate === 'function') { orderTime = o.createdAt.toDate(); } else if (o.createdAt) { orderTime = new Date(o.createdAt); }
                 const hoursDiff = (new Date() - orderTime) / (1000 * 60 * 60);
                 const isMyOrder = (o.submitterId === currentDeviceId);
                 const canEditOrDelete = isMyOrder && (o.status === 'pending' || o.status === 'not_sent') && (hoursDiff < 24);
 
                 let reasonHtml = '';
                 if (isNotSent) {
-                    let reasonText = 'رفض الطبيب ارسال عينة زرع';
-                    let detailsText = '';
+                    let reasonText = 'رفض الطبيب ارسال عينة زرع'; let detailsText = '';
                     if (o.notSentReason === 'no_tools') { reasonText = 'عدم توفر الأدوات'; detailsText = o.notSentDetails ? `(${escapeHTML(o.notSentDetails)})` : ''; }
                     else if (o.notSentReason === 'no_service') { reasonText = 'عدم توفر الخدمة'; detailsText = o.notSentDetails ? `(${escapeHTML(o.notSentDetails)})` : ''; }
                     else if (o.notSentReason === 'other') { reasonText = 'أخرى'; detailsText = o.notSentDetails ? `(${escapeHTML(o.notSentDetails)})` : ''; }
@@ -875,12 +924,8 @@
                 if (reason === 'no_tools') document.getElementById('edit_l_sampleType').value = o.notSentDetails || '';
                 if (reason === 'no_service') { 
                     if(o.notSentDetails && o.notSentDetails.includes('(الساعة:')) { 
-                        let parts = o.notSentDetails.split('(الساعة:'); 
-                        document.getElementById('edit_l_serviceTiming').value = parts[0].trim(); 
-                        document.getElementById('edit_l_serviceTime').value = parts[1].replace(')','').trim(); 
-                    } else { 
-                        document.getElementById('edit_l_serviceTiming').value = o.notSentDetails || 'خلال الدوام الرسمي'; 
-                    } 
+                        let parts = o.notSentDetails.split('(الساعة:'); document.getElementById('edit_l_serviceTiming').value = parts[0].trim(); document.getElementById('edit_l_serviceTime').value = parts[1].replace(')','').trim(); 
+                    } else { document.getElementById('edit_l_serviceTiming').value = o.notSentDetails || 'خلال الدوام الرسمي'; } 
                 }
                 if (reason === 'other') document.getElementById('edit_l_otherReason').value = o.notSentDetails || '';
             }
@@ -889,36 +934,21 @@
 
         document.getElementById('legacyEditForm').addEventListener('submit', async (e) => { 
             e.preventDefault(); const id = document.getElementById('edit_l_id').value; 
-           
             let status = 'pending'; let sampleTiming = null; let notSentReason = null; let notSentDetails = null;
             const sStatus = document.getElementById('edit_l_sampleStatus').value;
             if (!sStatus) { await showAlert('خطأ', 'يرجى اختيار حالة العينة.', false); return; }
-            if (sStatus === 'sent_before') { sampleTiming = 'before';
-            } else if (sStatus === 'sent_after') { sampleTiming = 'after'; } else if (sStatus === 'sent_unknown') { sampleTiming = 'unknown'; }
+            if (sStatus === 'sent_before') { sampleTiming = 'before'; } else if (sStatus === 'sent_after') { sampleTiming = 'after'; } else if (sStatus === 'sent_unknown') { sampleTiming = 'unknown'; }
             else if (sStatus === 'not_sent') { 
-                status = 'not_sent';
-                notSentReason = document.getElementById('edit_l_noSampleReason').value; 
+                status = 'not_sent'; notSentReason = document.getElementById('edit_l_noSampleReason').value; 
                 if (!notSentReason) { await showAlert('خطأ', 'يرجى اختيار السبب.', false); return; } 
-                if (notSentReason === 'no_tools') { 
-                    notSentDetails = document.getElementById('edit_l_sampleType').value;
-                    if (!notSentDetails) { await showAlert('خطأ', 'يرجى الكتابة.', false); return; } 
-                } else if (notSentReason === 'no_service') { 
-                    let timing = document.getElementById('edit_l_serviceTiming').value;
-                    let hours = document.getElementById('edit_l_serviceTime').value; 
-                    if (!hours) { await showAlert('خطأ', 'حدد الوقت.', false); return; } 
-                    notSentDetails = timing + ' (الساعة: ' + hours + ')';
-                } else if (notSentReason === 'other') { 
-                    notSentDetails = document.getElementById('edit_l_otherReason').value;
-                    if (!notSentDetails) { await showAlert('خطأ', 'يرجى التوضيح.', false); return; } 
-                } 
+                if (notSentReason === 'no_tools') { notSentDetails = document.getElementById('edit_l_sampleType').value; if (!notSentDetails) { await showAlert('خطأ', 'يرجى الكتابة.', false); return; } 
+                } else if (notSentReason === 'no_service') { let timing = document.getElementById('edit_l_serviceTiming').value; let hours = document.getElementById('edit_l_serviceTime').value; if (!hours) { await showAlert('خطأ', 'حدد الوقت.', false); return; } notSentDetails = timing + ' (الساعة: ' + hours + ')';
+                } else if (notSentReason === 'other') { notSentDetails = document.getElementById('edit_l_otherReason').value; if (!notSentDetails) { await showAlert('خطأ', 'يرجى التوضيح.', false); return; } } 
             }
 
             try {
                 await updateDoc(doc(db, "meropenem_orders", id), { 
-                    patientName: document.getElementById('edit_l_patient').value.trim(), 
-                    doctorName: document.getElementById('edit_l_doctor').value.trim(), 
-                    ward: document.getElementById('edit_l_ward').value, 
-                    orderDate: document.getElementById('edit_l_date').value, 
+                    patientName: document.getElementById('edit_l_patient').value.trim(), doctorName: document.getElementById('edit_l_doctor').value.trim(), ward: document.getElementById('edit_l_ward').value, orderDate: document.getElementById('edit_l_date').value, 
                     status: status, sampleTiming: sampleTiming, notSentReason: notSentReason, notSentDetails: notSentDetails
                 }); 
                 legacyEditModal.hide(); await showAlert('نجاح', 'تم تحديث البيانات!');
@@ -933,13 +963,7 @@
         };
 
         window.applyLabStatus = async (status) => { 
-            try {
-                await updateDoc(doc(db, "meropenem_orders", activeActionId), { status: status, updatedAt: serverTimestamp() });
-                labStatusModal.hide(); 
-                showAlert('نجاح', 'تم تحديث حالة العينة بنجاح');
-            } catch(e) {
-                showAlert('خطأ', 'فشل التحديث من السيرفر: ' + e.message, false);
-            }
+            try { await updateDoc(doc(db, "meropenem_orders", activeActionId), { status: status, updatedAt: serverTimestamp() }); labStatusModal.hide(); showAlert('نجاح', 'تم تحديث حالة العينة بنجاح'); } catch(e) { showAlert('خطأ', 'فشل التحديث من السيرفر: ' + e.message, false); }
         };
         
         window.changeLabPasscode = () => {
@@ -947,10 +971,7 @@
                 if(old === null) return;
                 if(old !== labPasscode) { await showAlert('مرفوض', 'الرمز الحالي خاطئ', false); return; }
                 const n = await askPrompt('رمز جديد', 'الرمز الجديد:', 'text');
-                if(n) { 
-                    await setDoc(settingsRef, { passcode: n.trim() }, { merge: true }); 
-                    showAlert('نجاح', 'تم تغيير رمز المختبر!'); 
-                }
+                if(n) { await setDoc(settingsRef, { passcode: n.trim() }, { merge: true }); showAlert('نجاح', 'تم تغيير رمز المختبر!'); }
             });
         };
 
@@ -959,11 +980,7 @@
                 if(old === null) return;
                 if(old !== systemAdminPass) { await showAlert('مرفوض', 'الرمز الحالي خاطئ', false); return; }
                 const n = await askPrompt('رمز جديد', 'الرمز الجديد:', 'text');
-                if(n) { 
-                    await setDoc(settingsRef, { adminPass: n.trim() }, { merge: true }); 
-                    systemAdminPass = n.trim(); 
-                    showAlert('نجاح', 'تم تغيير رمز الإدارة!'); 
-                }
+                if(n) { await setDoc(settingsRef, { adminPass: n.trim() }, { merge: true }); systemAdminPass = n.trim(); showAlert('نجاح', 'تم تغيير رمز الإدارة!'); }
             });
         };
 
@@ -987,8 +1004,7 @@
         };
 
         window.updateLabInbox = async (id, status) => { 
-            try { await updateDoc(doc(db, "meropenem_orders", id), { status: status, updatedAt: serverTimestamp() }); } 
-            catch (e) { await showAlert('خطأ', e.message, false); } 
+            try { await updateDoc(doc(db, "meropenem_orders", id), { status: status, updatedAt: serverTimestamp() }); } catch (e) { await showAlert('خطأ', e.message, false); } 
         };
 
         window.unlockAdminStats = () => {
@@ -1033,31 +1049,17 @@
             const timingCount = { before: 0, after: 0, unknown: 0 };
 
             filteredOrders.forEach(o => {
-                const w = String(o.ward || 'أخرى').trim();
-                wardsCount[w] = (wardsCount[w] || 0) + 1;
-                
-                const docName = String(o.doctorName || 'غير محدد').trim();
-                doctorsCount[docName] = (doctorsCount[docName] || 0) + 1;
+                const w = String(o.ward || 'أخرى').trim(); wardsCount[w] = (wardsCount[w] || 0) + 1;
+                const docName = String(o.doctorName || 'غير محدد').trim(); doctorsCount[docName] = (doctorsCount[docName] || 0) + 1;
                 
                 if (o.status === 'not_sent' || o.status === 'doctor_refused') {
                     doctorsNotSentCount[docName] = (doctorsNotSentCount[docName] || 0) + 1;
-                    
-                    if (o.status === 'doctor_refused' || o.notSentReason === 'doctor_refused') {
-                        doctorsDoctorRefusedCount[docName] = (doctorsDoctorRefusedCount[docName] || 0) + 1;
-                    }
-
-                    const reason = o.notSentReason || 'doctor_refused';
-                    if(refusalReasonsCount[reason] !== undefined) refusalReasonsCount[reason]++;
-                    else refusalReasonsCount['other']++; 
+                    if (o.status === 'doctor_refused' || o.notSentReason === 'doctor_refused') { doctorsDoctorRefusedCount[docName] = (doctorsDoctorRefusedCount[docName] || 0) + 1; }
+                    const reason = o.notSentReason || 'doctor_refused'; if(refusalReasonsCount[reason] !== undefined) refusalReasonsCount[reason]++; else refusalReasonsCount['other']++; 
                 } else {
-                    if (o.sampleTiming === 'before') timingCount.before++;
-                    else if (o.sampleTiming === 'after') timingCount.after++;
-                    else if (o.sampleTiming === 'unknown') timingCount.unknown++;
+                    if (o.sampleTiming === 'before') timingCount.before++; else if (o.sampleTiming === 'after') timingCount.after++; else if (o.sampleTiming === 'unknown') timingCount.unknown++;
                 }
-                
-                if (o.status === 'rejected') {
-                    doctorsRejectedCount[docName] = (doctorsRejectedCount[docName] || 0) + 1;
-                }
+                if (o.status === 'rejected') { doctorsRejectedCount[docName] = (doctorsRejectedCount[docName] || 0) + 1; }
             });
 
             updatePublicCharts(confirmed, rejected, pending, notSentCount, wardsCount, refusalReasonsCount, timingCount);
@@ -1072,13 +1074,10 @@
         function renderRefusalTable(doctorsTotal, doctorsDoctorRefused) {
             const tbody = document.getElementById('doctorsRefusalBody');
             const docList = Object.keys(doctorsTotal);
-            if (docList.length === 0) { tbody.innerHTML = '<tr><td colspan="4" class="text-center text-muted py-4">لا توجد بيانات متاحة في هذه الفترة</td></tr>';
-            return; }
+            if (docList.length === 0) { tbody.innerHTML = '<tr><td colspan="4" class="text-center text-muted py-4">لا توجد بيانات متاحة في هذه الفترة</td></tr>'; return; }
             docList.sort((a, b) => (doctorsDoctorRefused[b] || 0) - (doctorsDoctorRefused[a] || 0));
             tbody.innerHTML = docList.map(docName => {
-                const total = doctorsTotal[docName] || 0; 
-                const refused = doctorsDoctorRefused[docName] || 0;
-                const ratio = total ? Math.round((refused / total) * 100) : 0;
+                const total = doctorsTotal[docName] || 0; const refused = doctorsDoctorRefused[docName] || 0; const ratio = total ? Math.round((refused / total) * 100) : 0;
                 let badgeColor = ratio > 50 ? 'bg-danger' : ratio > 20 ? 'bg-warning text-dark' : 'bg-success';
                 return `<tr><td class="px-4"><strong>د. ${escapeHTML(docName)}</strong></td><td class="text-center text-danger fw-bold">${refused}</td><td class="text-center">${total}</td><td class="text-center"><span class="badge ${badgeColor} px-2 py-1 rounded-pill">${ratio}%</span></td></tr>`;
             }).join('');
@@ -1087,15 +1086,11 @@
         function renderCombinedTable(doctorsTotal, doctorsRejected, doctorsNotSent) {
             const tbody = document.getElementById('doctorsCombinedBody');
             const docList = Object.keys(doctorsTotal);
-            if (docList.length === 0) { tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted py-4">لا توجد بيانات متاحة في هذه الفترة</td></tr>';
-            return; }
+            if (docList.length === 0) { tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted py-4">لا توجد بيانات متاحة في هذه الفترة</td></tr>'; return; }
             docList.sort((a, b) => ((doctorsRejected[b] || 0) + (doctorsNotSent[b] || 0)) - ((doctorsRejected[a] || 0) + (doctorsNotSent[a] || 0)));
             tbody.innerHTML = docList.map(docName => {
-                const total = doctorsTotal[docName] || 0; 
-                const rejected = doctorsRejected[docName] || 0; 
-                const notSent = doctorsNotSent[docName] || 0;
-                const combined = rejected + notSent; 
-                const ratio = total ? Math.round((combined / total) * 100) : 0;
+                const total = doctorsTotal[docName] || 0; const rejected = doctorsRejected[docName] || 0; const notSent = doctorsNotSent[docName] || 0;
+                const combined = rejected + notSent; const ratio = total ? Math.round((combined / total) * 100) : 0;
                 let badgeColor = ratio > 50 ? 'bg-danger' : ratio > 20 ? 'bg-warning text-dark' : 'bg-success';
                 return `<tr><td class="px-4"><strong>د. ${escapeHTML(docName)}</strong></td><td class="text-center text-danger fw-bold">${rejected}</td><td class="text-center text-secondary fw-bold">${notSent}</td><td class="text-center text-dark fw-bold fs-6">${combined}</td><td class="text-center">${total}</td><td class="text-center"><span class="badge ${badgeColor} px-2 py-1 rounded-pill">${ratio}%</span></td></tr>`;
             }).join('');
