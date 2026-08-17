@@ -585,6 +585,7 @@
             e.preventDefault();
             
             let user = await ensureAnonymousUser();
+            if (!user) { await showAlert('خطأ', 'تعذر تأكيد الجلسة الآمنة. تأكد من اتصال الإنترنت.', false); return; }
             
             try {
                 let status = 'pending'; let sampleTiming = null; let notSentReason = null; let notSentDetails = null;
@@ -609,7 +610,7 @@
                     orderDate: document.getElementById('l_orderDate').value, 
                     status: status, sampleTiming: sampleTiming, notSentReason: notSentReason, notSentDetails: notSentDetails,
                     isDeleted: false, isSmartForm: false, 
-                    submitterId: user ? user.uid : 'anonymous_guest', 
+                    submitterId: user.uid, 
                     createdAt: serverTimestamp() 
                 });
                 
@@ -634,8 +635,15 @@
             snapshot.forEach((docSnap) => { allOrders.push({ id: docSnap.id, ...docSnap.data() }); }); 
             
             allOrders.sort((a, b) => {
-                const timeA = a.createdAt?.toMillis ? a.createdAt.toMillis() : (new Date(a.orderDate || 0).getTime());
-                const timeB = b.createdAt?.toMillis ? b.createdAt.toMillis() : (new Date(b.orderDate || 0).getTime());
+                let timeA = new Date(); let timeB = new Date();
+                if (a.createdAt && typeof a.createdAt.toDate === 'function') timeA = a.createdAt.toDate();
+                else if (a.createdAt) timeA = new Date(a.createdAt);
+                else if (a.orderDate) timeA = new Date(a.orderDate);
+                
+                if (b.createdAt && typeof b.createdAt.toDate === 'function') timeB = b.createdAt.toDate();
+                else if (b.createdAt) timeB = new Date(b.createdAt);
+                else if (b.orderDate) timeB = new Date(b.orderDate);
+
                 return timeB - timeA;
             });
 
@@ -696,7 +704,8 @@
                 else if (o.createdAt) { orderTime = new Date(o.createdAt); }
                 
                 const hoursDiff = (new Date() - orderTime) / (1000 * 60 * 60);
-                const isMyOrder = (currentUid && o.submitterId === currentUid) || (o.submitterId === 'anonymous_guest');
+                
+                const isMyOrder = (currentUid && o.submitterId === currentUid);
                 const canEditOrDelete = isMyOrder && (o.status === 'pending' || o.status === 'not_sent') && (hoursDiff < 24);
 
                 let reasonHtml = '';
