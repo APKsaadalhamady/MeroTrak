@@ -428,7 +428,7 @@
                     <div class="card border-0 bg-light mb-3 p-3 shadow-sm rounded-4">
                         <h6 class="fw-bold text-dark fs-7 mb-3"><i class="bi bi-apple fs-5 me-1"></i> أجهزة الآيفون (Safari):</h6>
                         <ul class="list-unstyled mb-0 fs-7 text-muted lh-lg">
-                            <li><span class="badge bg-secondary rounded-circle me-1">1</span> اضغط على زر المشاركة <i class="bi bi-share text-primary"></i> أسفل الشاشة.</li>
+                            <li><span class="badge bg-secondary rounded-circle me-1">1</span> اضغط على زر المشاركة <i class="bi bi-box-arrow-up text-primary fs-5"></i> أسفل الشاشة.</li>
                             <li><span class="badge bg-secondary rounded-circle me-1">2</span> اسحب للأسفل واختر <strong>"إضافة للشاشة الرئيسية"</strong> <i class="bi bi-plus-square text-primary"></i>.</li>
                             <li><span class="badge bg-secondary rounded-circle me-1">3</span> اضغط على <strong>إضافة (Add)</strong> في الأعلى.</li>
                         </ul>
@@ -437,9 +437,8 @@
                     <div class="card border-0 bg-light p-3 shadow-sm rounded-4">
                         <h6 class="fw-bold text-dark fs-7 mb-3"><i class="bi bi-android2 text-success fs-5 me-1"></i> أجهزة الأندرويد (Chrome):</h6>
                         <ul class="list-unstyled mb-0 fs-7 text-muted lh-lg">
-                            <li><span class="badge bg-secondary rounded-circle me-1">1</span> اضغط على خيارات القائمة <i class="bi bi-three-dots-vertical text-dark"></i> أعلى الشاشة.</li>
-                            <li><span class="badge bg-secondary rounded-circle me-1">2</span> اختر <strong>"إضافة إلى الشاشة الرئيسية"</strong>.</li>
-                            <li><span class="badge bg-secondary rounded-circle me-1">3</span> اضغط على <strong>تثبيت (Install)</strong>.</li>
+                            <li><span class="badge bg-secondary rounded-circle me-1">1</span> اضغط على خيارات القائمة <i class="bi bi-three-dots-vertical text-dark fs-5"></i> أعلى الشاشة.</li>
+                            <li><span class="badge bg-secondary rounded-circle me-1">2</span> اختر <strong>"تثبيت التطبيق" (Install app)</strong>.</li>
                         </ul>
                     </div>
 
@@ -594,9 +593,13 @@
         confirmModal = new bootstrap.Modal(document.getElementById('customConfirmModal'));
         installModal = new bootstrap.Modal(document.getElementById('installModal'));
 
-        // إظهار نافذة التعليمات تلقائياً لأول مرة
+        // إظهار نافذة التعليمات تلقائياً لأول مرة (وليس إذا كان التطبيق مثبتاً)
         document.addEventListener('DOMContentLoaded', () => {
-            if (!localStorage.getItem('merotrak_install_shown')) {
+            // التحقق مما إذا كان التطبيق يعمل كبرنامج مثبت على الشاشة
+            const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone || document.referrer.includes('android-app://');
+            
+            // تظهر النافذة فقط إذا كان فاتحها من المتصفح ولم يسبق أن ظهرت له
+            if (!isStandalone && !localStorage.getItem('merotrak_install_shown')) {
                 setTimeout(() => { 
                     installModal.show(); 
                     localStorage.setItem('merotrak_install_shown', 'true'); 
