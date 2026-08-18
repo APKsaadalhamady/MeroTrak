@@ -3,8 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MeroTrak</title>
     
+    <title>MeroTrak</title>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#2563eb">
+    
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="MeroTrak">
+    <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/3063/3063823.png">
+
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.rtl.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
@@ -94,8 +102,7 @@
                  
                     <div class="col-6 col-md-2">
                         <label class="form-label">الردهة / القسم</label>
-                        <select id="l_ward" class="form-select" required>
-                            </select>
+                        <select id="l_ward" class="form-select" required></select>
                     </div>
                     <div class="col-6 col-md-2"><label class="form-label">تاريخ الطلب</label><input type="date" id="l_orderDate" class="form-control" required></div>
                     
@@ -163,8 +170,7 @@
                     <div class="row g-2">
                         <div class="col-12 col-md-6"><input type="text" id="searchInput" class="form-control form-control-sm" placeholder="ابحث بالاسم أو الطبيب..."></div>
                         <div class="col-12 col-md-6">
-                            <select id="wardFilter" class="form-select form-select-sm">
-                                </select>
+                            <select id="wardFilter" class="form-select form-select-sm"></select>
                         </div>
                         <div class="col-6"><input type="date" id="startDateFilter" class="form-control form-control-sm"></div>
                         <div class="col-6"><input type="date" id="endDateFilter" class="form-control form-control-sm"></div>
@@ -482,26 +488,21 @@
                             <input type="text" id="newWardInput" class="form-control form-control-sm" placeholder="اسم الردهة الجديدة...">
                             <button class="btn btn-primary btn-sm fw-bold px-3" onclick="window.addNewWard()">إضافة</button>
                         </div>
-                        <ul class="list-group list-group-flush border rounded-3 fs-7" id="settingsWardsList" style="max-height: 150px; overflow-y: auto;">
-                            </ul>
+                        <ul class="list-group list-group-flush border rounded-3 fs-7" id="settingsWardsList" style="max-height: 150px; overflow-y: auto;"></ul>
                     </div>
 
                     <hr class="text-muted opacity-25">
 
                     <div class="mb-4">
                         <h6 class="fw-bold fs-7 text-secondary mb-2"><i class="bi bi-key-fill text-warning me-1"></i> الحماية والأمان</h6>
-                        <button class="btn btn-light border w-100 fw-bold btn-sm py-2 text-dark" onclick="window.changeSettingsPasscode()">
-                            تغيير كلمة مرور الإعدادات
-                        </button>
+                        <button class="btn btn-light border w-100 fw-bold btn-sm py-2 text-dark" onclick="window.changeSettingsPasscode()">تغيير كلمة مرور الإعدادات</button>
                     </div>
 
                     <hr class="text-muted opacity-25">
 
                     <div class="mb-2">
                         <h6 class="fw-bold fs-7 text-danger mb-2"><i class="bi bi-trash3-fill me-1"></i> إدارة السجلات (خطر)</h6>
-                        <button class="btn btn-danger w-100 fw-bold btn-sm py-2" onclick="window.archiveAllRecords()">
-                            أرشفة / تصفير جميع السجلات المعروضة
-                        </button>
+                        <button class="btn btn-danger w-100 fw-bold btn-sm py-2" onclick="window.archiveAllRecords()">أرشفة / تصفير جميع السجلات المعروضة</button>
                         <span class="fs-8 text-muted d-block text-center mt-1">(لن تحذف نهائياً، بل ستختفي من الشاشات فقط)</span>
                     </div>
 
@@ -524,8 +525,7 @@
                         <div class="col-12"><label class="form-label">الطبيب المسؤول</label><input type="text" id="edit_l_doctor" class="form-control" required></div>
                         <div class="col-6">
                             <label class="form-label">الردهة</label>
-                            <select id="edit_l_ward" class="form-select" required>
-                                </select>
+                            <select id="edit_l_ward" class="form-select" required></select>
                         </div>
                         <div class="col-6"><label class="form-label">التاريخ</label><input type="date" id="edit_l_date" class="form-control" required></div>
                         
@@ -1067,7 +1067,6 @@
             const refusalReasonsCount = { doctor_refused: 0, no_tools: 0, no_service: 0, other: 0 };
             const timingCount = { before: 0, after: 0, unknown: 0 };
             
-            // متغيرات إحصائيات الإدارة المتقدمة الجديدة
             const serviceTimingCounts = { 'خلال الدوام الرسمي': 0, 'بعد الدوام الرسمي': 0, 'عطلة': 0 };
             const missingToolsCounts = {};
 
@@ -1080,7 +1079,6 @@
                     if (o.status === 'doctor_refused' || o.notSentReason === 'doctor_refused') { doctorsDoctorRefusedCount[docName] = (doctorsDoctorRefusedCount[docName] || 0) + 1; }
                     const reason = o.notSentReason || 'doctor_refused'; if(refusalReasonsCount[reason] !== undefined) refusalReasonsCount[reason]++; else refusalReasonsCount['other']++; 
 
-                    // جمع إحصائيات الإدارة المتقدمة الجديدة
                     if (o.notSentReason === 'no_service' && o.notSentDetails) {
                         if (o.notSentDetails.includes('خلال الدوام الرسمي')) serviceTimingCounts['خلال الدوام الرسمي']++;
                         else if (o.notSentDetails.includes('بعد الدوام الرسمي')) serviceTimingCounts['بعد الدوام الرسمي']++;
@@ -1153,7 +1151,6 @@
             if (timingPieChartInstance) timingPieChartInstance.destroy();
             timingPieChartInstance = new Chart(timingCtx, {
                 type: 'pie',
-                // تم تحديث لون "قبل المضاد" إلى لون أخضر ليموني واضح تميزاً عن غير المعلوم
                 data: { labels: ['قبل المضاد', 'بعد المضاد', 'غير معلوم'], datasets: [{ data: [timingCount.before, timingCount.after, timingCount.unknown], backgroundColor: ['#84cc16', '#8b5cf6', '#0ea5e9'], borderWidth: 1 }] },
                 options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { boxWidth: 12 } } } }
             });
@@ -1183,7 +1180,6 @@
             });
         }
 
-        // الرسوم البيانية الإضافية الخاصة بالإدارة فقط
         function updateAdvancedAdminCharts(serviceTimingCounts, missingToolsCounts) {
             const serviceCtx = document.getElementById('serviceTimingChart').getContext('2d');
             if (serviceTimingChartInstance) serviceTimingChartInstance.destroy();
